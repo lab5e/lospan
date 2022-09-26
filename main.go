@@ -37,14 +37,7 @@ func init() {
 	flag.BoolVar(&config.PrintSchema, "printschema", false, "Print schema definition")
 	flag.BoolVar(&config.Syslog, "syslog", false, "Send logs to syslog")
 	flag.BoolVar(&config.DisableGatewayChecks, "disablegwcheck", false, "Disable ALL gateway checks")
-	flag.StringVar(&config.ConnectHost, "connect-host", server.DefaultConnectHost, "CONNECT ID host")
-	flag.StringVar(&config.ConnectClientID, "connect-clientid", server.DefaultConnectClientID, "CONNECT ID client ID")
-	flag.StringVar(&config.ConnectRedirectLogin, "connect-login-redirect", "", "CONNECT ID redirect URI for login")
-	flag.StringVar(&config.ConnectRedirectLogout, "connect-logout-redirect", "", "CONNECT ID redirect URI for logout")
-	flag.StringVar(&config.ConnectPassword, "connect-password", "", "CONNECT ID password")
-	flag.BoolVar(&config.DisableAuth, "disable-auth", false, "Disable the authentication layers")
-	flag.StringVar(&config.ConnectLoginTarget, "connect-login-target", "", "Final redirect after login roundtrip (internal)")
-	flag.StringVar(&config.ConnectLogoutTarget, "connect-logout-target", "", "Final redirect after logout roundtrip (internal)")
+	flag.BoolVar(&config.DisableAuth, "disable-auth", true, "Disable the authentication layers")
 	flag.StringVar(&config.TLSCertFile, "tls-cert", "", "TLS certificate")
 	flag.StringVar(&config.TLSKeyFile, "tls-key", "", "TLS key file")
 	flag.BoolVar(&config.UseSecureCookie, "securecookie", false, "Set the secure flag for the auth cookie")
@@ -66,7 +59,7 @@ func init() {
 
 func main() {
 	if config.PrintSchema {
-		fmt.Println(dbstore.DBSchema)
+		fmt.Print(dbstore.DBSchema)
 		return
 	}
 	logging.SetLogLevel(config.LogLevel)

@@ -50,7 +50,7 @@ func (b *BatchMode) Prepare(congress *lassie.Client, app lassie.Application, gw 
 		}
 		dev, err := congress.CreateDevice(app.EUI, newDevice)
 		if err != nil {
-			return fmt.Errorf("Unable to create device in Congress: %v", err)
+			return fmt.Errorf("unable to create device in Congress: %v", err)
 		}
 		b.devices = append(b.devices, dev)
 	}
@@ -75,7 +75,7 @@ const joinAttempts = 5
 func (b *BatchMode) launchDevice(device lassie.Device, wg *sync.WaitGroup) {
 	keys, err := NewDeviceKeys(b.Application.EUI, device)
 	if err != nil {
-		logging.Warning("Got error converting lassie data into proper types: ", err)
+		logging.Warning("Got error converting lassie data into proper types: %v", err)
 	}
 
 	generator := NewMessageGenerator(b.Config)

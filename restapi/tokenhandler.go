@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -25,16 +25,12 @@ import (
 	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/telenordigital/goconnect"
 )
-
-const tokenHeaderName = "X-API-Token"
 
 // isValidToken checks if the API token is valid and applies to the method and
 // path. It will return a triplet with success (true/false), error message and
 // HTTP status code. This *could* have been a filter for the request but the
 // resources use the ResponseWriter type and that is a can of worms wrt the
-//
 func (h *Server) isValidToken(headerToken, method string, path string) (bool, string, int, model.UserID) {
 	if headerToken == "" {
 		return false, "Missing API Token", http.StatusUnauthorized, model.InvalidUserID
@@ -149,7 +145,7 @@ func (h *Server) tokenInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Server) listTokens(session goconnect.Session, w http.ResponseWriter, r *http.Request) {
+func (h *Server) listTokens(w http.ResponseWriter, r *http.Request) {
 	// Get the list of tokens for the user
 	list, err := h.context.Storage.Token.GetList(h.connectUserID(r))
 	if err != nil {
@@ -169,8 +165,8 @@ func (h *Server) listTokens(session goconnect.Session, w http.ResponseWriter, r 
 	}
 }
 
-func (h *Server) createToken(session goconnect.Session, w http.ResponseWriter, r *http.Request) {
-	buf, err := ioutil.ReadAll(r.Body)
+func (h *Server) createToken(w http.ResponseWriter, r *http.Request) {
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		logging.Info("Unable to read POSTed body to tokens: %v", err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
@@ -187,7 +183,7 @@ func (h *Server) createToken(session goconnect.Session, w http.ResponseWriter, r
 		http.Error(w, "Must specify resource", http.StatusBadRequest)
 		return
 	}
-	token, err := model.NewAPIToken(model.UserID(session.UserID), newToken.Resource, newToken.Write)
+	token, err := model.NewAPIToken(model.UserID(model.SystemUserID), newToken.Resource, newToken.Write)
 	if err != nil {
 		logging.Warning("Unable to create token: %v", err)
 		http.Error(w, "Unable to create token", http.StatusInternalServerError)
@@ -195,7 +191,7 @@ func (h *Server) createToken(session goconnect.Session, w http.ResponseWriter, r
 	}
 
 	if err := h.context.Storage.Token.Put(token, h.connectUserID(r)); err != nil {
-		logging.Warning("Unable to store token %s: %v", token, err)
+		logging.Warning("Unable to store token %v: %v", token, err)
 		http.Error(w, "Unable to store token", http.StatusInternalServerError)
 		return
 	}
@@ -203,25 +199,19 @@ func (h *Server) createToken(session goconnect.Session, w http.ResponseWriter, r
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newTokenFromModel(token)); err != nil {
-		logging.Warning("Unable to marshal token %s: %v", token, err)
+		logging.Warning("Unable to marshal token %v: %v", token, err)
 	}
 }
 
 // tokenListHandler handles GET and POST requests to the token list
 func (h *Server) tokenListHandler(w http.ResponseWriter, r *http.Request) {
 	// Need the session with the user ID.
-	s := r.Context().Value(goconnect.SessionContext)
-	session, ok := s.(goconnect.Session)
-	if !ok {
-		http.Error(w, "No session found", http.StatusUnauthorized)
-		return
-	}
 
 	switch r.Method {
 	case http.MethodGet:
-		h.listTokens(session, w, r)
+		h.listTokens(w, r)
 	case http.MethodPost:
-		h.createToken(session, w, r)
+		h.createToken(w, r)
 	default:
 		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
 	}

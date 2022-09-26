@@ -27,7 +27,6 @@ import (
 	"github.com/ExploratoryEngineering/congress/utils"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/telenordigital/goconnect"
 
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/websocket"
@@ -84,50 +83,6 @@ func NewServer(loopbackOnly bool, scontext *server.Context, config *server.Confi
 	}
 
 	handler := ret.handler()
-
-	if !config.DisableAuth {
-		isSecure := (config.TLSCertFile != "" || config.UseSecureCookie)
-		if isSecure && !config.UseSecureCookie {
-			logging.Info("Note: Overriding secure cookie flag since server uses TLS")
-		}
-		connect := goconnect.NewConnectID(goconnect.NewDefaultConfig(goconnect.ClientConfig{
-			Host:                      config.ConnectHost,
-			ClientID:                  config.ConnectClientID,
-			Password:                  config.ConnectPassword,
-			LoginRedirectURI:          config.ConnectRedirectLogin,
-			LogoutRedirectURI:         config.ConnectRedirectLogout,
-			LoginCompleteRedirectURI:  config.ConnectLoginTarget,
-			LogoutCompleteRedirectURI: config.ConnectLogoutTarget,
-			UseSecureCookie:           isSecure,
-		}))
-
-		ret.mux.Handle("/connect/", connect.Handler())
-		ret.mux.HandleFunc("/connect/profile", rest.AddCORSHeaders(connect.SessionProfile))
-		// This is the handler that checks if a there's a token *or* the
-		// Connect ID session is set.
-		connectHandler := connect.NewAuthHandlerFunc(handler)
-		originalHandler := handler
-		handler = func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get(tokenHeaderName)
-			method := r.Method
-			path := r.URL.Path
-			validToken, message, statusCode, userID := ret.isValidToken(header, method, path)
-			if validToken && statusCode != http.StatusOK {
-				// Token is valid but resource can't be accessed
-				http.Error(w, message, statusCode)
-				return
-			}
-			if validToken && statusCode == http.StatusOK {
-				// This is a valid token and path - process by the regular handler but add
-				// the user id to the context
-				newContext := context.WithValue(r.Context(), goconnect.SessionContext, userID)
-				originalHandler(w, r.WithContext(newContext))
-				return
-			}
-			// Not a valid token. Let the connect handler check for a valid session
-			connectHandler(w, r)
-		}
-	}
 
 	ret.mux.HandleFunc("/", rest.AddCORSHeaders(handler))
 	return ret, nil
@@ -207,8 +162,6 @@ func (h *Server) handler() http.HandlerFunc {
 	router.AddRoute("/gateways/{geui}/stats", h.gatewayStatsHandler)
 	router.AddRoute("/tokens", h.tokenListHandler)
 	router.AddRoute("/tokens/{token}", h.tokenInfoHandler)
-	router.AddRoute("/tokens/{token}/tags", h.tokenTagHandler)
-	router.AddRoute("/tokens/{token}/tags/{name}", h.tokenTagNameHandler)
 	router.AddRoute("/applications/{aeui}/outputs", h.outputHandler)
 	router.AddRoute("/applications/{aeui}/outputs/{oeui}", h.outputInfoHandler)
 
@@ -220,26 +173,7 @@ func (h *Server) handler() http.HandlerFunc {
 // Extract the corresponding storage.UserID from the ID session. If auth is
 // disabled return the system user.
 func (h *Server) connectUserID(r *http.Request) model.UserID {
-	s := r.Context().Value(goconnect.SessionContext)
-	if s == nil {
-		if h.context.Config.DisableAuth {
-			return model.SystemUserID
-		}
-	}
-	session, ok := s.(goconnect.Session)
-	if !ok {
-		userid, ok := s.(model.UserID)
-		if !ok {
-			return model.InvalidUserID
-		}
-		return userid
-	}
-	if err := h.context.Storage.UserManagement.AddOrUpdateUser(
-		newUserFromSession(session), h.context.KeyGenerator.NewID); err != nil {
-		logging.Warning("Unable add or update user in storage: %v", err)
-		return model.InvalidUserID
-	}
-	return model.UserID(session.UserID)
+	return model.SystemUserID
 }
 
 // updateTags updates tags from a JSON struct in a request, Returns false if the

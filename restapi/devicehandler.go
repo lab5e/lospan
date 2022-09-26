@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,7 +52,7 @@ func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI proto
 
 func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicationEUI protocol.EUI) {
 	// POST methods contains a single JSON struct in the body. Only one device instance is processed.
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		logging.Warning("Unable to read request body for device POST: %v", err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
@@ -475,7 +475,7 @@ func (s *Server) removeDownstreamIfComplete(w http.ResponseWriter, deviceEUI pro
 func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r *http.Request) {
 	//
 	// Read body, decode message
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		logging.Warning("Unable to read request body for device %s: %v", device.DeviceEUI, err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
@@ -584,7 +584,6 @@ func (s *Server) deviceSendHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
 	}
-	return
 }
 
 func euiToSource(eui protocol.EUI) string {

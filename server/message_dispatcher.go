@@ -89,12 +89,10 @@ type messageDispatcher struct {
 	terminate               chan bool
 	destination             transport
 	dispatcherState         dispatcherState
-	eventRouter             router
 	backlog                 chan backlogMessage
 	sendRetryTimeMs         int           // for testing
 	connectRetryTime        time.Duration // for testing
 	connectRetryMaxWaitTime time.Duration // for testing
-	maxIdleTime             time.Duration // for testing
 	idleTime                time.Duration // for testing
 	mutex                   *sync.Mutex
 }
@@ -111,7 +109,7 @@ func (o *messageDispatcher) sendMessage(msg interface{}, retries int) {
 	if o.state() != dispatcherActive {
 		o.setState(dispatcherIdle)
 		sleepTime := o.connectRetryTime
-		for o.destination.open(o.logger) != true {
+		for !o.destination.open(o.logger) {
 			// Keep trying until dispatcher is terminated or connection succeeds
 			select {
 			case <-o.terminate:

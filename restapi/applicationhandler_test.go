@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -43,7 +43,7 @@ func storeApplication(t *testing.T, application apiApplication, url string, expe
 
 	ret := apiApplication{}
 	if expectedStatus == http.StatusCreated {
-		buffer, err := ioutil.ReadAll(resp.Body)
+		buffer, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatalf("Couldn't read response body from %s: %v", url, err)
 		}
@@ -88,7 +88,7 @@ func TestApplicationRoutes(t *testing.T) {
 	}
 
 	copy := apiApplication{}
-	buffer, err := ioutil.ReadAll(resp.Body)
+	buffer, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatalf("Couldn't read response body from %s: %v", url, err)
 	}
@@ -116,7 +116,7 @@ func TestApplicationRoutes(t *testing.T) {
 	}
 
 	list := applicationList{}
-	buffer, err = ioutil.ReadAll(resp.Body)
+	buffer, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal("Could not read body of application list: ", err)
 	}
@@ -200,7 +200,7 @@ func TestApplicationInfoEndpoint(t *testing.T) {
 	application := storeApplication(t, apiApplication{}, rootURL, http.StatusCreated)
 
 	invalidPosts := map[string]int{
-	// No POST on this endpoint
+		// No POST on this endpoint
 	}
 
 	invalidGets := map[string]int{
@@ -264,7 +264,7 @@ func TestApplicationDataEndpoint(t *testing.T) {
 	}
 
 	invalidPosts := map[string]int{
-	// No POST on this endpoint
+		// No POST on this endpoint
 	}
 
 	invalidAppURL := h.loopbackURL() + "/applications/00-01-02-03-04-05-06-07"

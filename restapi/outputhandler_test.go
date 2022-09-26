@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -46,7 +46,7 @@ func createNewOutput(t *testing.T, url string, appEUI protocol.EUI) model.AppOut
 	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("Got %d, expected %d", resp.StatusCode, http.StatusCreated)
 	}
-	buf, _ = ioutil.ReadAll(resp.Body)
+	buf, _ = io.ReadAll(resp.Body)
 	if err := json.Unmarshal(buf, &apiOutput); err != nil {
 		t.Fatalf("Got error unmarshaling response: %v (response = %s)", err, string(buf))
 	}
@@ -80,7 +80,7 @@ func TestOutputHandlers(t *testing.T) {
 		t.Fatalf("Expected 200 OK but got %d", resp.StatusCode)
 	}
 
-	buf, _ := ioutil.ReadAll(resp.Body)
+	buf, _ := io.ReadAll(resp.Body)
 	var list = apiAppOutputList{List: make([]apiAppOutput, 0)}
 	if err := json.Unmarshal(buf, &list); err != nil {
 		t.Fatal("Got error unmarshaling output list: ", err)
@@ -101,7 +101,7 @@ func TestOutputHandlers(t *testing.T) {
 		t.Fatal("Could not get single output: ", err)
 	}
 
-	buf, _ = ioutil.ReadAll(resp.Body)
+	buf, _ = io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Expected 200 OK but got %d (body is %s)", resp.StatusCode, string(buf))
 	}
@@ -131,7 +131,9 @@ func TestOutputHandlers(t *testing.T) {
 	buf, _ = json.Marshal(&updatedOp)
 	reader := strings.NewReader(string(buf))
 	request, err := http.NewRequest(http.MethodPut, url, reader)
-
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 	client := &http.Client{}
 	request.Header.Add("Content-Type", "application/json")
 	resp, err = client.Do(request)

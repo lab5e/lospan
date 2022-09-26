@@ -26,7 +26,6 @@ import (
 	"github.com/ExploratoryEngineering/congress/protocol"
 )
 
-//
 // This is the common context used by all of the tests. The aggregator uses
 // the band to determine the maximum payload size
 var context = FrameContext{
@@ -201,6 +200,7 @@ func TestBigMessage(t *testing.T) {
 		returnedMacs = append(returnedMacs, ret.MACPayload.MACCommands.List()...)
 		returnedMacs = append(returnedMacs, ret.MACPayload.FHDR.FOpts.List()...)
 		returnedBuffer = append(returnedBuffer, ret.MACPayload.FRMPayload...)
+		t.Logf("returnedMacs = %+v returnedBuffer = %+v", returnedMacs, returnedBuffer)
 	}
 	if iterations == 0 {
 		t.Fatalf("Didn't get anything at all, err = %s", err)

@@ -27,7 +27,7 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/telenordigital/lassie-go"
 
-	"github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 // TestMode is an integration test mode for E1.
@@ -97,7 +97,7 @@ func (t *TestMode) createDevices(gatewayChannel chan string, publisher *EventRou
 		newDevice := NewEmulatedDevice(t.Config, keys, gatewayChannel, publisher)
 		if device.Type == "OTAA" {
 			if err := newDevice.Join(joinAttempts); err != nil {
-				t.reportError(fmt.Errorf("Device %s couldn't join: %v", device.EUI, err))
+				t.reportError(fmt.Errorf("device %s couldn't join: %v", device.EUI, err))
 				continue
 			}
 		}
@@ -114,7 +114,7 @@ func (t *TestMode) sendDownstreamMessages(payload string) (sentMessages int32) {
 			HexPayload: payload,
 		}
 		if err := t.Client.ScheduleMessage(t.Application.EUI, device.EUI, msg); err != nil {
-			t.reportError(fmt.Errorf("Couldn't schedule message for device %s: %v", device.EUI, err))
+			t.reportError(fmt.Errorf("couldn't schedule message for device %s: %v", device.EUI, err))
 		} else {
 			sentMessages++
 			logging.Info("Scheduled downstream message for device %s", device.EUI)
@@ -128,14 +128,14 @@ func (t *TestMode) sendUpstreamMessages(expectedPayload string) (sent int32, rec
 	for i, e := range t.Devices {
 		payload := []byte{byte(i)}
 		if err := e.SendMessageWithPayload(protocol.UnconfirmedDataUp, payload); err != nil {
-			t.reportError(fmt.Errorf("Device %s couldn't send message: %v", e.keys.DevEUI, err))
+			t.reportError(fmt.Errorf("device %s couldn't send message: %v", e.keys.DevEUI, err))
 			continue
 		}
 		if len(e.ReceivedMessages) == 0 {
-			t.reportError(fmt.Errorf("Device %s did not receive a scheduled message", e.keys.DevEUI))
+			t.reportError(fmt.Errorf("device %s did not receive a scheduled message", e.keys.DevEUI))
 		} else {
 			if strings.ToUpper(e.ReceivedMessages[0].Payload) != expectedPayload {
-				t.reportError(fmt.Errorf("Not the payload I expected. Expected %s but got %s", expectedPayload, e.ReceivedMessages[0].Payload))
+				t.reportError(fmt.Errorf("not the payload I expected. Expected %s but got %s", expectedPayload, e.ReceivedMessages[0].Payload))
 			}
 			received++
 		}
@@ -155,7 +155,7 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 			logging.Info("Websocket: DevAddr %s sent %v", data.DeviceAddress, data.HexData)
 			atomic.AddInt32(&websocketReceived, 1)
 		}); err != nil {
-			t.reportError(fmt.Errorf("Data stream error: %v", err))
+			t.reportError(fmt.Errorf("data stream error: %v", err))
 		}
 	}()
 
@@ -170,7 +170,7 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 	}
 	_, err := t.Client.CreateOutput(t.Application.EUI, &outputConfig)
 	if err != nil {
-		t.reportError(fmt.Errorf("Unable to create output: %v", err))
+		t.reportError(fmt.Errorf("unable to create output: %v", err))
 		return
 	}
 	wg := &sync.WaitGroup{}
@@ -212,13 +212,13 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 	wg.Done()
 	receivedFromWS := atomic.LoadInt32(&websocketReceived)
 	if receivedFromWS != sent {
-		t.reportError(fmt.Errorf("Sent %d messages but got only %d on websocket", sent, received))
+		t.reportError(fmt.Errorf("sent %d messages but got only %d on websocket", sent, received))
 	}
 	if received != sentMessages {
-		t.reportError(fmt.Errorf("Scheduled %d messages but the devices only received %d in total", sentMessages, received))
+		t.reportError(fmt.Errorf("scheduled %d messages but the devices only received %d in total", sentMessages, received))
 	}
 	if mqttMessageCount != sent {
-		t.reportError(fmt.Errorf("Sent %d message but only %d was received via MQTT", sent, mqttMessageCount))
+		t.reportError(fmt.Errorf("sent %d message but only %d was received via MQTT", sent, mqttMessageCount))
 	}
 }
 

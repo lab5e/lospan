@@ -31,12 +31,6 @@ import (
 // A set of entities to make the conversion to and from API JSON types
 // less annoying.
 
-// HyperlinkTemplate is a struct holding links and templates for resources
-type hyperlinkTemplate struct {
-	Links     map[string]string `json:"links"`
-	Templates map[string]string `json:"templates"`
-}
-
 func appDeviceTemplates() map[string]string {
 	return map[string]string{
 		"application-collection": "/applications",

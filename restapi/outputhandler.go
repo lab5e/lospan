@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/ExploratoryEngineering/congress/model"
@@ -176,7 +176,7 @@ func (h *Server) outputInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPut:
 		// Retrieve the configuration and update it.
-		buf, err := ioutil.ReadAll(r.Body)
+		buf, err := io.ReadAll(r.Body)
 		if err != nil {
 			logging.Info("Unable to read request body for output with EUI %s: %v", op.EUI, err)
 			http.Error(w, "Unable to read request body", http.StatusInternalServerError)
@@ -189,7 +189,7 @@ func (h *Server) outputInfoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		op.Configuration = updatedOutput.Config
 		if err := h.context.Storage.AppOutput.Update(*op); err != nil {
-			logging.Warning("Unable to store output with EUI: %v", op.EUI, err)
+			logging.Warning("Unable to store output with EUI %s: %v", op.EUI, err)
 			http.Error(w, "Unable to store output", http.StatusInternalServerError)
 			return
 		}

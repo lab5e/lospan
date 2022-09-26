@@ -59,7 +59,7 @@ func (e *Eagle1) Setup() error {
 	} else {
 		e.Config.KeepApplication = true
 		if e.Application, err = e.Congress.Application(e.Config.AppEUI); err != nil {
-			return fmt.Errorf("Couldn't read application %s: %v", e.Config.AppEUI, err)
+			return fmt.Errorf("couldn't read application %s: %v", e.Config.AppEUI, err)
 		}
 	}
 
@@ -73,12 +73,12 @@ func (e *Eagle1) Setup() error {
 			Altitude:  476.0,
 		}
 		if e.Gateway, err = e.Congress.CreateGateway(newGw); err != nil {
-			return fmt.Errorf("Unable to create gateway in Congress: %v", err)
+			return fmt.Errorf("unable to create gateway in Congress: %v", err)
 		}
 	} else {
 		e.Config.KeepGateway = true
 		if e.Gateway, err = e.Congress.Gateway(e.Config.GatewayEUI); err != nil {
-			return fmt.Errorf("Cannot retrieve a gateway with the EUI %s: %v", e.Config.GatewayEUI, err)
+			return fmt.Errorf("cannot retrieve a gateway with the EUI %s: %v", e.Config.GatewayEUI, err)
 		}
 	}
 	logging.Info("Gateway EUI: %s", e.Gateway.EUI)

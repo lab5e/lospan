@@ -80,7 +80,7 @@ func (d *EmulatedDevice) Join(maxAttempts int) error {
 		// Keep reading responses until one matches or the request
 		// times out.
 		startTime := time.Now()
-		waitTime := time.Now().Sub(startTime)
+		waitTime := time.Since(startTime)
 		for waitTime < time.Second*7 {
 			select {
 			case joinResponse := <-d.incomingMessages:
@@ -93,7 +93,7 @@ func (d *EmulatedDevice) Join(maxAttempts int) error {
 				// Do nothing here.
 			}
 			time.Sleep(1 * time.Millisecond)
-			waitTime = time.Now().Sub(startTime)
+			waitTime = time.Since(startTime)
 		}
 		attempt++
 		logging.Info("Device %s have used %d of %d join attempts", d.keys.DevEUI, attempt, maxAttempts)
@@ -165,11 +165,11 @@ func (d *EmulatedDevice) SendMessageWithGenerator(generator MessageGenerator) er
 			d.ReceivedMessages = append(d.ReceivedMessages, msg)
 		}
 		if mType == protocol.ConfirmedDataUp && !response.PHYPayload.MACPayload.FHDR.FCtrl.ACK {
-			return fmt.Errorf("Did get message but not an ACK after message for device %s", d.keys.DevAddr)
+			return fmt.Errorf("did get message but not an ACK after message for device %s", d.keys.DevAddr)
 		}
 	case <-time.After(3 * time.Second):
 		if mType == protocol.ConfirmedDataUp {
-			return errors.New("Didn't get an ack after 3 seconds")
+			return errors.New("didn't get an ack after 3 seconds")
 		}
 	}
 
@@ -212,12 +212,12 @@ func (d *EmulatedDevice) SendMessageWithPayload(mtype protocol.MType, payload []
 			d.ReceivedMessages = append(d.ReceivedMessages, msg)
 		}
 		if mtype == protocol.ConfirmedDataUp && !response.PHYPayload.MACPayload.FHDR.FCtrl.ACK {
-			return fmt.Errorf("Did get message but not an ACK after message for device %s", d.keys.DevAddr)
+			return fmt.Errorf("did get message but not an ACK after message for device %s", d.keys.DevAddr)
 		}
 		d.FrameCounterDown = response.PHYPayload.MACPayload.FHDR.FCnt
 	case <-time.After(3 * time.Second):
 		if mtype == protocol.ConfirmedDataUp {
-			return errors.New("Didn't get an ack after 3 seconds")
+			return errors.New("didn't get an ack after 3 seconds")
 		}
 	}
 	return nil

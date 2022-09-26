@@ -68,7 +68,7 @@ func (p *GenericPacketForwarder) Start() {
 	// Set up server port (the one the gateway is going to connect to)
 	serverAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", p.serverPort))
 	if err != nil {
-		logging.Error("Unable to create UDP socket: ", err)
+		logging.Error("Unable to create UDP socket: %v", err)
 		return
 	}
 

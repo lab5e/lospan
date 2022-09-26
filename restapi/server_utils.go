@@ -19,10 +19,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ExploratoryEngineering/congress/model"
 	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/telenordigital/goconnect"
 )
 
 // Extract EUI from path parameter in context
@@ -37,16 +35,4 @@ func euiFromPathParameter(r *http.Request, name string) (protocol.EUI, error) {
 		return protocol.EUI{}, err
 	}
 	return eui, nil
-}
-
-func newUserFromSession(session goconnect.Session) model.User {
-	ret := model.User{
-		ID:    model.UserID(session.UserID),
-		Name:  session.Name,
-		Email: session.Email,
-	}
-	if !session.VerifiedEmail {
-		ret.Email = ""
-	}
-	return ret
 }

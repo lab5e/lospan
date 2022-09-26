@@ -72,7 +72,7 @@ func NewStorageTestContext() storage.Storage {
 	store := memstore.CreateMemoryStorage(0, 0)
 
 	if err := store.Application.Put(application, model.SystemUserID); err != nil {
-		logging.Error("Could not add application to storage: ", err)
+		logging.Error("Could not add application to storage: %v", err)
 	}
 
 	store.Device.Put(device, application.AppEUI)

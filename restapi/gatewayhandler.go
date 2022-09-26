@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -52,7 +52,7 @@ func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		logging.Info("Unable to read request body: %v", err)
 		http.Error(w, "Unable to read request", http.StatusInternalServerError)

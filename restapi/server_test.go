@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -74,7 +74,7 @@ func TestServerStartupNoAuth(t *testing.T) {
 		if res.StatusCode != http.StatusOK {
 			t.Errorf("Got status %d. Expected 200 OK", res.StatusCode)
 		}
-		if _, err := ioutil.ReadAll(res.Body); err != nil {
+		if _, err := io.ReadAll(res.Body); err != nil {
 			t.Fatal("Could not read response body: ", err)
 		}
 		// Content isn't that important
@@ -87,7 +87,7 @@ func TestServerStartupNoAuth(t *testing.T) {
 		if res.StatusCode != http.StatusOK {
 			t.Errorf("Got status %d. Expected 200 OK", res.StatusCode)
 		}
-		if _, err := ioutil.ReadAll(res.Body); err != nil {
+		if _, err := io.ReadAll(res.Body); err != nil {
 			t.Fatal("Could not read the response body: ", err)
 		}
 	}
@@ -141,16 +141,10 @@ func makeRandomEUI() protocol.EUI {
 	return ret
 }
 
-func makeRandomKey() protocol.AESKey {
-	var keyBytes [16]byte
-	rand.Read(keyBytes[:])
-	return protocol.AESKey{Key: keyBytes}
-}
-
 func checkContentType(t *testing.T, url string, resp *http.Response) {
 	if resp.StatusCode >= 200 && resp.StatusCode <= 300 {
 		if resp.Header.Get("Content-Type") != "application/json" {
-			body, _ := ioutil.ReadAll(resp.Body)
+			body, _ := io.ReadAll(resp.Body)
 			t.Fatalf("Expected content-header for %s to say application/json but it says %s with body %s", url, resp.Header.Get("Content-Type"), string(body))
 		}
 	}
@@ -168,7 +162,7 @@ func genericEndpointTest(t *testing.T, rootURL string, invalidGets map[string]in
 			t.Fatalf("Got error %v when GETting %s", err, url)
 		}
 		if resp.StatusCode != expectedValue {
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			var output = "<no output>"
 			if err == nil {
 				output = string(body)
@@ -188,7 +182,7 @@ func genericEndpointTest(t *testing.T, rootURL string, invalidGets map[string]in
 			t.Fatalf("Error retrieving URL %s: %v", rootURL, err)
 		}
 		if resp.StatusCode != expectedValue {
-			buf, _ := ioutil.ReadAll(resp.Body)
+			buf, _ := io.ReadAll(resp.Body)
 			t.Errorf("Got %d but expected %d when POSTing %s (response body is %s)", resp.StatusCode, expectedValue, body, string(buf))
 		}
 		checkContentType(t, rootURL, resp)
@@ -249,7 +243,7 @@ func genericPutRequest(t *testing.T, rootURL string, values map[string]interface
 		t.Fatal("Got error performing PUT request ", err)
 	}
 	if resp.StatusCode != expected {
-		buf, _ := ioutil.ReadAll(resp.Body)
+		buf, _ := io.ReadAll(resp.Body)
 		t.Fatalf("Didn't get the expected result. Expected %d but got %d (body = %s)", expected, resp.StatusCode, string(buf))
 	}
 }

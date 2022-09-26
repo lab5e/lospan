@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -75,7 +75,7 @@ func TestGatewayRoutes(t *testing.T) {
 		t.Fatal("Didn't get 200 OK when querying list. Got ", resp.StatusCode)
 	}
 
-	buf, err := ioutil.ReadAll(resp.Body)
+	buf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal("Error reading body: ", err)
 	}
@@ -146,10 +146,10 @@ func TestGatewayListEndpoint(t *testing.T) {
 	rootURL := h.loopbackURL() + "/gateways"
 
 	invalidPosts := map[string]int{
-		`{}`:                                                                                                  http.StatusBadRequest,
-		`{EUI: ""}`:                                                                                           http.StatusBadRequest,
-		`{"gatewayEUI": ""}`:                                                                                  http.StatusBadRequest,
-		`{"gatewayEUI": "01-02", "ip": "12"}`:                                                                 http.StatusBadRequest,
+		`{}`:                                  http.StatusBadRequest,
+		`{EUI: ""}`:                           http.StatusBadRequest,
+		`{"gatewayEUI": ""}`:                  http.StatusBadRequest,
+		`{"gatewayEUI": "01-02", "ip": "12"}`: http.StatusBadRequest,
 		`{"gatewayEUI": "01-02-03-04-05-06-07-08"}`:                                                           http.StatusBadRequest,
 		`{"gatewayEUI": "01-02-03-04-05-06-07-08", "ip": "something"}`:                                        http.StatusBadRequest,
 		`{"gatewayEUI": "aa-02-03-04-05-06-07-08", "ip": "127.0.0.1"}`:                                        http.StatusCreated,
@@ -160,7 +160,7 @@ func TestGatewayListEndpoint(t *testing.T) {
 	}
 
 	invalidGets := map[string]int{
-	// All parameters are ignored and no parameters in path
+		// All parameters are ignored and no parameters in path
 	}
 
 	invalidMethods := []string{
@@ -204,7 +204,7 @@ func TestGatewayInfoEndpoint(t *testing.T) {
 	rootURL := h.loopbackURL() + "/gateways/" + eui.String()
 
 	invalidPosts := map[string]int{
-	// No posts here
+		// No posts here
 	}
 
 	invalidGets := map[string]int{

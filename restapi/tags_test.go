@@ -17,10 +17,9 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -68,7 +67,7 @@ func tagResourceTest(t *testing.T, rootURL string) {
 		if resp.Header.Get("Content-Type") != "text/plain" {
 			t.Fatalf("Expected text/plain response but didn't get it")
 		}
-		buf, err := ioutil.ReadAll(resp.Body)
+		buf, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatal("Got error reading body: ", err)
 		}
@@ -95,7 +94,7 @@ func tagResourceTest(t *testing.T, rootURL string) {
 		if resp.StatusCode != http.StatusOK {
 			t.Fatal("Did not get 200 OK when retrieving tag collection")
 		}
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		tagCollection := make(map[string]string)
 		json.Unmarshal(body, &tagCollection)
 		checkNV := func(name string, expected string) {
@@ -180,26 +179,5 @@ func TestApplicationTagsResource(t *testing.T) {
 	}
 
 	rootURL := h.loopbackURL() + "/applications/" + newApplication.AppEUI.String() + "/tags"
-	tagResourceTest(t, rootURL)
-}
-
-func TestTokenTagsResource(t *testing.T) {
-	// Since the token resource requires a session we have to create a server with a dummy session
-
-	server := createTestServer(noAuthConfig)
-	server.Start()
-	defer server.Shutdown()
-	// Create a *new* test server that uses the connect handler from the first server
-	// The token session is injected via the dummy session.
-	testServer := httptest.NewServer(http.HandlerFunc(server.getConnectHandler(dummySession)))
-	defer testServer.Close()
-
-	// Add a single token.
-	token, _ := model.NewAPIToken("001", "/", true)
-	if err := server.context.Storage.Token.Put(token, model.SystemUserID); err != nil {
-		t.Fatal("Got error adding token: ", err)
-	}
-
-	rootURL := testServer.URL + "/tokens/" + token.Token + "/tags"
 	tagResourceTest(t, rootURL)
 }

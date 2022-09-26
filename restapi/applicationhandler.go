@@ -18,7 +18,7 @@ package restapi
 import (
 	"encoding/hex"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -39,7 +39,7 @@ const defaultMaxDeviceDataCount int = 50
 
 // Read application from request body. Emits error message to client if there's an error
 func (s *Server) readAppFromRequest(w http.ResponseWriter, r *http.Request) (apiApplication, error) {
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	app := apiApplication{}
 
 	if err != nil {

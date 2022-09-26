@@ -17,7 +17,6 @@ package monitoring
 //
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime/trace"
@@ -27,13 +26,11 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 )
 
-//
 // Tracing endpoint. The trace is controlled via an unbuffered channel of
 // time.Duration values. Each value is read off the channel and a trace is
 // started with the given duration. The channel will block writing while a
 // trace is running and reading is blocked until someone sends something on
 // the trace channel.
-//
 var traceChan chan time.Duration
 
 // EnableTracing starts the tracing goroutine
@@ -63,7 +60,7 @@ func EnableTracing() {
 }
 
 func getDuration(data io.Reader) time.Duration {
-	buf, err := ioutil.ReadAll(data)
+	buf, err := io.ReadAll(data)
 	if err != nil {
 		return 0
 	}

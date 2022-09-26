@@ -18,7 +18,7 @@ package restapi
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -45,7 +45,7 @@ func storeDevice(t *testing.T, device apiDevice, url string, expectedStatus int)
 
 	ret := apiDevice{}
 	if expectedStatus == http.StatusCreated {
-		buffer, err := ioutil.ReadAll(resp.Body)
+		buffer, err := io.ReadAll(resp.Body)
 		if err != nil {
 			t.Fatalf("Couldn't read response body from %s: %v", url, err)
 		}
@@ -113,7 +113,7 @@ func TestDeviceList(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("Didn't get 200 OK from list endpoint. Got %d", resp.StatusCode)
 	}
-	buf, err := ioutil.ReadAll(resp.Body)
+	buf, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal("Got error reading body from GET request: ", err)
 	}
@@ -145,7 +145,7 @@ func TestDeviceList(t *testing.T) {
 		t.Fatalf("Didn't get 200 OK from device info URL (%s). Got %d", deviceURL, resp.StatusCode)
 	}
 
-	buf, err = ioutil.ReadAll(resp.Body)
+	buf, err = io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal("Error reading body from GET: ", err)
 	}
@@ -268,7 +268,7 @@ func TestDeviceInfoEndpoint(t *testing.T) {
 	rootURL := appURL + "/" + application.ApplicationEUI + "/devices/" + device1.DeviceEUI
 
 	invalidPosts := map[string]int{
-	// No POST for this endpoint
+		// No POST for this endpoint
 	}
 
 	invalidGets := map[string]int{
@@ -370,7 +370,7 @@ func TestDeviceDataEndpoint(t *testing.T) {
 	deviceURL := appURL + "/devices/" + device.DeviceEUI
 
 	invalidPosts := map[string]int{
-	// No POST on this endpoint
+		// No POST on this endpoint
 	}
 
 	urlTemplate := h.loopbackURL() + "/applications/%s/devices/%s/data"
@@ -451,7 +451,7 @@ func TestDeviceMessageInput(t *testing.T) {
 	reader := strings.NewReader(`{"port": 1, "data": "01AA02BB03CC04DD", "ack": true}`)
 	resp, _ := http.Post(deviceURL+"/message", "application/json", reader)
 	if resp.StatusCode != http.StatusCreated {
-		buf, _ := ioutil.ReadAll(resp.Body)
+		buf, _ := io.ReadAll(resp.Body)
 		t.Fatalf("Got status %d with body: %s posting to %s", resp.StatusCode, string(buf), deviceURL+"/message")
 	}
 	msg, err := h.context.Storage.DeviceData.GetDownstream(eui)

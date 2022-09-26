@@ -66,7 +66,7 @@ func randomFunc() func(float64) uint16 {
 		}
 	default:
 		return func(tick float64) uint16 {
-			return uint16(50*(math.Sin(1/50-tick*10*math.Cos(2*tick+1)+50)) + 200)
+			return uint16(50*(math.Sin(1.0/50.0-tick*10*math.Cos(2*tick+1)+50)) + 200)
 		}
 	}
 }

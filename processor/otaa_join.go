@@ -107,7 +107,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 
 	d.context.FrameOutput.SetJoinAcceptPayload(device.DeviceEUI, joinAccept)
 
-	logging.Debug("JoinAccept sent to %s. DevAddr=%$", device.DeviceEUI, joinAccept.DevAddr)
+	logging.Debug("JoinAccept sent to %s. DevAddr=%s", device.DeviceEUI, joinAccept.DevAddr)
 
 	// The incoming message doesn't have a DevAddr set but schedule an empty
 	// message for it. TODO (stalehd): this is butt ugly. Needs redesign.

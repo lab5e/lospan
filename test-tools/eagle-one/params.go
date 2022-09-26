@@ -59,13 +59,13 @@ func (p *Params) Valid() error {
 		return errors.New("MIC must be in the range 0-100")
 	}
 	if p.CorruptedPayload > 100 {
-		return errors.New("CorruptedPayload must be in the range 0-100")
+		return errors.New("corrupted payload must be in the range 0-100")
 	}
 	if p.DuplicateMessages > 100 {
-		return errors.New("DuplicateMessages must be in the range 0-100")
+		return errors.New("duplicate messages must be in the range 0-100")
 	}
 	if p.FrameCounterErrors > 100 {
-		return errors.New("Frame counter errors should be in the range 0-100")
+		return errors.New("frame counter errors should be in the range 0-100")
 	}
 
 	if p.DeviceCount < 0 {
@@ -75,7 +75,7 @@ func (p *Params) Valid() error {
 		return fmt.Errorf("# device messages must be >= 0")
 	}
 	if p.LogLevel < 0 || p.LogLevel > 3 {
-		return fmt.Errorf("Unknown log level valid values are (from low to high) 0, 1, 2 or 3")
+		return fmt.Errorf("unknown log level valid values are (from low to high) 0, 1, 2 or 3")
 	}
 	return nil
 }

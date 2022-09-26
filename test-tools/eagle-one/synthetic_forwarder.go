@@ -76,7 +76,7 @@ func (g *SyntheticForwarder) sendPullData() {
 		return
 	}
 	if _, err := g.downstreamConn.Write(buf); err != nil {
-		logging.Warning("Error writing PULL_DATA packet : ", err)
+		logging.Warning("Error writing PULL_DATA packet : %v", err)
 	}
 }
 
@@ -149,7 +149,7 @@ func (g *SyntheticForwarder) forwarder(shutdownChannel chan bool) {
 
 			data, err := json.Marshal(rxData)
 			if err != nil {
-				logging.Warning("Unable to marshal JSON data: ", err)
+				logging.Warning("Unable to marshal JSON data: %v", err)
 				continue
 			}
 
@@ -167,7 +167,7 @@ func (g *SyntheticForwarder) forwarder(shutdownChannel chan bool) {
 				continue
 			}
 			if _, err := g.upstreamConn.Write(buf); err != nil {
-				logging.Warning("Error writing PUSH_DATA packet : ", err)
+				logging.Warning("Error writing PUSH_DATA packet : %v", err)
 				continue
 			}
 
@@ -250,11 +250,9 @@ func (g *SyntheticForwarder) Start() {
 	go g.udpReader()
 	go g.forwarder(forwarderShutdownChannel)
 	go g.receiver(receiverShutdownChannel)
-	for {
-		select {
-		case <-g.shutdownChannel:
-			forwarderShutdownChannel <- true
-			receiverShutdownChannel <- true
-		}
-	}
+
+	<-g.shutdownChannel
+	forwarderShutdownChannel <- true
+	receiverShutdownChannel <- true
+
 }

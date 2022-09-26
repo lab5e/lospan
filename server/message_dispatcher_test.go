@@ -28,10 +28,7 @@ type errorCounter struct {
 
 func (e *errorCounter) IsError() bool {
 	e.count++
-	if (e.count % e.mod) == 0 {
-		return false
-	}
-	return true
+	return (e.count % e.mod) == 0
 }
 
 // Just to make sure the error counter works

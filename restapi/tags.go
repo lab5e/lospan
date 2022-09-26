@@ -17,7 +17,7 @@ package restapi
 //
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -25,7 +25,6 @@ import (
 	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/telenordigital/goconnect"
 )
 
 // tagListResource lists tag on a resource. This method is common for all
@@ -39,7 +38,7 @@ func (h *Server) tagListResource(w http.ResponseWriter, r *http.Request, tags mo
 // tag. If the function returns true the tag has been added successfully (and the
 // tags should be stored in the storage backend)
 func (h *Server) tagPostResource(w http.ResponseWriter, r *http.Request, tags model.Tags) bool {
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		logging.Warning("Unable to read body for tags: %v", err)
 		http.Error(w, "Unable to read body for request", http.StatusInternalServerError)
@@ -234,59 +233,6 @@ func (h *Server) deviceTagNameHandler(w http.ResponseWriter, r *http.Request) {
 
 	if h.tagNameResource(w, r, device.Tags) {
 		if err := h.context.Storage.Device.Update(*device); err != nil {
-			http.Error(w, "Unable to update device", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func (h *Server) ensureSessionAndToken(w http.ResponseWriter, r *http.Request) (*model.APIToken, *goconnect.Session, bool) {
-	s := r.Context().Value(goconnect.SessionContext)
-	session, ok := s.(goconnect.Session)
-	if !ok {
-		http.Error(w, "No session found", http.StatusUnauthorized)
-		return nil, nil, false
-	}
-	t := r.Context().Value(rest.PathParameter("token"))
-	tokenStr, ok := t.(string)
-	if !ok {
-		// This shouldn't happen but it is a nice failsafe
-		logging.Warning("Missing token from request path. Is the route configured properly?")
-		http.Error(w, "Missing token in path", http.StatusBadRequest)
-		return nil, nil, false
-	}
-	token, err := h.context.Storage.Token.Get(tokenStr)
-	if err != nil {
-		http.Error(w, "Token not found", http.StatusNotFound)
-		return nil, nil, false
-	}
-	return &token, &session, true
-}
-
-func (h *Server) tokenTagHandler(w http.ResponseWriter, r *http.Request) {
-	token, session, success := h.ensureSessionAndToken(w, r)
-	if !success {
-		return
-	}
-	if h.tagCollectionHandler(w, r, token.Tags) {
-		if err := h.context.Storage.Token.Update(*token, model.UserID(session.UserID)); err != nil {
-			http.Error(w, "Unable to store tags", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		w.Write(token.Tags.TagJSON())
-	}
-}
-
-func (h *Server) tokenTagNameHandler(w http.ResponseWriter, r *http.Request) {
-	token, session, success := h.ensureSessionAndToken(w, r)
-	if !success {
-		return
-	}
-	if h.tagNameResource(w, r, token.Tags) {
-		if err := h.context.Storage.Token.Update(*token, model.UserID(session.UserID)); err != nil {
 			http.Error(w, "Unable to update device", http.StatusInternalServerError)
 			return
 		}

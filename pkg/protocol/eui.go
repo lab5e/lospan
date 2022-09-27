@@ -34,7 +34,7 @@ func EUIFromString(euiStr string) (EUI, error) {
 	return ret, nil
 }
 
-// EUIFromUint64 converts an uint64 value to an EUI.
+// EUIFromInt64 converts an uint64 value to an EUI.
 func EUIFromInt64(val int64) EUI {
 	ret := EUI{}
 	for i := 7; i >= 0; i-- {
@@ -44,7 +44,7 @@ func EUIFromInt64(val int64) EUI {
 	return ret
 }
 
-// ToUint64 returns the EUI as a uin64 integer
+// ToInt64 returns the EUI as a uin64 integer
 func (eui *EUI) ToInt64() int64 {
 	ret := int64(0)
 	for i := 0; i < 8; i++ {

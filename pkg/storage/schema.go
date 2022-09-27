@@ -30,7 +30,7 @@ func removeComments(schema string) string {
 	return ret
 }
 
-func SchemaCommandList() []string {
+func schemaCommandList() []string {
 	var ret []string
 	commands := strings.Split(removeComments(DBSchema), ";")
 	for _, v := range commands {

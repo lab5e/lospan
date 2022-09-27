@@ -19,7 +19,7 @@ func TestStorage(t *testing.T) {
 	defer os.Remove(dbFile)
 
 	connectionString := fmt.Sprintf("file:%s", dbFile)
-	db, err := sql.Open(DriverName, connectionString)
+	db, err := sql.Open(driverName, connectionString)
 	assert.Nil(err, "No error opening database")
 	assert.Nil(createSchema(db), "Error creating db in %s", dbFile)
 	db.Close()

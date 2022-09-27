@@ -150,6 +150,8 @@ func (s *Storage) getGwList(rows *sql.Rows, err error) (chan model.Gateway, erro
 	}()
 	return ret, nil
 }
+
+// GetGatewayList returns a list of gateways
 func (s *Storage) GetGatewayList() (chan model.Gateway, error) {
 	return s.getGwList(s.gwStmt.listStatement.Query())
 }
@@ -172,10 +174,12 @@ func (s *Storage) getGateway(rows *sql.Rows, err error) (model.Gateway, error) {
 	return gw, nil
 }
 
+// GetGateway returns a gateway from the store
 func (s *Storage) GetGateway(eui protocol.EUI) (model.Gateway, error) {
 	return s.getGateway(s.gwStmt.getSysStatement.Query(eui.String()))
 }
 
+// CreateGateway creates a new gateway in the store
 func (s *Storage) CreateGateway(gateway model.Gateway) error {
 	return doSQLExec(s.db, s.gwStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
@@ -188,12 +192,14 @@ func (s *Storage) CreateGateway(gateway model.Gateway) error {
 	})
 }
 
+// DeleteGateway removes a gateway from the store
 func (s *Storage) DeleteGateway(eui protocol.EUI) error {
 	return doSQLExec(s.db, s.gwStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(eui.String())
 	})
 }
 
+// UpdateGateway updates a gateway in the store
 func (s *Storage) UpdateGateway(gateway model.Gateway) error {
 	return doSQLExec(s.db, s.gwStmt.updateStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(gateway.Latitude, gateway.Longitude, gateway.Altitude,

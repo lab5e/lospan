@@ -97,7 +97,7 @@ func testDataStorage(
 	}
 
 	// Read application device data. Should be the same as the device data.
-	appChan, err := storage.GetDownstreamByApplicationEUI(app.AppEUI, 10)
+	appChan, err := storage.GetDownstreamDataByApplicationEUI(app.AppEUI, 10)
 	if err != nil {
 		t.Fatal("Error retrieving from application: ", err)
 	}

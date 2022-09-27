@@ -30,10 +30,10 @@ func (s *Storage) Close() {
 
 // CreateStorage creates a new storage
 func CreateStorage(connectionString string, maxConn, idleConn int, maxConnLifetime time.Duration) (*Storage, error) {
-	return newStorage(DriverName, connectionString, maxConn, idleConn, maxConnLifetime)
+	return newStorage(driverName, connectionString, maxConn, idleConn, maxConnLifetime)
 }
 
-const DriverName = "sqlite3"
+const driverName = "sqlite3"
 
 func newStorage(driver, connectionString string, maxConn, idleConn int, maxConnLifetime time.Duration) (*Storage, error) {
 	db, err := sql.Open(driver, connectionString)
@@ -72,7 +72,7 @@ type KeyGeneratorFunc func(string) uint64
 
 // dreateSchema crreates the schema for the database
 func createSchema(db *sql.DB) error {
-	commands := SchemaCommandList()
+	commands := schemaCommandList()
 	for _, v := range commands {
 		if _, err := db.Exec(v); err != nil {
 			return err
@@ -111,7 +111,7 @@ func doSQLExec(db *sql.DB, statement *sql.Stmt, execFunc stmtFunc) error {
 	return nil
 }
 
-// CreateMemoryStorage creates a memory-backed storage based on SQLite3
+// NewMemoryStorage creates a memory-backed storage based on SQLite3
 func NewMemoryStorage() *Storage {
 	s, err := CreateStorage(":memory:", 12, 10, time.Hour)
 	if err != nil {

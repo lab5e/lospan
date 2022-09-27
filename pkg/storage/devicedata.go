@@ -149,7 +149,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 	return nil
 }
 
-// Put stores a new data element in the backend. The element is associated with the specified DevAddr
+// CreateUpstreamData stores a new data element in the backend. The element is associated with the specified DevAddr
 func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, data model.DeviceData) error {
 	return doSQLExec(s.db, s.dataStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		b64str := base64.StdEncoding.EncodeToString(data.Data)
@@ -214,7 +214,8 @@ func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) 
 	return s.doQuery(s.dataStmt.listStatement, deviceEUI.String(), limit)
 }
 
-func (s *Storage) GetDownstreamByApplicationEUI(applicationEUI protocol.EUI, limit int) (chan model.DeviceData, error) {
+// GetDownstreamDataByApplicationEUI returns
+func (s *Storage) GetDownstreamDataByApplicationEUI(applicationEUI protocol.EUI, limit int) (chan model.DeviceData, error) {
 	return s.doQuery(s.dataStmt.appDataList, applicationEUI.String(), limit)
 }
 

@@ -23,7 +23,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/pkg/monitoring"
 
 	"sync"
 

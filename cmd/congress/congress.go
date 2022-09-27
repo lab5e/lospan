@@ -20,8 +20,8 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/pubsub"
-	"github.com/lab5e/lospan/monitoring"
 	"github.com/lab5e/lospan/pkg/gateway"
+	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/processor"
 	"github.com/lab5e/lospan/restapi"
 	"github.com/lab5e/lospan/server"

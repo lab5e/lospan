@@ -23,7 +23,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/pkg/monitoring"
 
 	"golang.org/x/net/websocket"
 

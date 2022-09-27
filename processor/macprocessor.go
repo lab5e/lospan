@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/pkg/monitoring"
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/protocol"

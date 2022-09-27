@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/protocol"
 	"github.com/lab5e/lospan/server"
 	"github.com/lab5e/lospan/storage"

@@ -1,6 +1,6 @@
 package server
 
-import "github.com/lab5e/lospan/model"
+import "github.com/lab5e/lospan/pkg/model"
 
 // Testing code below -------------------------------------------------------
 // logTransport is a simple log-only transport configuration. This is only

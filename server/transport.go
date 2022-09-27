@@ -18,7 +18,7 @@ package server
 import (
 	"encoding/hex"
 
-	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/pkg/model"
 )
 
 // transport implements the actual transport

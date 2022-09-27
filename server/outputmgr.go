@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/pkg/model"
 )
 
 // --------------------------------------------------------------------------

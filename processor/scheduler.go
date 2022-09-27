@@ -21,7 +21,7 @@ import (
 	"github.com/lab5e/lospan/monitoring"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/protocol"
 	"github.com/lab5e/lospan/server"
 )

@@ -26,7 +26,7 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/monitoring"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/storage"
 	"golang.org/x/net/websocket"
 )

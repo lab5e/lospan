@@ -18,7 +18,7 @@ package frequency
 // Stub functions for frequency management.
 
 import (
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // TODO: Replace with proper frequency management. These values are the defaults

@@ -23,7 +23,7 @@ import (
 
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // This is the common context used by all of the tests. The aggregator uses

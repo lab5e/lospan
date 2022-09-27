@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 var defaultMA protocol.MA

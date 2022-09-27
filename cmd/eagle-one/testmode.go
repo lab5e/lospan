@@ -24,7 +24,7 @@ import (
 	"sync/atomic"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/telenordigital/lassie-go"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"

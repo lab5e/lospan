@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // GWMessage is the gateway message

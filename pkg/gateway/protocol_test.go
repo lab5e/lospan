@@ -18,7 +18,7 @@ package gateway
 import (
 	"testing"
 
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 func TestBinaryMarshal(t *testing.T) {

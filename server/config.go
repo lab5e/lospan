@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // Configuration holds the configuration for the system

@@ -16,7 +16,7 @@ package main
 //limitations under the License.
 //
 import (
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/telenordigital/lassie-go"
 )
 

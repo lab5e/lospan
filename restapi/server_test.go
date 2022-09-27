@@ -26,7 +26,7 @@ import (
 
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/server"
 	"github.com/lab5e/lospan/storage/memstore"
 )

@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 func storeApplication(t *testing.T, application apiApplication, url string, expectedStatus int) apiApplication {

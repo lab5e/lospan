@@ -21,7 +21,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/storage/memstore"
 )
 

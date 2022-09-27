@@ -20,7 +20,7 @@ import (
 	"fmt"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // The protocol parts - ie the Semtech packet forwarder

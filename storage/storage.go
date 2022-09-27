@@ -17,7 +17,7 @@ package storage
 //
 import (
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // ApplicationStorage is used to store and retrieve application objects in a storage backend.

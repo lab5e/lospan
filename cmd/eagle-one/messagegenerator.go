@@ -23,7 +23,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 var payloadTemplate string

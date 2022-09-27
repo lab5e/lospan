@@ -22,7 +22,7 @@ import (
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/monitoring"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/storage"
 )
 

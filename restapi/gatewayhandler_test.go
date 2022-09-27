@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 func TestGatewayRoutes(t *testing.T) {

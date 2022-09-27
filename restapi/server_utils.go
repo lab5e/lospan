@@ -20,7 +20,7 @@ import (
 	"net/http"
 
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // Extract EUI from path parameter in context

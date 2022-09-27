@@ -26,7 +26,7 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // Data model for LoRaWAN network. The data model is used in parts of the decoding

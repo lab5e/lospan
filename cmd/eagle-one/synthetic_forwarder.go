@@ -26,7 +26,7 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	cgw "github.com/lab5e/lospan/pkg/gateway"
-	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/pkg/protocol"
 )
 
 // SyntheticForwarder is a synthetic packet forwarder that exposes two channels

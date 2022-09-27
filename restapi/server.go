@@ -26,7 +26,7 @@ import (
 	"github.com/ExploratoryEngineering/rest"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/server"
-	"github.com/lab5e/lospan/utils"
+	"github.com/lab5e/lospan/pkg/utils"
 
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/websocket"

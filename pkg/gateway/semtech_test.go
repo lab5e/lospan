@@ -29,7 +29,7 @@ import (
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage/memstore"
-	"github.com/lab5e/lospan/utils"
+	"github.com/lab5e/lospan/pkg/utils"
 )
 
 type serverConfig struct {

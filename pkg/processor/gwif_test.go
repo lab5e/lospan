@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/server"
-	"github.com/lab5e/lospan/utils"
+	"github.com/lab5e/lospan/pkg/utils"
 )
 
 // Test strings, base 64 encoded.

@@ -1,0 +1,6 @@
+version: v1beta1
+name: buf.build/lab5e/lospan
+build:
+  roots:
+    - protobuf
+

@@ -17,7 +17,7 @@ package processor
 //
 import (
 	"github.com/lab5e/lospan/pkg/gateway"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 // GwForwarder is the generic gateway interface. All of the communication is

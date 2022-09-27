@@ -21,8 +21,8 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
-	"github.com/lab5e/lospan/server"
 )
 
 var lastnames = []string{

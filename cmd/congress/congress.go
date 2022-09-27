@@ -23,11 +23,11 @@ import (
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/processor"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 	"github.com/lab5e/lospan/pkg/storage/dbstore"
 	"github.com/lab5e/lospan/pkg/storage/memstore"
 	"github.com/lab5e/lospan/restapi"
-	"github.com/lab5e/lospan/server"
 )
 
 // Server is the main Congress server process. It will launch several

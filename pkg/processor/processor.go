@@ -17,7 +17,7 @@ package processor
 //
 import (
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 // Pipeline is the main processing pipeline for the server. Each step in

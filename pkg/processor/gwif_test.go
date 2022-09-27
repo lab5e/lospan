@@ -18,7 +18,7 @@ package processor
 import (
 	"testing"
 
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/utils"
 )
 

@@ -20,7 +20,7 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 // MACProcessor is the process responsible for processing the MAC commands.

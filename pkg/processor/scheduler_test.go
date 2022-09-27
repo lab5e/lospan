@@ -24,7 +24,7 @@ import (
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 var fo = server.NewFrameOutputBuffer()

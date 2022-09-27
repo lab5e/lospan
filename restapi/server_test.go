@@ -27,8 +27,8 @@ import (
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage/memstore"
-	"github.com/lab5e/lospan/server"
 )
 
 var ma = protocol.MA{Prefix: [5]byte{0, 1, 3, 4, 5}, Size: protocol.MALarge}

@@ -25,7 +25,7 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/utils"
 
 	"golang.org/x/crypto/acme/autocert"

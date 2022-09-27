@@ -19,7 +19,7 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 // Decoder is the process that decodes the bytes received from the gateway interface into go structs.

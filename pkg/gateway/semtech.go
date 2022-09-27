@@ -32,8 +32,8 @@ import (
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
-	"github.com/lab5e/lospan/server"
 )
 
 var defaultBand band.FrequencyPlan

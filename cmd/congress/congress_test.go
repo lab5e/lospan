@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 var (

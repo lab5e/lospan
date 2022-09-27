@@ -53,22 +53,6 @@ func TestValidConfiguration(t *testing.T) {
 	}
 
 	config.MA = DefaultMA
-	config.TLSCertFile = "foof.cert"
-	if err := config.Validate(); err == nil {
-		t.Fatal("Expected error when TLS key file is missing")
-	}
-	config.TLSCertFile = ""
-	config.DisableAuth = true
-	if err := config.Validate(); err != nil {
-		t.Fatalf("Expected no error but got %v", err)
-	}
-
-	config.TLSCertFile = "cert"
-	config.TLSKeyFile = "key"
-	config.DisableAuth = false
-	if err := config.Validate(); err != nil {
-		t.Fatalf("Shouldn't get an error with TLS cert file and key file set")
-	}
 
 	config.DBConnectionString = ""
 	config.MemoryDB = false
@@ -106,43 +90,4 @@ func TestMAInvalidMA(t *testing.T) {
 
 	config.RootMA() // should panic
 	t.Fatal("I expected panic here")
-}
-
-func TestInvalidMemoryLatency(t *testing.T) {
-	config := NewDefaultConfig()
-	config.MemoryDB = true
-	config.MemoryMinLatencyMs = 100
-	config.MemoryMaxLatencyMs = 50
-	if config.Validate() == nil {
-		t.Fatal("max > min; no error")
-	}
-	config.MemoryMaxLatencyMs = 100
-	if config.Validate() == nil {
-		t.Fatal("max == min && max > 0; no error")
-	}
-	config.MemoryMaxLatencyMs = 150
-	config.MemoryMinLatencyMs = 50
-	if err := config.Validate(); err != nil {
-		t.Fatalf("min/max valid but it fails: %v", err)
-	}
-
-	config.MemoryMaxLatencyMs = 0
-	config.MemoryMinLatencyMs = 0
-	if err := config.Validate(); err != nil {
-		t.Fatalf("min/max 0 but it fails: %v", err)
-	}
-
-}
-
-func TestInvalidACMEConfig(t *testing.T) {
-	config := NewDefaultConfig()
-	config.MemoryDB = true
-	config.ACMECert = true
-	if err := config.Validate(); err == nil {
-		t.Fatal("Expected error when no ACME host name is set")
-	}
-	config.ACMEHost = "host.example.com"
-	if err := config.Validate(); err != nil {
-		t.Fatal("Did not expect error when ACME host name is set: ", err)
-	}
 }

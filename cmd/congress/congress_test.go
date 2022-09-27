@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	memoryConfig  = &server.Configuration{DisableAuth: true, MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3}
-	syslogConfig  = &server.Configuration{DisableAuth: true, MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3, Syslog: true}
+	memoryConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3}
+	syslogConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3, Syslog: true}
 	invalidConfig = &server.Configuration{MemoryDB: false, DBConnectionString: "", OnlyLoopback: true, LogLevel: 9}
 )
 

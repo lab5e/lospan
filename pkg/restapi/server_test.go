@@ -17,7 +17,7 @@ import (
 var ma = protocol.MA{Prefix: [5]byte{0, 1, 3, 4, 5}, Size: protocol.MALarge}
 
 // Configuration without authentication
-var noAuthConfig = server.Configuration{HTTPServerPort: 0, DisableAuth: true, MemoryDB: true}
+var noAuthConfig = server.Configuration{HTTPServerPort: 0, MemoryDB: true}
 
 func createTestServer(config server.Configuration) *Server {
 	ma, _ := protocol.NewMA([]byte{1, 2, 3})

@@ -14,7 +14,6 @@ require (
 	github.com/mgechev/revive v1.2.3
 	github.com/stretchr/testify v1.8.0
 	github.com/telenordigital/lassie-go v0.0.0-20180108164540-faedfc6c8016
-	golang.org/x/crypto v0.0.0-20220926161630-eccd6366d1be
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	google.golang.org/grpc v1.48.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0

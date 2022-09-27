@@ -2,7 +2,6 @@ package restapi
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,8 +10,6 @@ import (
 	"github.com/ExploratoryEngineering/rest"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/utils"
-
-	"golang.org/x/crypto/acme/autocert"
 )
 
 // Server is a type capable of serving the REST API for Congress. It can be started
@@ -53,18 +50,6 @@ func NewServer(loopbackOnly bool, scontext *server.Context, config *server.Confi
 		Handler: ret,
 	}
 
-	if config.ACMECert {
-		logging.Info("Using Let's Encrypt for certificates")
-		// See https://godoc.org/golang.org/x/crypto/acme/autocert#example-Manager
-		m := &autocert.Manager{
-			Cache:      autocert.DirCache(config.ACMESecretDir),
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(config.ACMEHost),
-		}
-		go http.ListenAndServe(":http", m.HTTPHandler(nil))
-		ret.srv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
-	}
-
 	handler := ret.handler()
 
 	ret.mux.HandleFunc("/", rest.AddCORSHeaders(handler))
@@ -75,18 +60,8 @@ func NewServer(loopbackOnly bool, scontext *server.Context, config *server.Confi
 func (h *Server) Start() error {
 	logging.Info("HTTP server listening on port %d", h.port)
 	go func() {
-		if h.config.ACMECert {
-			if err := h.srv.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
-				logging.Error("ListenAndServeTLS returned error: %v", err)
-			}
-		} else if h.config.TLSCertFile != "" && h.config.TLSKeyFile != "" {
-			if err := h.srv.ListenAndServeTLS(h.config.TLSCertFile, h.config.TLSKeyFile); err != http.ErrServerClosed {
-				logging.Error("ListenAndServeTLS returned error: %v", err)
-			}
-		} else {
-			if err := h.srv.ListenAndServe(); err != http.ErrServerClosed {
-				logging.Error("ListenAndServe returned error: %v", err)
-			}
+		if err := h.srv.ListenAndServe(); err != http.ErrServerClosed {
+			logging.Error("ListenAndServe returned error: %v", err)
 		}
 		h.completed <- true
 	}()
@@ -120,13 +95,13 @@ func (h *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *Server) handler() http.HandlerFunc {
 	router := rest.NewParameterRouter()
 	router.AddRoute("/", h.rootHandler)
-	router.AddRoute("/applications", h.applicationListHandler)
-	router.AddRoute("/applications/{aeui}", h.applicationInfoHandler)
-	router.AddRoute("/applications/{aeui}/devices", h.deviceListHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}", h.deviceInfoHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}/message", h.deviceSendHandler)
-	router.AddRoute("/gateways", h.gatewayListHandler)
-	router.AddRoute("/gateways/{geui}", h.gatewayInfoHandler)
+	router.AddRoute("/applications", h.applicationListHandler)                          // get post
+	router.AddRoute("/applications/{aeui}", h.applicationInfoHandler)                   // get post patch delete
+	router.AddRoute("/applications/{aeui}/devices", h.deviceListHandler)                // get post
+	router.AddRoute("/applications/{aeui}/devices/{deui}", h.deviceInfoHandler)         // get post patch delete
+	router.AddRoute("/applications/{aeui}/devices/{deui}/message", h.deviceSendHandler) // post - will need a different structure (inbox/outbox)
+	router.AddRoute("/gateways", h.gatewayListHandler)                                  // get post
+	router.AddRoute("/gateways/{geui}", h.gatewayInfoHandler)                           // get post patch delete
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		router.GetHandler(r.RequestURI).ServeHTTP(w, r)

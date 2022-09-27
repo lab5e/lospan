@@ -22,7 +22,7 @@ import (
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/monitoring"
-	"github.com/lab5e/lospan/processor"
+	"github.com/lab5e/lospan/pkg/processor"
 	"github.com/lab5e/lospan/restapi"
 	"github.com/lab5e/lospan/server"
 	"github.com/lab5e/lospan/storage"

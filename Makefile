@@ -12,9 +12,9 @@ test:
 	go test -timeout 10s ./...
 
 build:
-	go build -o bin/congress
-	cd test-tools/datagenerator && go build -o ../../bin/datagenerator
-	cd test-tools/eagle-one && go build -o ../../bin/eagle-one
+	cd cmd/congress && go build -o ../../bin/congress
+	cd cmd/datagenerator && go build -o ../../bin/datagenerator
+	cd cmd/eagle-one && go build -o ../../bin/eagle-one
 
 
 

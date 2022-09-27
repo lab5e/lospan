@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
 )
 
 func storeApplication(t *testing.T, application apiApplication, url string, expectedStatus int) apiApplication {

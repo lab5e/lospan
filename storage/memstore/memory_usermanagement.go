@@ -18,8 +18,8 @@ package memstore
 import (
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
 )
 
 type memoryUserManagement struct {

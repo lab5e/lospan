@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/rest"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // Extract EUI from path parameter in context

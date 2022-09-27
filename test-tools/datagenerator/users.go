@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
 )
 
 var lastnames = []string{

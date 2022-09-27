@@ -18,11 +18,11 @@ package processor
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/monitoring"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
 )
 
 // Encoder receives LoRaMessage data structures on a channel, encodes into a

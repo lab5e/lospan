@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/storage"
 )
 
 const (

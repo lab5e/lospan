@@ -16,8 +16,8 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/gateway"
-	"github.com/ExploratoryEngineering/congress/server"
+	"github.com/lab5e/lospan/gateway"
+	"github.com/lab5e/lospan/server"
 )
 
 // GwForwarder is the generic gateway interface. All of the communication is

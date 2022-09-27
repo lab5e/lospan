@@ -18,8 +18,8 @@ package storagetest
 import (
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
 )
 
 // TokenStorageTest tests a storage.TokenStorage instance

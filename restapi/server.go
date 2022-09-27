@@ -22,11 +22,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/utils"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/utils"
 
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/websocket"

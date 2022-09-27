@@ -18,13 +18,13 @@ package processor
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/monitoring"
+	"github.com/lab5e/lospan/monitoring"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
 )
 
 // Decrypter decrypts the decoded LoRa packets into payloads. It will

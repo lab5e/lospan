@@ -22,8 +22,8 @@ import (
 
 	"fmt"
 
-	"github.com/ExploratoryEngineering/congress/model"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
 )
 
 // This is the implementation of the message dispatcher process that grabs

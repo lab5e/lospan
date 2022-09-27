@@ -22,10 +22,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 // A set of entities to make the conversion to and from API JSON types

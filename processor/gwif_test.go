@@ -18,8 +18,8 @@ package processor
 import (
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/utils"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/utils"
 )
 
 // Test strings, base 64 encoded.

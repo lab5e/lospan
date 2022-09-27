@@ -24,9 +24,9 @@ import (
 
 	"reflect"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 // Create a new output by POSTing to the resource

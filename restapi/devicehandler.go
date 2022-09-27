@@ -25,12 +25,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ExploratoryEngineering/congress/monitoring"
+	"github.com/lab5e/lospan/monitoring"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/storage"
 )
 
 func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI protocol.EUI) {

@@ -23,17 +23,17 @@ import (
 	"net"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/monitoring"
+	"github.com/lab5e/lospan/monitoring"
 
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/band"
-	"github.com/ExploratoryEngineering/congress/events/gwevents"
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/band"
+	"github.com/lab5e/lospan/events/gwevents"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
 )
 
 var defaultBand band.FrequencyPlan

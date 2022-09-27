@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // This is borderline gaming the system but the code should at least run through once

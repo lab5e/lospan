@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 	lassie "github.com/telenordigital/lassie-go"
 )
 

@@ -19,10 +19,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/storage"
 )
 
 // dbApplicationStorage implements application storage for PostgreSQL.

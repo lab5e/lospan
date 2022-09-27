@@ -20,8 +20,8 @@ import (
 
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 func TestMacprocessorChannels(t *testing.T) {

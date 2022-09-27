@@ -18,7 +18,7 @@ package memstore
 import (
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/storage"
+	"github.com/lab5e/lospan/storage"
 )
 
 type memoryKeySequenceStorage struct {

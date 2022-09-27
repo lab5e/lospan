@@ -19,8 +19,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/model"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
 )
 
 // --------------------------------------------------------------------------
@@ -43,7 +43,6 @@ type router interface {
 // AppOutputManager is a memory-backed list of outputs. This includes all app
 // outputs for the instance. The list of dispatchers are keyed on application
 // EUI and output EUI.
-//
 type AppOutputManager struct {
 	mutex       *sync.Mutex                              // To keep everything in sync
 	dispatchers map[string]map[string]*messageDispatcher // A map keyed on app EUI, each containing a list of outputs

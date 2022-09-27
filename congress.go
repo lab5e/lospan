@@ -18,16 +18,16 @@ package main
 import (
 	"errors"
 
-	"github.com/ExploratoryEngineering/congress/gateway"
-	"github.com/ExploratoryEngineering/congress/monitoring"
-	"github.com/ExploratoryEngineering/congress/processor"
-	"github.com/ExploratoryEngineering/congress/restapi"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
-	"github.com/ExploratoryEngineering/congress/storage/dbstore"
-	"github.com/ExploratoryEngineering/congress/storage/memstore"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/pubsub"
+	"github.com/lab5e/lospan/gateway"
+	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/processor"
+	"github.com/lab5e/lospan/restapi"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/storage/dbstore"
+	"github.com/lab5e/lospan/storage/memstore"
 )
 
 // Server is the main Congress server process. It will launch several

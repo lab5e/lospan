@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 )
 
 func TestMessageCounter(t *testing.T) {

@@ -19,9 +19,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
 )
 
 type dbTokenStore struct {

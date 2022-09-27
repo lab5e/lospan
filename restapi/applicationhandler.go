@@ -23,15 +23,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/monitoring"
+	"github.com/lab5e/lospan/monitoring"
 
 	"golang.org/x/net/websocket"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage"
 )
 
 // The maximum number of data packets to return from the .../data endpoint

@@ -16,9 +16,9 @@ package main
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
 )
 
 func generateTokens(id model.UserID, count int, datastore storage.Storage) {

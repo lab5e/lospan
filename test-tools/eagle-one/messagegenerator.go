@@ -23,7 +23,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 )
 
 var payloadTemplate string

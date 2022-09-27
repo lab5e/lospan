@@ -19,10 +19,10 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/storage/memstore"
 	"github.com/ExploratoryEngineering/pubsub"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/storage/memstore"
 )
 
 func makeRandomEUI() protocol.EUI {

@@ -21,9 +21,9 @@ import (
 
 	"bytes"
 
-	"github.com/ExploratoryEngineering/congress/band"
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/band"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // This is the common context used by all of the tests. The aggregator uses

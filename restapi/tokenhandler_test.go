@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/model"
+	"github.com/lab5e/lospan/model"
 )
 
 func TestTokenChecker(t *testing.T) {

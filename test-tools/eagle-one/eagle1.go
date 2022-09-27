@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
 	lassie "github.com/telenordigital/lassie-go"
 )
 

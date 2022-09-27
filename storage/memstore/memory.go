@@ -15,7 +15,7 @@ package memstore
 //See the License for the specific language governing permissions and
 //limitations under the License.
 //
-import "github.com/ExploratoryEngineering/congress/storage"
+import "github.com/lab5e/lospan/storage"
 
 // A simple memory-only implementation of the various storage interfaces.
 

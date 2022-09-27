@@ -20,12 +20,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/storage/dbstore"
+	"github.com/lab5e/lospan/storage/dbstore"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 var params struct {

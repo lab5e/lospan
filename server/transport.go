@@ -18,7 +18,7 @@ package server
 import (
 	"encoding/hex"
 
-	"github.com/ExploratoryEngineering/congress/model"
+	"github.com/lab5e/lospan/model"
 )
 
 // transport implements the actual transport
@@ -56,8 +56,9 @@ var transports = map[string]transportFactory{}
 // in the ../data endpoints and via websockets.
 //
 // TODO: Merge with web socket data structure. This requires a fair bit of
-//    moving around since the PayloadMessage type must be moved to its own
-//    package to avoid circular dependencies.
+//
+//	moving around since the PayloadMessage type must be moved to its own
+//	package to avoid circular dependencies.
 type deviceData struct {
 	DevAddr    string  `json:"devAddr"`
 	Timestamp  int64   `json:"timestamp"`

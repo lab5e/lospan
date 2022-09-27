@@ -23,8 +23,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
 	"github.com/telenordigital/lassie-go"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"

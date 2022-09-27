@@ -16,8 +16,8 @@ package storage
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // ApplicationStorage is used to store and retrieve application objects in a storage backend.

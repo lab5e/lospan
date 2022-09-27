@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage/memstore"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage/memstore"
 )
 
 func TestOTAAJoinRequestProcessing(t *testing.T) {

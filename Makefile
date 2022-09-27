@@ -3,7 +3,7 @@
 .PHONY: text
 .PHONY: build 
 
-all: vet test build
+all: vet  build
 
 vet:
 	go vet ./...

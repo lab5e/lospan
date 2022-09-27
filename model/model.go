@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // Data model for LoRaWAN network. The data model is used in parts of the decoding
@@ -221,12 +221,12 @@ func (g *Gateway) Equals(other Gateway) bool {
 //
 // The resource is a HTTP URI. A token with the resource
 //
-//    /applications/<eui>
+//	/applications/<eui>
 //
 // would give access to that particular application while a token with
 // the resource set to
 //
-//    /applications
+//	/applications
 //
 // would give access to all of the applications.
 // The most relaxed resource is a single `/` which gives access to

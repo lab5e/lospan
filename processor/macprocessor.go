@@ -16,11 +16,11 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/monitoring"
+	"github.com/lab5e/lospan/monitoring"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 // MACProcessor is the process responsible for processing the MAC commands.

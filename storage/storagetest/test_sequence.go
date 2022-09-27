@@ -19,7 +19,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ExploratoryEngineering/congress/storage"
+	"github.com/lab5e/lospan/storage"
 )
 
 // SimpleKeySequence tests a simple sequence

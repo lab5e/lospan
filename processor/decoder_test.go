@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/server"
+	"github.com/lab5e/lospan/server"
 )
 
 // Ensure the decoder behaves when one channel closes

@@ -21,9 +21,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/ExploratoryEngineering/congress/server"
-	"github.com/ExploratoryEngineering/congress/storage/dbstore"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/server"
+	"github.com/lab5e/lospan/storage/dbstore"
 )
 
 var config = server.NewDefaultConfig()

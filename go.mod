@@ -1,4 +1,4 @@
-module github.com/ExploratoryEngineering/congress
+module github.com/lab5e/lospan
 
 go 1.19
 

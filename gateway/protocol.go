@@ -19,8 +19,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // The protocol parts - ie the Semtech packet forwarder

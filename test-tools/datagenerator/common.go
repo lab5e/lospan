@@ -19,7 +19,7 @@ import (
 	"math/rand"
 	"net"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 )
 
 func randomEUI() protocol.EUI {

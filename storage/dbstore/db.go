@@ -22,9 +22,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
+
 	// Use the Postgres driver
 	_ "github.com/lib/pq"
 )

@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/server"
+	"github.com/lab5e/lospan/server"
 )
 
 var (

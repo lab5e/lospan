@@ -16,10 +16,10 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/monitoring"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 // Decoder is the process that decodes the bytes received from the gateway interface into go structs.

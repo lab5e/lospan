@@ -19,9 +19,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/pubsub"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/server"
 )
 
 func createEncryptedTestMessage() protocol.PHYPayload {

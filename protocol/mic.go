@@ -18,7 +18,7 @@ package protocol
 import (
 	"encoding/binary"
 
-	"github.com/ExploratoryEngineering/congress/cmac"
+	"github.com/lab5e/lospan/cmac"
 )
 
 // CalculateMIC calculates the Message Integrity Code [4.4]
@@ -58,7 +58,9 @@ func (p *PHYPayload) calculateMICFromBuffer(key AESKey, payload []byte) (uint32,
 
 // CalculateJoinAcceptMIC calculates the JoinAccept MIC. The payload is expected to be
 // the payload that is sent to the end-device (6.2.5):
-//    MHDR | AppNonce | NetID | DevAddr | DLSettings | RxDelay | CFList
+//
+//	MHDR | AppNonce | NetID | DevAddr | DLSettings | RxDelay | CFList
+//
 // The MHDR field is used to build the buffer used when calculating the MIC.
 func (p *PHYPayload) CalculateJoinAcceptMIC(appKey AESKey, payload []byte) (uint32, error) {
 	return p.calculateMICFromBuffer(appKey, payload)
@@ -66,7 +68,9 @@ func (p *PHYPayload) CalculateJoinAcceptMIC(appKey AESKey, payload []byte) (uint
 
 // CalculateJoinRequestMIC calculates the JoinRequest MIC. The payload is the same payload as
 // the end-device sends to the network server (6.2.4):
-//     AppEUI | DevEUI | DevNonce
+//
+//	AppEUI | DevEUI | DevNonce
+//
 // The MHDR field is used to build the buffer used when calculating the MIC.
 func (p *PHYPayload) CalculateJoinRequestMIC(appKey AESKey, payload []byte) (uint32, error) {
 	return p.calculateMICFromBuffer(appKey, payload)

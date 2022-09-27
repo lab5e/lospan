@@ -18,9 +18,9 @@ package memstore
 import (
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/protocol"
-	"github.com/ExploratoryEngineering/congress/storage"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/protocol"
+	"github.com/lab5e/lospan/storage"
 )
 
 // memoryDeviceStorage is a (simple) memory-only implementation of the device storage interface

@@ -21,9 +21,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/congress/storage"
-	"github.com/ExploratoryEngineering/congress/storage/storagetest"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/storage/storagetest"
 )
 
 var pgdb *postgresEmbedded

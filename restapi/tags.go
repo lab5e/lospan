@@ -21,10 +21,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/ExploratoryEngineering/congress/model"
-	"github.com/ExploratoryEngineering/congress/storage"
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
+	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/storage"
 )
 
 // tagListResource lists tag on a resource. This method is common for all

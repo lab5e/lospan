@@ -27,8 +27,8 @@ import (
 	"net/http"
 	"net/http/pprof"
 
-	"github.com/ExploratoryEngineering/congress/utils"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/utils"
 )
 
 // This is the default endpoint for the expvar package. The location isn't

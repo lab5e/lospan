@@ -24,9 +24,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	cgw "github.com/ExploratoryEngineering/congress/gateway"
-	"github.com/ExploratoryEngineering/congress/protocol"
 	"github.com/ExploratoryEngineering/logging"
+	cgw "github.com/lab5e/lospan/gateway"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // SyntheticForwarder is a synthetic packet forwarder that exposes two channels

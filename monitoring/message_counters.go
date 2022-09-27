@@ -18,7 +18,7 @@ package monitoring
 import (
 	"sync"
 
-	"github.com/ExploratoryEngineering/congress/protocol"
+	"github.com/lab5e/lospan/protocol"
 )
 
 // MessageCounter holds the counters for a single gateway or application

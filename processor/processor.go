@@ -16,8 +16,8 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/congress/server"
 	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/lospan/server"
 )
 
 // Pipeline is the main processing pipeline for the server. Each step in
@@ -29,9 +29,8 @@ import (
 //
 // The pipeline is roughly built like this:
 //
-//    GW Forwarder -> Decoder -> Decrypter -> MAC Processor
-//          => Scheduler => Encoder -> GW Forwarder
-//
+//	GW Forwarder -> Decoder -> Decrypter -> MAC Processor
+//	      => Scheduler => Encoder -> GW Forwarder
 type Pipeline struct {
 	Decoder      *Decoder
 	Decrypter    *Decrypter

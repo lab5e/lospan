@@ -50,7 +50,7 @@ func TestDecrypterProcessing(t *testing.T) {
 
 	s := NewStorageTestContext()
 	router := pubsub.NewEventRouter(5)
-	context := server.Context{Storage: &s, AppRouter: &router}
+	context := server.Context{Storage: s, AppRouter: &router}
 
 	input := make(chan server.LoRaMessage)
 
@@ -59,7 +59,7 @@ func TestDecrypterProcessing(t *testing.T) {
 	go decrypter.Start()
 
 	msg := createEncryptedTestMessage()
-	d, _ := s.Device.GetByDevAddr(msg.MACPayload.FHDR.DevAddr)
+	d, _ := s.GetDeviceByDevAddr(msg.MACPayload.FHDR.DevAddr)
 	var msgOutput <-chan interface{}
 	for device := range d {
 		t.Logf("Found device: %T: with AppEUI %s", device, device.AppEUI)

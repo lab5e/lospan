@@ -1,20 +1,5 @@
 package monitoring
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/json"
 	"testing"
@@ -23,7 +8,7 @@ import (
 )
 
 func TestMessageCounter(t *testing.T) {
-	eui := protocol.EUIFromUint64(0xbeef)
+	eui := protocol.EUIFromInt64(0xbeef)
 	counter := NewMessageCounter(eui)
 
 	// Encode
@@ -72,14 +57,14 @@ func TestMessageCounterList(t *testing.T) {
 }
 
 func TestDefaultGWCounterList(t *testing.T) {
-	eui := protocol.EUIFromUint64(1)
+	eui := protocol.EUIFromInt64(1)
 	GetGatewayCounters(eui)
 	RemoveGatewayCounters(eui)
 }
 
 func TestDefaultAppCounterList(t *testing.T) {
-	eui := protocol.EUIFromUint64(0xb00f)
+	eui := protocol.EUIFromInt64(0xb00f)
 	GetAppCounters(eui)
 	RemoveAppCounters(eui)
-	RemoveAppCounters(protocol.EUIFromUint64(0xb000fb0))
+	RemoveAppCounters(protocol.EUIFromInt64(0xb000fb0))
 }

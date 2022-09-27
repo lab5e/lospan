@@ -34,7 +34,7 @@ const (
 // it should close the output channel.
 func TestInterfaceChannels(t *testing.T) {
 	s := NewStorageTestContext()
-	context := server.Context{Storage: &s}
+	context := server.Context{Storage: s}
 
 	port, err := utils.FreePort()
 	if err != nil {

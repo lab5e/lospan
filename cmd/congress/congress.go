@@ -1,20 +1,5 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"errors"
 
@@ -26,8 +11,6 @@ import (
 	"github.com/lab5e/lospan/pkg/restapi"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
-	"github.com/lab5e/lospan/pkg/storage/dbstore"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
 )
 
 // Server is the main Congress server process. It will launch several
@@ -73,22 +56,19 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	}
 	logging.Info("This is the Congress server")
 
-	var datastore storage.Storage
+	var datastore *storage.Storage
 	var err error
 	if c.config.DBConnectionString != "" {
 		logging.Info("Using PostgreSQL as backend storage")
-		datastore, err = dbstore.CreateStorage(config.DBConnectionString,
+		datastore, err = storage.CreateStorage(config.DBConnectionString,
 			config.DBMaxConnections, config.DBIdleConnections, config.DBConnLifetime)
 		if err != nil {
 			logging.Error("Couldn't connect to database: %v", err)
 			return nil, err
 		}
-	} else if config.MemoryDB {
-		logging.Warning("Using in-memory database as backend storage")
-		datastore = memstore.CreateMemoryStorage(config.MemoryMinLatencyMs, config.MemoryMaxLatencyMs)
 	}
 
-	keyGenerator, err := server.NewEUIKeyGenerator(config.RootMA(), uint32(config.NetworkID), datastore.Sequence)
+	keyGenerator, err := server.NewEUIKeyGenerator(config.RootMA(), uint32(config.NetworkID), datastore)
 	if err != nil {
 		logging.Error("Could not create key generator: %v. Terminating.", err)
 		return nil, errors.New("unable to create key generator")
@@ -98,18 +78,17 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	appRouter := pubsub.NewEventRouter(5)
 	gwEventRouter := pubsub.NewEventRouter(5)
 	c.context = &server.Context{
-		Storage:       &datastore,
+		Storage:       datastore,
 		Terminator:    make(chan bool),
 		FrameOutput:   &frameOutput,
 		Config:        config,
 		KeyGenerator:  &keyGenerator,
 		GwEventRouter: &gwEventRouter,
 		AppRouter:     &appRouter,
-		AppOutput:     server.NewAppOutputManager(&appRouter),
 	}
 
 	logging.Info("Launching generic packet forwarder on port %d...", config.GatewayPort)
-	c.forwarder = gateway.NewGenericPacketForwarder(c.config.GatewayPort, datastore.Gateway, c.context)
+	c.forwarder = gateway.NewGenericPacketForwarder(c.config.GatewayPort, datastore, c.context)
 	c.pipeline = processor.NewPipeline(c.context, c.forwarder)
 	c.restapi, err = restapi.NewServer(config.OnlyLoopback, c.context, c.config)
 	if err != nil {
@@ -140,9 +119,6 @@ func (c *Server) Start() error {
 		return err
 	}
 	logging.Warning("Monitoring is available at http://localhost:%d/debug", c.monitoring.Port())
-
-	logging.Debug("Launching outputs")
-	go c.context.AppOutput.LoadOutputs(c.context.Storage.AppOutput)
 
 	logging.Debug("Launching http server")
 	if err := c.restapi.Start(); err != nil {

@@ -1,20 +1,5 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/hex"
 	"fmt"
@@ -28,7 +13,7 @@ import (
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
-func generateDevices(count int, app model.Application, datastore storage.Storage, keyGen *server.KeyGenerator, callback func(createdDevice model.Device)) {
+func generateDevices(count int, app model.Application, datastore *storage.Storage, keyGen *server.KeyGenerator, callback func(createdDevice model.Device)) {
 	for i := 0; i < count; i++ {
 		d := model.NewDevice()
 		d.AppEUI = app.AppEUI
@@ -45,7 +30,7 @@ func generateDevices(count int, app model.Application, datastore storage.Storage
 		d.FCntDn = uint16(rand.Intn(4096))
 		d.DeviceEUI, _ = keyGen.NewDeviceEUI()
 		d.RelaxedCounter = false
-		if err := datastore.Device.Put(d, app.AppEUI); err != nil {
+		if err := datastore.CreateDevice(d, app.AppEUI); err != nil {
 			logging.Error("Unable to store device: %v", err)
 		} else {
 			callback(d)
@@ -88,7 +73,7 @@ func randomGateway(gws []model.Gateway) protocol.EUI {
 	return gws[rand.Intn(len(gws))].GatewayEUI
 }
 
-func generateDeviceData(device model.Device, count int, gateways []model.Gateway, datastore storage.Storage) {
+func generateDeviceData(device model.Device, count int, gateways []model.Gateway, datastore *storage.Storage) {
 	emulatedTime := time.Now().Add(-time.Duration(count) * time.Minute)
 	for i := 0; i < count; i++ {
 		dd := model.DeviceData{}
@@ -102,19 +87,19 @@ func generateDeviceData(device model.Device, count int, gateways []model.Gateway
 		dd.SNR = float32(rand.Intn(20))
 		dd.Timestamp = emulatedTime.UnixNano()
 		emulatedTime = emulatedTime.Add(time.Minute)
-		if err := datastore.DeviceData.Put(device.DeviceEUI, dd); err != nil {
+		if err := datastore.CreateUpstreamData(device.DeviceEUI, dd); err != nil {
 			logging.Error("Unable to store device data: %v", err)
 		}
 	}
 }
 
-func generateDownstreamMessage(device model.Device, datastore storage.Storage) {
+func generateDownstreamMessage(device model.Device, datastore *storage.Storage) {
 	// About 1 in 2 have a downstream message waiting
 	if rand.Intn(2) == 0 {
 		dm := model.NewDownstreamMessage(device.DeviceEUI, uint8(1+rand.Intn(222)))
 		dm.Ack = rand.Intn(2) == 1
 		dm.Data = hex.EncodeToString(makeRandomPayload())
-		if err := datastore.DeviceData.PutDownstream(device.DeviceEUI, dm); err != nil {
+		if err := datastore.CreateDownstreamData(device.DeviceEUI, dm); err != nil {
 			logging.Error("Unable to store downstream message: %v", err)
 		}
 	}
@@ -124,10 +109,10 @@ func randomNonce() uint16 {
 	return uint16(rand.Uint32() & 0xFFFF)
 }
 
-func generateNonces(device model.Device, count int, datastore storage.Storage) {
+func generateNonces(device model.Device, count int, datastore *storage.Storage) {
 	if device.State == model.OverTheAirDevice {
 		for i := 0; i < count; i++ {
-			if err := datastore.Device.AddDevNonce(device, randomNonce()); err != nil && err != storage.ErrAlreadyExists {
+			if err := datastore.AddDevNonce(device, randomNonce()); err != nil && err != storage.ErrAlreadyExists {
 				logging.Warning("Unable to add nonce: %v", err)
 			}
 		}

@@ -1,20 +1,5 @@
 package server
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"errors"
 	"fmt"
@@ -37,7 +22,7 @@ type keyDispatcher struct {
 	response    chan uint64
 	identifier  string
 	keySequence chan uint64
-	keyStorage  storage.KeySequenceStorage
+	keyStorage  *storage.Storage
 	interval    uint64
 	acquire     chan bool // acquire channel - signal for "new id requested"
 }
@@ -50,7 +35,7 @@ type keyDispatcher struct {
 type KeyGenerator struct {
 	ma                  protocol.MA
 	netID               uint32
-	keyStorage          storage.KeySequenceStorage
+	keyStorage          *storage.Storage
 	appEUIdispatcher    keyDispatcher
 	deviceEUIdispatcher keyDispatcher
 	outputEUIdispatcher keyDispatcher
@@ -84,7 +69,7 @@ func (k *KeyGenerator) NewDeviceEUI() (protocol.EUI, error) {
 	return protocol.NewDeviceEUI(k.ma, k.netID, uint32(newID&0xFFFFFFFF)), err
 }
 
-func newDispatcher(interval uint64, name string, keyStorage storage.KeySequenceStorage) keyDispatcher {
+func newDispatcher(interval uint64, name string, keyStorage *storage.Storage) keyDispatcher {
 	return keyDispatcher{
 		response:   make(chan uint64),
 		identifier: name,
@@ -153,7 +138,7 @@ func (d *keyDispatcher) dispatch() {
 }
 
 // NewEUIKeyGenerator creates a new KeyGenerator instance
-func NewEUIKeyGenerator(ma protocol.MA, netID uint32, keyStorage storage.KeySequenceStorage) (KeyGenerator, error) {
+func NewEUIKeyGenerator(ma protocol.MA, netID uint32, keyStorage *storage.Storage) (KeyGenerator, error) {
 	switch ma.Size {
 	case protocol.MALarge:
 		if netID > 0x7FFF {

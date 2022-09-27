@@ -1,20 +1,5 @@
 package protocol
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import "fmt"
 
 // MASize is the defined sizes. There are three different sizes:
@@ -94,52 +79,51 @@ func NewMA(prefix []byte) (MA, error) {
 	return ret, nil
 }
 
-// Telenor owns some MAC assignments
-//    * MA-L: 00-09-09, Telenor Connect assigned
-//    * MA-S 70-B3-D5-(27D000 - 27DFFF). Telenor Connexion AB)
-
 // NewDeviceEUI creates a new device EUI. The following bit pattern will be used
 // for device EUIs:
-//     8.......7.......6.......5.......4.......3.......2.......1.......0
-//     |                               |NwkID--|                         7 bits
-//     |                                       |NwkAddr (counter)------| 25 bits
-//     |              |NetID-------------------|                         24 bits
-//     |MA-L-------------------|                                         24 bits
-//     |MA-M-----------------------|                                     28 bits
-//     |MA-S------------------------------|                              36 bits
+//
+//	8.......7.......6.......5.......4.......3.......2.......1.......0
+//	|                               |NwkID--|                         7 bits
+//	|                                       |NwkAddr (counter)------| 25 bits
+//	|              |NetID-------------------|                         24 bits
+//	|MA-L-------------------|                                         24 bits
+//	|MA-M-----------------------|                                     28 bits
+//	|MA-S------------------------------|                              36 bits
 //
 // The MA block might overwrite parts of the NetID and NwkID values.
 func NewDeviceEUI(ma MA, netID uint32, nwkAddr uint32) EUI {
-	return ma.Combine(EUIFromUint64(uint64(netID)<<25 | uint64(nwkAddr)))
+	return ma.Combine(EUIFromInt64(int64(netID)<<25 | int64(nwkAddr)))
 }
 
 // NewApplicationEUI creates a new application EUI. The bit layout for the EUI
 // is as follows:
-//     8.......7.......6.......5.......4.......3.......2.......1.......0
-//     |                               |NwkID--|                         7 bits
-//     |                                       |(Counter)--------------| 25 bits
-//     |              |NetID-------------------|                         24 bits
-//     |MA-L-------------------|                                         24 bits
-//     |MA-M-----------------------|                                     28 bits
-//     |MA-S------------------------------|                              36 bits
+//
+//	8.......7.......6.......5.......4.......3.......2.......1.......0
+//	|                               |NwkID--|                         7 bits
+//	|                                       |(Counter)--------------| 25 bits
+//	|              |NetID-------------------|                         24 bits
+//	|MA-L-------------------|                                         24 bits
+//	|MA-M-----------------------|                                     28 bits
+//	|MA-S------------------------------|                              36 bits
 //
 // Both NetID and NwkID might be overwritten by the MA block.
 func NewApplicationEUI(ma MA, netID uint32, counter uint32) EUI {
-	return ma.Combine(EUIFromUint64(uint64(netID)<<25 | uint64(counter)))
+	return ma.Combine(EUIFromInt64(int64(netID)<<25 | int64(counter)))
 }
 
 // NewNetworkEUI creates a new network EUI. The bit layout is as follows:
-//     8.......7.......6.......5.......4.......3.......2.......1.......0
-//     |                               |NwkID--|                         7 bits
-//     |                                       |(0)--------------------| 25 bits
-//     |              |NetID (counter)---------|                         24 bits
-//     |MA-L-------------------|                                         24 bits
-//     |MA-M-----------------------|                                     28 bits
-//     |MA-S------------------------------|                              36 bits
+//
+//	8.......7.......6.......5.......4.......3.......2.......1.......0
+//	|                               |NwkID--|                         7 bits
+//	|                                       |(0)--------------------| 25 bits
+//	|              |NetID (counter)---------|                         24 bits
+//	|MA-L-------------------|                                         24 bits
+//	|MA-M-----------------------|                                     28 bits
+//	|MA-S------------------------------|                              36 bits
 //
 // The medium and small MA blocks might overwrite the NetID and NwkID values.
 func NewNetworkEUI(ma MA, netID uint32) EUI {
-	return ma.Combine(EUIFromUint64(uint64(netID) << 25))
+	return ma.Combine(EUIFromInt64(int64(netID) << 25))
 }
 
 // This is the maximum number of bits that can be used for a NetID in a network EUI

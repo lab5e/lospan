@@ -1,20 +1,5 @@
 package protocol
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/binary"
 )
@@ -35,9 +20,9 @@ func (j *JoinRequestPayload) decode(buffer []byte, pos *int) error {
 	if len(buffer) < (*pos + 18) {
 		return ErrBufferTruncated
 	}
-	j.AppEUI = EUIFromUint64(binary.LittleEndian.Uint64(buffer[*pos:]))
+	j.AppEUI = EUIFromInt64(int64(binary.LittleEndian.Uint64(buffer[*pos:])))
 	*pos += 8
-	j.DevEUI = EUIFromUint64(binary.LittleEndian.Uint64(buffer[*pos:]))
+	j.DevEUI = EUIFromInt64(int64(binary.LittleEndian.Uint64(buffer[*pos:])))
 	*pos += 8
 
 	// These should be big endian. Because keys.
@@ -55,9 +40,9 @@ func (j *JoinRequestPayload) encode(buffer []byte, pos *int) error {
 		return ErrBufferTruncated
 	}
 
-	binary.LittleEndian.PutUint64(buffer[*pos:], j.AppEUI.ToUint64())
+	binary.LittleEndian.PutUint64(buffer[*pos:], uint64(j.AppEUI.ToInt64()))
 	*pos += 8
-	binary.LittleEndian.PutUint64(buffer[*pos:], j.DevEUI.ToUint64())
+	binary.LittleEndian.PutUint64(buffer[*pos:], uint64(j.DevEUI.ToInt64()))
 	*pos += 8
 
 	// These should be big endian. Because keys.

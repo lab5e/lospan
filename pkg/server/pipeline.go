@@ -37,7 +37,6 @@ type Context struct {
 	KeyGenerator  *KeyGenerator       // Key generator for server
 	GwEventRouter *pubsub.EventRouter // Router for GW events
 	AppRouter     *pubsub.EventRouter // Router for app data
-	AppOutput     *AppOutputManager
 }
 
 // RadioContext - metadata for radio stats and settings

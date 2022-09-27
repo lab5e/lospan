@@ -1,20 +1,5 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/json"
 	"io"
@@ -29,7 +14,7 @@ import (
 )
 
 func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
-	gateways, err := s.context.Storage.Gateway.GetList(s.connectUserID(r))
+	gateways, err := s.context.Storage.GetGatewayList()
 	if err != nil {
 		logging.Warning("Unable to get list of gateways: %v", err)
 		http.Error(w, "Unable to read list of gateways", http.StatusInternalServerError)
@@ -89,7 +74,7 @@ func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
 	}
 
 	modelGw := gateway.ToModel()
-	if err = s.context.Storage.Gateway.Put(gateway.ToModel(), s.connectUserID(r)); err != nil {
+	if err = s.context.Storage.CreateGateway(gateway.ToModel()); err != nil {
 		if err == storage.ErrAlreadyExists {
 			http.Error(w, "A gateway with that EUI alread exists", http.StatusConflict)
 			return
@@ -128,7 +113,7 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	modelGateway, err := s.context.Storage.Gateway.Get(eui, s.connectUserID(r))
+	modelGateway, err := s.context.Storage.GetGateway(eui)
 	if err != nil {
 		logging.Info("Unable to look up gateway with EUI %s: %v", eui, err)
 		http.Error(w, "Gateway not found", http.StatusNotFound)
@@ -175,11 +160,7 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 			modelGateway.StrictIP = strict
 		}
 
-		if !s.updateTags(&(modelGateway.Tags), values) {
-			http.Error(w, "Invalid tag name or value", http.StatusBadRequest)
-			return
-		}
-		if err := s.context.Storage.Gateway.Update(modelGateway, s.connectUserID(r)); err != nil {
+		if err := s.context.Storage.UpdateGateway(modelGateway); err != nil {
 			logging.Warning("Unable to update gateway: %v", err)
 			http.Error(w, "Unable to update gateway", http.StatusInternalServerError)
 			return
@@ -192,7 +173,7 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case http.MethodDelete:
-		if err := s.context.Storage.Gateway.Delete(eui, s.connectUserID(r)); err != nil {
+		if err := s.context.Storage.DeleteGateway(eui); err != nil {
 			logging.Warning("Unable to delete gateway: %v", err)
 			http.Error(w, "Unable to remove gateway", http.StatusInternalServerError)
 			return

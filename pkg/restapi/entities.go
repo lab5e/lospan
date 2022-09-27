@@ -1,31 +1,13 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
-	"encoding/hex"
 	"net"
 	"reflect"
 	"strings"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/server"
 )
 
 // A set of entities to make the conversion to and from API JSON types
@@ -69,22 +51,13 @@ func newAppFromModel(app model.Application) apiApplication {
 	return apiApplication{
 		ApplicationEUI: app.AppEUI.String(),
 		eui:            app.AppEUI,
-		Tags:           app.Tags.Tags(),
 	}
 }
 
 // ToModel converts the API application into a model.Application entity
 func (a *apiApplication) ToModel() model.Application {
-	tags, err := model.NewTagsFromMap(a.Tags)
-	if err != nil {
-		logging.Info("Unable to convert tags from API entity to model: %v", err)
-		// Replace with empty tags
-		tmp := model.NewTags()
-		tags = &tmp
-	}
 	return model.Application{
 		AppEUI: a.eui,
-		Tags:   *tags,
 	}
 }
 
@@ -141,7 +114,6 @@ func newDeviceFromModel(device *model.Device) apiDevice {
 		RelaxedCounter: device.RelaxedCounter,
 		DeviceType:     state,
 		KeyWarning:     device.KeyWarning,
-		Tags:           device.Tags.Tags(),
 	}
 }
 
@@ -152,10 +124,6 @@ func (d *apiDevice) ToModel(appEUI protocol.EUI) model.Device {
 		state = model.PersonalizedDevice
 	}
 
-	tags, err := model.NewTagsFromMap(d.Tags)
-	if err != nil {
-		logging.Warning("Unable to convert api device tags to model tags: %v. Ignoring", err)
-	}
 	return model.Device{
 		DeviceEUI:      d.eui,
 		DevAddr:        d.da,
@@ -168,7 +136,6 @@ func (d *apiDevice) ToModel(appEUI protocol.EUI) model.Device {
 		FCntUp:         d.FCntUp,
 		RelaxedCounter: d.RelaxedCounter,
 		KeyWarning:     d.KeyWarning,
-		Tags:           *tags,
 	}
 }
 
@@ -202,10 +169,6 @@ type apiGateway struct {
 // ToModel converts an APIGateway instance to a model.Gateway
 func (g *apiGateway) ToModel() model.Gateway {
 	eui, _ := protocol.EUIFromString(g.GatewayEUI)
-	tags, err := model.NewTagsFromMap(g.Tags)
-	if err != nil {
-		logging.Warning("Unable to convert API tags to tags struct: %v", err)
-	}
 	return model.Gateway{
 		GatewayEUI: eui,
 		IP:         net.ParseIP(g.IP),
@@ -213,7 +176,6 @@ func (g *apiGateway) ToModel() model.Gateway {
 		Latitude:   g.Latitude,
 		Longitude:  g.Longitude,
 		Altitude:   g.Altitude,
-		Tags:       *tags,
 	}
 }
 
@@ -226,7 +188,6 @@ func newGatewayFromModel(gateway model.Gateway) apiGateway {
 		Latitude:   gateway.Latitude,
 		Longitude:  gateway.Longitude,
 		Altitude:   gateway.Altitude,
-		Tags:       gateway.Tags.Tags(),
 	}
 }
 
@@ -258,15 +219,6 @@ type apiPublicGatewayList struct {
 	Gateways []apiPublicGateway `json:"gateways"`
 }
 
-func newPublicGatewayFromModel(gateway model.PublicGatewayInfo) apiPublicGateway {
-	return apiPublicGateway{
-		EUI:       gateway.EUI,
-		Latitude:  gateway.Latitude,
-		Longitude: gateway.Longitude,
-		Altitude:  gateway.Altitude,
-	}
-}
-
 // ToUnixMillis converts a nanosecond timestamp into a millisecond timestamp.
 // the general assumption is that time.Nanosecond = 1 (which it is)
 func ToUnixMillis(unixNanos int64) int64 {
@@ -277,47 +229,6 @@ func ToUnixMillis(unixNanos int64) int64 {
 // that this assumes that time.Nanosecond = 1 (which it is)
 func FromUnixMillis(unixMillis int64) int64 {
 	return unixMillis * int64(time.Millisecond)
-}
-
-// APIDeviceData is a wrapper for the model.DeviceData struct. This is used both
-// in the ../data endpoints and via websockets.
-type apiDeviceData struct {
-	DevAddr    string  `json:"devAddr"`
-	Timestamp  int64   `json:"timestamp"`
-	Data       string  `json:"data"`
-	AppEUI     string  `json:"appEUI"`
-	DeviceEUI  string  `json:"deviceEUI"`
-	RSSI       int32   `json:"rssi"`
-	SNR        float32 `json:"snr"`
-	Frequency  float32 `json:"frequency"`
-	GatewayEUI string  `json:"gatewayEUI"`
-	DataRate   string  `json:"dataRate"`
-}
-
-// NewDeviceDataFromModel returns an user-friendly version of the DeviceData struct
-func newDeviceDataFromModel(data model.DeviceData, appEUI protocol.EUI) apiDeviceData {
-	return apiDeviceData{
-		AppEUI:     appEUI.String(),
-		DeviceEUI:  data.DeviceEUI.String(),
-		Timestamp:  ToUnixMillis(data.Timestamp),
-		DevAddr:    data.DevAddr.String(),
-		Data:       hex.EncodeToString(data.Data),
-		GatewayEUI: data.GatewayEUI.String(),
-		RSSI:       data.RSSI,
-		SNR:        data.SNR,
-		Frequency:  data.Frequency,
-		DataRate:   data.DataRate,
-	}
-}
-
-// APIDataList is the list of data packets from devices
-type apiDataList struct {
-	Messages []apiDeviceData `json:"messages"`
-}
-
-// NewAPIDataList returns a new APIDataList instance
-func newAPIDataList() apiDataList {
-	return apiDataList{Messages: make([]apiDeviceData, 0)}
 }
 
 // apiDownstreamMessage is a message that will be sent to a device. The message
@@ -371,84 +282,4 @@ func newDownstreamMessageFromModel(msg model.DownstreamMessage) apiDownstreamMes
 		AckTime:     msg.AckTime,
 		State:       state,
 	}
-}
-
-// apiToken is a wrapper type for model.APIToken that omits some of the fields
-// in the original struct. The APIToken struct could have been used as is but
-// this is consistent with the other types in the model package.
-type apiToken struct {
-	Token    string            `json:"token"`
-	Write    bool              `json:"write"`
-	Resource string            `json:"resource"`
-	Tags     map[string]string `json:"tags"`
-}
-
-func newTokenFromModel(existing model.APIToken) apiToken {
-	return apiToken{
-		Token:    existing.Token,
-		Write:    existing.Write,
-		Resource: existing.Resource,
-		Tags:     existing.Tags.Tags(),
-	}
-}
-
-// This is a list of tokens
-type apiTokenList struct {
-	Tokens []apiToken `json:"tokens"`
-}
-
-// Outputs are data outputs from applications. There's just one output
-// type ATM.
-
-// apiOutputList is a list of outputs to the client
-type apiAppOutputList struct {
-	List []apiAppOutput `json:"outputs"`
-}
-
-// apiLog is a list of log entries from an output
-type apiAppOutputLog struct {
-	Timestamp string `json:"timestamp"`
-	Message   string `json:"message"`
-}
-
-// apiOutput is an output presented to the client
-type apiAppOutput struct {
-	EUI    string                `json:"eui"`
-	AppEUI string                `json:"appEUI"`
-	Config model.TransportConfig `json:"config"`
-	Log    []apiAppOutputLog     `json:"logs,omitempty"`
-	Status string                `json:"status"`
-}
-
-// newOutputFromModel converts a model output to a client-friendly output
-func newOutputFromModel(src model.AppOutput, log *server.MemoryLogger, status string) apiAppOutput {
-	var logMessages []apiAppOutputLog
-	for _, v := range log.Entries {
-		if v.IsValid() {
-			logMessages = append(logMessages, apiAppOutputLog{v.TimeString(), v.Message})
-		}
-	}
-	return apiAppOutput{
-		EUI:    src.EUI.String(),
-		AppEUI: src.AppEUI.String(),
-		Config: src.Configuration,
-		Log:    logMessages,
-		Status: status,
-	}
-}
-
-// ToModel converts the apiOutput into a model equivalent
-func (a *apiAppOutput) ToModel() (model.AppOutput, error) {
-	ret := model.NewAppOutput()
-	var err error
-	if ret.EUI, err = protocol.EUIFromString(a.EUI); err != nil {
-		return ret, err
-	}
-	if ret.AppEUI, err = protocol.EUIFromString(a.AppEUI); err != nil {
-		return ret, err
-	}
-	if a.Config != nil {
-		ret.Configuration = a.Config
-	}
-	return ret, nil
 }

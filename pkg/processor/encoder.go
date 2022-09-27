@@ -60,7 +60,7 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 		// Reset frame counter for both
 		packet.FrameContext.Device.FCntDn = 0
 		packet.FrameContext.Device.FCntUp = 0
-		if err := e.context.Storage.Device.UpdateState(packet.FrameContext.Device); err != nil {
+		if err := e.context.Storage.UpdateDeviceState(packet.FrameContext.Device); err != nil {
 			logging.Warning("Unable to update frame counters for device with EUI %s: %v. Ignoring JoinRequest.", packet.FrameContext.Device.DeviceEUI, err)
 			return
 		}
@@ -89,13 +89,13 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 
 		// Update the sent time for the message
 		sentTime := time.Now().Unix()
-		if err := e.context.Storage.DeviceData.UpdateDownstream(packet.FrameContext.Device.DeviceEUI, sentTime, 0); err != nil && err != storage.ErrNotFound {
+		if err := e.context.Storage.UpdateDownstreamData(packet.FrameContext.Device.DeviceEUI, sentTime, 0); err != nil && err != storage.ErrNotFound {
 			logging.Warning("Unable to update downstream message for device %s: %v", packet.FrameContext.Device.DeviceEUI, err)
 		}
 
 		// Increase the frame counter after the message is sent. New devices will get 0,1,2...
 		packet.FrameContext.Device.FCntDn++
-		if err := e.context.Storage.Device.UpdateState(packet.FrameContext.Device); err != nil {
+		if err := e.context.Storage.UpdateDeviceState(packet.FrameContext.Device); err != nil {
 			logging.Error("Unable to update frame counter for downstream message to device with EUI %s: %v",
 				packet.FrameContext.Device.DeviceEUI,
 				err)

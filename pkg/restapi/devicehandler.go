@@ -1,24 +1,8 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -32,7 +16,7 @@ import (
 )
 
 func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI protocol.EUI) {
-	devices, err := s.context.Storage.Device.GetByApplicationEUI(appEUI)
+	devices, err := s.context.Storage.GetDevicesByApplicationEUI(appEUI)
 	if err != nil {
 		logging.Warning("Unable to read device list for application %s: %v.", appEUI, err)
 		http.Error(w, "Server error", http.StatusNotFound)
@@ -170,7 +154,7 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	attempts := 1
 	devErr := storage.ErrAlreadyExists
 	for devErr == storage.ErrAlreadyExists && attempts < 10 {
-		devErr = s.context.Storage.Device.Put(deviceToSave, applicationEUI)
+		devErr = s.context.Storage.CreateDevice(deviceToSave, applicationEUI)
 		if devErr == nil {
 			break
 		}
@@ -215,7 +199,7 @@ func (s *Server) deviceListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve application, make sure both network and application EUI is correct
-	_, err = s.context.Storage.Application.GetByEUI(applicationEUI, s.connectUserID(r))
+	_, err = s.context.Storage.GetApplicationByEUI(applicationEUI)
 	if err != nil {
 		http.Error(w, "Application not found", http.StatusNotFound)
 		return
@@ -252,7 +236,7 @@ func (s *Server) getDevice(w http.ResponseWriter, r *http.Request) (
 		return appEUI, nil
 	}
 
-	device, err := s.context.Storage.Device.GetByEUI(deviceEUI)
+	device, err := s.context.Storage.GetDeviceByEUI(deviceEUI)
 	if err != nil {
 		http.Error(w, "Device not found", http.StatusNotFound)
 		return appEUI, nil
@@ -361,11 +345,7 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 				device.State = model.PersonalizedDevice
 			}
 		}
-		if !s.updateTags(&(device.Tags), values) {
-			http.Error(w, "Invalid tag value", http.StatusBadRequest)
-			return
-		}
-		if err := s.context.Storage.Device.Update(*device); err != nil {
+		if err := s.context.Storage.UpdateDevice(*device); err != nil {
 			logging.Warning("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
 			http.Error(w, "Unable to update device", http.StatusInternalServerError)
 			return
@@ -377,7 +357,7 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case http.MethodDelete:
-		err := s.context.Storage.Device.Delete(device.DeviceEUI)
+		err := s.context.Storage.DeleteDevice(device.DeviceEUI)
 		switch err {
 		case nil:
 			monitoring.DeviceRemoved.Increment()
@@ -401,7 +381,7 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 // a bit counter-intuitive but it will fail on the PutDownstream call later on
 // this elminates a few obvious concurrency issues but not all.
 func (s *Server) removeDownstreamIfComplete(w http.ResponseWriter, deviceEUI protocol.EUI) bool {
-	existingMessage, err := s.context.Storage.DeviceData.GetDownstream(deviceEUI)
+	existingMessage, err := s.context.Storage.GetDownstreamData(deviceEUI)
 	if err == storage.ErrNotFound {
 		return true
 	}
@@ -415,7 +395,7 @@ func (s *Server) removeDownstreamIfComplete(w http.ResponseWriter, deviceEUI pro
 		return false
 	}
 
-	if err := s.context.Storage.DeviceData.DeleteDownstream(deviceEUI); err != nil {
+	if err := s.context.Storage.DeleteDownstreamData(deviceEUI); err != nil {
 		http.Error(w, "unable to remove scheduled message", http.StatusInternalServerError)
 		return false
 	}
@@ -473,7 +453,7 @@ func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r
 	if ok {
 		downstreamMsg.Ack = ack
 	}
-	if err := s.context.Storage.DeviceData.PutDownstream(device.DeviceEUI, downstreamMsg); err != nil {
+	if err := s.context.Storage.CreateDownstreamData(device.DeviceEUI, downstreamMsg); err != nil {
 		logging.Warning("Unable to store downstream message: %v", err)
 		http.Error(w, "unable to schedule downstream message", http.StatusInternalServerError)
 		return
@@ -488,7 +468,7 @@ func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r
 }
 
 func (s *Server) getDownstream(device *model.Device, w http.ResponseWriter, r *http.Request) {
-	msg, err := s.context.Storage.DeviceData.GetDownstream(device.DeviceEUI)
+	msg, err := s.context.Storage.GetDownstreamData(device.DeviceEUI)
 	if err == storage.ErrNotFound {
 		http.Error(w, "No downstream message scheduled for device", http.StatusNotFound)
 		return
@@ -507,7 +487,7 @@ func (s *Server) getDownstream(device *model.Device, w http.ResponseWriter, r *h
 }
 
 func (s *Server) deleteDownstream(device *model.Device, w http.ResponseWriter, r *http.Request) {
-	if err := s.context.Storage.DeviceData.DeleteDownstream(device.DeviceEUI); err != nil && err != storage.ErrNotFound {
+	if err := s.context.Storage.DeleteDownstreamData(device.DeviceEUI); err != nil && err != storage.ErrNotFound {
 		logging.Warning("Unable to remove downstream message: %v", err)
 		http.Error(w, "Unable to remove downstream message", http.StatusInternalServerError)
 		return
@@ -535,18 +515,4 @@ func (s *Server) deviceSendHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
 	}
-}
-
-func euiToSource(eui protocol.EUI) string {
-	return fmt.Sprintf("0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x",
-		eui.Octets[0], eui.Octets[1], eui.Octets[2], eui.Octets[3],
-		eui.Octets[4], eui.Octets[5], eui.Octets[6], eui.Octets[7])
-}
-
-func keyToSource(key protocol.AESKey) string {
-	return fmt.Sprintf("0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x",
-		key.Key[0], key.Key[1], key.Key[2], key.Key[3],
-		key.Key[4], key.Key[5], key.Key[6], key.Key[7],
-		key.Key[8], key.Key[9], key.Key[10], key.Key[11],
-		key.Key[12], key.Key[13], key.Key[14], key.Key[15])
 }

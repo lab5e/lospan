@@ -1,20 +1,5 @@
 package processor
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"testing"
 	"time"
@@ -22,7 +7,7 @@ import (
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 func TestOTAAJoinRequestProcessing(t *testing.T) {
@@ -30,10 +15,9 @@ func TestOTAAJoinRequestProcessing(t *testing.T) {
 	deviceEUI, _ := protocol.EUIFromString("00-01-02-03-04-05-06-07")
 	appEUI, _ := protocol.EUIFromString("00-01-02-03-04-05-06-08")
 
-	store := memstore.CreateMemoryStorage(0, 0)
+	store := storage.NewMemoryStorage()
 	application := model.Application{
 		AppEUI: appEUI,
-		Tags:   model.NewTags(),
 	}
 	device := model.Device{
 		DeviceEUI:       deviceEUI,
@@ -45,14 +29,14 @@ func TestOTAAJoinRequestProcessing(t *testing.T) {
 		DevNonceHistory: make([]uint16, 0),
 	}
 
-	store.Application.Put(application, model.SystemUserID)
-	store.Device.Put(device, appEUI)
+	store.CreateApplication(application)
+	store.CreateDevice(device, appEUI)
 
 	inputChan := make(chan server.LoRaMessage)
 
 	foBuffer := server.NewFrameOutputBuffer()
 	decrypter := NewDecrypter(&server.Context{
-		Storage:     &store,
+		Storage:     store,
 		FrameOutput: &foBuffer,
 		Config:      &server.Configuration{},
 	}, inputChan)

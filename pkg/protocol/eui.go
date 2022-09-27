@@ -1,20 +1,5 @@
 package protocol
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/hex"
 	"fmt"
@@ -50,7 +35,7 @@ func EUIFromString(euiStr string) (EUI, error) {
 }
 
 // EUIFromUint64 converts an uint64 value to an EUI.
-func EUIFromUint64(val uint64) EUI {
+func EUIFromInt64(val int64) EUI {
 	ret := EUI{}
 	for i := 7; i >= 0; i-- {
 		ret.Octets[i] = byte(val & 0xFF)
@@ -60,11 +45,11 @@ func EUIFromUint64(val uint64) EUI {
 }
 
 // ToUint64 returns the EUI as a uin64 integer
-func (eui *EUI) ToUint64() uint64 {
-	ret := uint64(0)
+func (eui *EUI) ToInt64() int64 {
+	ret := int64(0)
 	for i := 0; i < 8; i++ {
 		ret <<= 8
-		ret += uint64(eui.Octets[i])
+		ret += int64(eui.Octets[i])
 	}
 	return ret
 }

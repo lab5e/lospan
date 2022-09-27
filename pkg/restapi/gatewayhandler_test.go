@@ -1,20 +1,5 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/json"
 	"io"
@@ -43,9 +28,8 @@ func TestGatewayRoutes(t *testing.T) {
 		Latitude:   1,
 		Longitude:  2,
 		Altitude:   3,
-		Tags:       model.NewTags(),
 	}
-	err := h.context.Storage.Gateway.Put(gw1, model.SystemUserID)
+	err := h.context.Storage.CreateGateway(gw1)
 	if err != nil {
 		t.Fatal("Error writing gateway 1 to storage: ", err)
 	}
@@ -57,10 +41,9 @@ func TestGatewayRoutes(t *testing.T) {
 		Latitude:   4,
 		Longitude:  5,
 		Altitude:   6,
-		Tags:       model.NewTags(),
 	}
 
-	err = h.context.Storage.Gateway.Put(gw2, model.SystemUserID)
+	err = h.context.Storage.CreateGateway(gw2)
 	if err != nil {
 		t.Fatal("Error writing gateway 2 to storage: ", err)
 	}
@@ -125,7 +108,7 @@ func TestGatewayRoutes(t *testing.T) {
 		t.Fatal("Expected 201 CREATED but got ", resp.StatusCode)
 	}
 
-	gw, err := h.context.Storage.Gateway.Get(singleEUI, model.SystemUserID)
+	gw, err := h.context.Storage.GetGateway(singleEUI)
 	if err != nil {
 		t.Fatal("Could not find POSTed gateway in store: ", err)
 	}
@@ -141,7 +124,7 @@ func TestGatewayListEndpoint(t *testing.T) {
 
 	const duplicateEUI = "aa-bb-aa-bb-aa-bb-aa-bb"
 	dupEUI, _ := protocol.EUIFromString(duplicateEUI)
-	h.context.Storage.Gateway.Put(model.Gateway{GatewayEUI: dupEUI, IP: net.ParseIP("127.0.0.1"), StrictIP: false}, model.SystemUserID)
+	h.context.Storage.CreateGateway(model.Gateway{GatewayEUI: dupEUI, IP: net.ParseIP("127.0.0.1"), StrictIP: false})
 
 	rootURL := h.loopbackURL() + "/gateways"
 
@@ -195,9 +178,8 @@ func TestGatewayInfoEndpoint(t *testing.T) {
 	gw := model.Gateway{
 		GatewayEUI: eui,
 		IP:         net.ParseIP("127.0.0.1"),
-		Tags:       model.NewTags(),
 	}
-	if err := h.context.Storage.Gateway.Put(gw, model.SystemUserID); err != nil {
+	if err := h.context.Storage.CreateGateway(gw); err != nil {
 		t.Fatal("Couldn't create gw: ", err)
 	}
 

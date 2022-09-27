@@ -43,7 +43,7 @@ func TestDecoderChannels(t *testing.T) {
 
 func TestDecoderProcessing(t *testing.T) {
 	s := NewStorageTestContext()
-	context := server.Context{Storage: &s}
+	context := server.Context{Storage: s}
 	input := make(chan server.GatewayPacket)
 	decoder := NewDecoder(&context, input)
 

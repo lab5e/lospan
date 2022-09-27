@@ -1,28 +1,11 @@
 package server
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
-	"errors"
 	"fmt"
-	"sync"
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 func TestSimpleKeygen(t *testing.T) {
@@ -32,7 +15,7 @@ func TestSimpleKeygen(t *testing.T) {
 	// NetID
 	netID := uint32(0)
 
-	storage := memstore.NewMemoryKeySequenceStorage(0, 0)
+	storage := storage.NewMemoryStorage()
 
 	keygen, err := NewEUIKeyGenerator(ma, netID, storage)
 	if err != nil {
@@ -79,7 +62,7 @@ func TestSimpleKeygen(t *testing.T) {
 // Ensure you can't generate EUIs with MA-S and a NetID > 0x0F, MA-M with
 // NetID > 0x0FFF or MA-L with NetID > 0xFFFF (we can't guarantee uniqueness)
 func TestKeygenWithTooLargeNetID(t *testing.T) {
-	storage := memstore.NewMemoryKeySequenceStorage(0, 0)
+	storage := storage.NewMemoryStorage()
 
 	// 25 bytes are used for the ID
 	// MA-S is 36 bits, 64-36-25=3 bits for NetID
@@ -134,7 +117,7 @@ func TestKeygenWithTooLargeNetID(t *testing.T) {
 // Ensure different NetIDs generate different EUIs for devices and applications
 // even with the same sequence numbers
 func TestKeygenWithDifferentNetID(t *testing.T) {
-	storage := memstore.NewMemoryKeySequenceStorage(0, 0)
+	storage := storage.NewMemoryStorage()
 	// Use the same MA for both
 	ma, _ := protocol.NewMA([]byte{0, 1, 2, 3, 4})
 	keygen1, _ := NewEUIKeyGenerator(ma, 0, storage)
@@ -166,103 +149,10 @@ func TestKeygenWithDifferentNetID(t *testing.T) {
 	}
 }
 
-type BigNumberSeq struct {
-	mutex *sync.Mutex
-}
-
-func (f *BigNumberSeq) AllocateKeys(name string, interval uint64, initial uint64) (chan uint64, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-	ret := make(chan uint64)
-	go func() {
-		for i := uint64(1); i < 1000000; i++ {
-			ret <- uint64(maxID + i)
-		}
-		close(ret)
-	}()
-	return ret, nil
-}
-func (f *BigNumberSeq) Close() {
-	// nah
-}
-
-// Ensure there's a panic when we risk duplicates. This is a tricky part. You
-// normally have to either increase the NetID or change the EUI. If the IDs
-// become too scarce it would be best to allocate a new MA block since the
-// NetID is a scarce resource (and uniqueness for EUIs worldwide isn't stricly
-// a requirement)
-// Repeat the test with a new MA to ensure it won't leave permanent scars.
-func TestAppEUIWithTooLargeID(t *testing.T) {
-
-	storage := &BigNumberSeq{mutex: &sync.Mutex{}}
-	// Use the same MA for both
-	ma, _ := protocol.NewMA([]byte{0, 1, 2, 3, 4})
-	keygen, _ := NewEUIKeyGenerator(ma, 0, storage)
-
-	// This will fail with a panic
-	_, err := keygen.NewAppEUI()
-	if err == nil {
-		t.Fatal("Did not get an error. Expected that.")
-	}
-}
-
-func TestDevEUIWithTooLargeID(t *testing.T) {
-
-	storage := &BigNumberSeq{mutex: &sync.Mutex{}}
-	// Use the same MA for both
-	ma, _ := protocol.NewMA([]byte{0, 1, 2, 3, 4})
-	keygen, _ := NewEUIKeyGenerator(ma, 0, storage)
-
-	// This will fail with a panic
-	_, err := keygen.NewDeviceEUI()
-	if err == nil {
-		t.Fatal("Did not get an error. Expected that")
-	}
-}
-
-type FailingSeq struct {
-	fails    int
-	maxfails int
-	mutex    *sync.Mutex
-}
-
-func (f *FailingSeq) AllocateKeys(name string, interval uint64, initial uint64) (chan uint64, error) {
-	f.mutex.Lock()
-	defer f.mutex.Unlock()
-	if f.fails < f.maxfails {
-		f.fails++
-		return nil, errors.New("unable to allocate keys")
-	}
-	f.fails = 0
-	ret := make(chan uint64)
-	go func() {
-		for i := 0; i < 10; i++ {
-			ret <- uint64(i)
-		}
-		close(ret)
-	}()
-	return ret, nil
-}
-func (f *FailingSeq) Close() {
-	// nah
-}
-
-// Make sure there's a few retries for a sequence
-func TestFailingSequence(t *testing.T) {
-	storage := &FailingSeq{fails: 0, maxfails: 2, mutex: &sync.Mutex{}}
-
-	ma, _ := protocol.NewMA([]byte{0, 1, 2})
-	keygen, _ := NewEUIKeyGenerator(ma, 0, storage)
-
-	for i := 0; i < 30; i++ {
-		keygen.NewDeviceEUI()
-	}
-}
-
 // Ensure keys are allocated in a lazy fashion, ie they won't be allocated
 // until someone retrieves a key.
 func TestLazyInvocation(t *testing.T) {
-	ksStorage := memstore.NewMemoryKeySequenceStorage(0, 0)
+	ksStorage := storage.NewMemoryStorage()
 
 	ma, _ := protocol.NewMA([]byte{0, 1, 2, 3, 4})
 	netID := uint32(0)
@@ -301,7 +191,7 @@ func TestLazyInvocation(t *testing.T) {
 
 // Simple benchmark for key generator. Grab 10 keys at a time
 func BenchmarkKeygen(b *testing.B) {
-	seqStorage := memstore.NewMemoryKeySequenceStorage(0, 0)
+	seqStorage := storage.NewMemoryStorage()
 	ma, _ := protocol.NewMA([]byte{5, 4, 3, 2, 1})
 	netID := uint32(1)
 	memkeyGenerator, _ := NewEUIKeyGenerator(ma, netID, seqStorage)

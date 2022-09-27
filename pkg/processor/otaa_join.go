@@ -18,7 +18,6 @@ package processor
 import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/frequency"
-	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -29,7 +28,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	monitoring.LoRaJoinRequest.Increment()
 	joinRequest := &decoded.Payload.JoinRequestPayload
 
-	device, err := d.context.Storage.Device.GetByEUI(joinRequest.DevEUI)
+	device, err := d.context.Storage.GetDeviceByEUI(joinRequest.DevEUI)
 	if err != nil {
 		logging.Info("Unknown device attempting JoinRequest: %s", joinRequest.DevEUI)
 		return false
@@ -49,7 +48,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	}
 
 	// Retrieve the application
-	app, err := d.context.Storage.Application.GetByEUI(joinRequest.AppEUI, model.SystemUserID)
+	app, err := d.context.Storage.GetApplicationByEUI(joinRequest.AppEUI)
 	if err != nil {
 		logging.Warning("Unable to retrieve application with EUI %s. Ignoring JoinRequest from device with EUI %s",
 			joinRequest.AppEUI, joinRequest.DevEUI)
@@ -63,7 +62,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	// DevAddr is already assigned to the device. It is a function of the EUI.
 
 	// Update the device with new keys and DevNonce
-	if err := d.context.Storage.Device.AddDevNonce(device, joinRequest.DevNonce); err != nil {
+	if err := d.context.Storage.AddDevNonce(device, joinRequest.DevNonce); err != nil {
 		logging.Warning("Unable to update DevNonce on device with EUI: %s: %v",
 			device.DeviceEUI, err)
 	}
@@ -89,7 +88,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	device.AppSKey = appSKey
 	device.FCntDn = 0
 	device.FCntUp = 0
-	if err := d.context.Storage.Device.Update(device); err != nil {
+	if err := d.context.Storage.UpdateDevice(device); err != nil {
 		logging.Error("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
 		return false
 	}

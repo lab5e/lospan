@@ -1,20 +1,5 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/json"
 	"io"
@@ -72,7 +57,7 @@ func TestApplicationRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatal("Got invalid EUI from created app: ", err)
 	}
-	_, err = h.context.Storage.Application.GetByEUI(eui, model.SystemUserID)
+	_, err = h.context.Storage.GetApplicationByEUI(eui)
 	if err != nil {
 		t.Fatal("Could not locate app created through rest api: ", err)
 	}
@@ -142,16 +127,16 @@ func TestApplicationRoutes(t *testing.T) {
 	// Create ten applications in the storage layer
 	tmpApp := model.NewApplication()
 	tmpApp.AppEUI, _ = h.context.KeyGenerator.NewAppEUI()
-	h.context.Storage.Application.Put(tmpApp, model.SystemUserID)
+	h.context.Storage.CreateApplication(tmpApp)
 
 	// Creating a new application with the EUI set should fail
 	storeApplication(t, apiApplication{ApplicationEUI: tmpApp.AppEUI.String()},
 		h.loopbackURL()+"/applications", http.StatusConflict)
 
 	// Create 10 applications that will conflict with future applications
-	first := tmpApp.AppEUI.ToUint64() + 1
+	first := tmpApp.AppEUI.ToInt64() + 1
 	for i := 0; i < 15; i++ {
-		a := apiApplication{ApplicationEUI: protocol.EUIFromUint64(first).String()}
+		a := apiApplication{ApplicationEUI: protocol.EUIFromInt64(first).String()}
 		storeApplication(t, a, h.loopbackURL()+"/applications", http.StatusCreated)
 		first++
 	}
@@ -252,7 +237,7 @@ func TestApplicationDataEndpoint(t *testing.T) {
 
 	eui, _ := protocol.EUIFromString(device.DeviceEUI)
 	for i := 0; i < 10; i++ {
-		err := h.context.Storage.DeviceData.Put(eui, model.DeviceData{
+		err := h.context.Storage.CreateUpstreamData(eui, model.DeviceData{
 			DeviceEUI:  eui,
 			Timestamp:  int64(i),
 			Data:       []byte{0, 1, 2, 3, 4, 5},

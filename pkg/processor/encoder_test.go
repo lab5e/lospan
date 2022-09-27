@@ -1,20 +1,5 @@
 package processor
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"testing"
 	"time"
@@ -27,9 +12,9 @@ import (
 func TestEncoderEncoding(t *testing.T) {
 	s := NewStorageTestContext()
 	d := model.Device{DevAddr: protocol.DevAddr{NwkID: 1, NwkAddr: 2}}
-	s.Device.Put(d, TestAppEUI)
+	s.CreateDevice(d, TestAppEUI)
 	context := server.Context{
-		Storage: &s,
+		Storage: s,
 	}
 	input := make(chan server.LoRaMessage)
 	output := make(chan server.GatewayPacket)
@@ -68,9 +53,9 @@ func TestEncoderEncoding(t *testing.T) {
 func TestEncoderUnknownPackets(t *testing.T) {
 	s := NewStorageTestContext()
 	d := model.Device{DevAddr: protocol.DevAddr{NwkID: 1, NwkAddr: 2}}
-	s.Device.Put(d, TestAppEUI)
+	s.CreateDevice(d, TestAppEUI)
 	context := server.Context{
-		Storage: &s,
+		Storage: s,
 	}
 	input := make(chan server.LoRaMessage)
 	output := make(chan server.GatewayPacket)
@@ -122,11 +107,11 @@ func TestJoinAcceptEncoder(t *testing.T) {
 	a := model.NewApplication()
 	d := model.NewDevice()
 	d.DevAddr = protocol.DevAddr{NwkID: 1, NwkAddr: 2}
-	s.Application.Put(a, model.SystemUserID)
-	s.Device.Put(d, TestAppEUI)
+	s.CreateApplication(a)
+	s.CreateDevice(d, TestAppEUI)
 
 	context := server.Context{
-		Storage: &s,
+		Storage: s,
 	}
 	input := make(chan server.LoRaMessage)
 	output := make(chan server.GatewayPacket)

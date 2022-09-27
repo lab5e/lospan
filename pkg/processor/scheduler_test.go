@@ -1,20 +1,5 @@
 package processor
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"crypto/rand"
 	"testing"
@@ -42,7 +27,7 @@ var frameContext = server.FrameContext{
 		},
 	},
 	Device: model.Device{
-		DeviceEUI: protocol.EUIFromUint64(0x0102030405060708),
+		DeviceEUI: protocol.EUIFromInt64(0x0102030405060708),
 		DevAddr:   protocol.DevAddrFromUint32(0x01020304),
 	},
 }
@@ -112,7 +97,7 @@ func newFrameContext(counter uint32) server.FrameContext {
 			},
 		},
 		Device: model.Device{
-			DeviceEUI: protocol.EUIFromUint64(uint64(counter)),
+			DeviceEUI: protocol.EUIFromInt64(int64(counter)),
 			DevAddr:   protocol.DevAddr{NwkID: 1, NwkAddr: counter},
 		},
 	}

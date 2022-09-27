@@ -1,20 +1,5 @@
 package gateway
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -28,7 +13,7 @@ import (
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
+	"github.com/lab5e/lospan/pkg/storage"
 	"github.com/lab5e/lospan/pkg/utils"
 )
 
@@ -37,7 +22,7 @@ type serverConfig struct {
 	clientUDP *net.UDPConn
 }
 
-var gwStorage = memstore.NewMemoryGatewayStorage()
+var gwStorage = storage.NewMemoryStorage()
 
 func setupServer(t *testing.T) serverConfig {
 	ret := serverConfig{}
@@ -95,12 +80,11 @@ func TestGenericPacketForwarder(t *testing.T) {
 	s := setupServer(t)
 	defer s.close()
 
-	sampleEUI := protocol.EUIFromUint64(0x0102030405060708)
-	gwStorage.Put(model.Gateway{
+	sampleEUI := protocol.EUIFromInt64(0x0102030405060708)
+	gwStorage.CreateGateway(model.Gateway{
 		GatewayEUI: sampleEUI,
 		StrictIP:   false,
-		Tags:       model.NewTags(),
-	}, model.SystemUserID)
+	})
 	pullData := GwPacket{Token: 0x0102, Identifier: PullData, GatewayEUI: sampleEUI}
 	buf, err := pullData.MarshalBinary()
 	if err != nil {
@@ -153,12 +137,12 @@ func TestInvalidBinaryData(t *testing.T) {
 	defer s.close()
 
 	buf := make([]byte, 0)
-	_, err := s.clientUDP.Write(buf)
+	s.clientUDP.Write(buf)
 
 	buf = make([]byte, 4096)
 	for i := 0; i < 100; i++ {
 		rand.Read(buf)
-		_, err = s.clientUDP.Write(buf)
+		_, err := s.clientUDP.Write(buf)
 		if err != nil {
 			t.Fatal("Got error writing packet: ", err)
 		}
@@ -244,23 +228,21 @@ func TestEUIFilteringOnEUI(t *testing.T) {
 		}
 	}
 
-	validEUIvalidIP := protocol.EUIFromUint64(0x0102030405060708)
-	invalidEUI := protocol.EUIFromUint64(0x0807060504030201)
-	validEUIinvalidIP := protocol.EUIFromUint64(0x0807060504030202)
+	validEUIvalidIP := protocol.EUIFromInt64(0x0102030405060708)
+	invalidEUI := protocol.EUIFromInt64(0x0807060504030201)
+	validEUIinvalidIP := protocol.EUIFromInt64(0x0807060504030202)
 
-	gwStorage.Put(model.Gateway{
+	gwStorage.CreateGateway(model.Gateway{
 		GatewayEUI: validEUIvalidIP,
 		StrictIP:   false,
 		IP:         net.ParseIP("127.0.0.1"),
-		Tags:       model.NewTags(),
-	}, model.SystemUserID)
+	})
 
-	gwStorage.Put(model.Gateway{
+	gwStorage.CreateGateway(model.Gateway{
 		GatewayEUI: validEUIinvalidIP,
 		StrictIP:   true,
 		IP:         net.ParseIP("127.10.10.1"),
-		Tags:       model.NewTags(),
-	}, model.SystemUserID)
+	})
 
 	sendMessage(validEUIvalidIP)
 	select {

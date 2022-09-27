@@ -1,20 +1,5 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"context"
 	"crypto/tls"
@@ -24,7 +9,6 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
-	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/utils"
 
@@ -147,33 +131,4 @@ func (h *Server) handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		router.GetHandler(r.RequestURI).ServeHTTP(w, r)
 	}
-}
-
-// Extract the corresponding storage.UserID from the ID session. If auth is
-// disabled return the system user.
-func (h *Server) connectUserID(r *http.Request) model.UserID {
-	return model.SystemUserID
-}
-
-// updateTags updates tags from a JSON struct in a request, Returns false if the
-// struct contains invalid tags. This is used by both application, gateway and device
-// resources.
-func (h *Server) updateTags(tags *model.Tags, values map[string]interface{}) bool {
-	updatedTags, ok := values["tags"].(map[string]interface{})
-	if !ok {
-		return true
-	}
-	for k, v := range updatedTags {
-		val, ok := v.(string)
-		if !ok {
-			logging.Debug("Not a string type %s=%v(%T)", k, v, v)
-			return false
-		}
-		if err := tags.SetTag(k, val); err != nil {
-			logging.Debug("Invalid tag %s=%v: %v", k, v, err)
-			return false
-		}
-
-	}
-	return true
 }

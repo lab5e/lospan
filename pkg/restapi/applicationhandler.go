@@ -1,20 +1,5 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/json"
 	"io"
@@ -27,9 +12,6 @@ import (
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
 )
-
-// The maximum number of data packets to return from the .../data endpoint
-const defaultMaxDeviceDataCount int = 50
 
 // Read application from request body. Emits error message to client if there's an error
 func (s *Server) readAppFromRequest(w http.ResponseWriter, r *http.Request) (apiApplication, error) {
@@ -82,11 +64,10 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 	// time.
 	appErr := storage.ErrAlreadyExists
 	app := application.ToModel()
-	userID := s.connectUserID(r)
 
 	attempts := 1
 	for appErr == storage.ErrAlreadyExists && attempts < 10 {
-		appErr = s.context.Storage.Application.Put(app, userID)
+		appErr = s.context.Storage.CreateApplication(app)
 		if appErr == nil {
 			break
 		}
@@ -132,7 +113,7 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 // Handle GET on application collection, ie list applications
 func (s *Server) applicationList(w http.ResponseWriter, r *http.Request) {
 	// GET returns a JSON array with applications.
-	applications, err := s.context.Storage.Application.GetList(s.connectUserID(r))
+	applications, err := s.context.Storage.ListApplications()
 	if err != nil {
 		logging.Warning("Unable to read application list: %v", err)
 		http.Error(w, "Unable to load applications", http.StatusInternalServerError)
@@ -172,28 +153,12 @@ func (s *Server) getApplication(w http.ResponseWriter, r *http.Request) *model.A
 		http.Error(w, "Malformed Application EUI", http.StatusBadRequest)
 		return nil
 	}
-	application, err := s.context.Storage.Application.GetByEUI(appEUI, s.connectUserID(r))
+	application, err := s.context.Storage.GetApplicationByEUI(appEUI)
 	if err != nil {
 		http.Error(w, "Application not found", http.StatusNotFound)
 		return nil
 	}
 	return &application
-}
-
-func (s *Server) removeAppOutputs(appEUI protocol.EUI) error {
-	outputs, err := s.context.Storage.AppOutput.GetByApplication(appEUI)
-	if err == storage.ErrNotFound {
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	for output := range outputs {
-		if err := s.context.AppOutput.Remove(&output); err != nil {
-			logging.Warning("Unable to remote app output %s for application %s: %v", output.EUI, appEUI, err)
-		}
-	}
-	return nil
 }
 
 // Return a single application formatted as JSON.
@@ -212,42 +177,8 @@ func (s *Server) applicationInfoHandler(w http.ResponseWriter, r *http.Request) 
 			logging.Warning("Unable to marshal application with EUI %s into JSON: %v", application.AppEUI, err)
 		}
 
-	case http.MethodPut:
-		var err error
-		var values map[string]interface{}
-		if err = json.NewDecoder(r.Body).Decode(&values); err != nil {
-			logging.Info("Unable to unmarshal request from %s: %v", r.RemoteAddr, err)
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
-			return
-		}
-
-		if !s.updateTags(&application.Tags, values) {
-			http.Error(w, "Invalid tag value", http.StatusBadRequest)
-			return
-		}
-
-		if err := s.context.Storage.Application.Update(*application, s.connectUserID(r)); err != nil {
-			// We already know if the application doesn't exist at this point so updates
-			// should succeed (ignoring ignoring ErrNotFound return)
-			logging.Warning("Unable to update application: %v", err)
-			http.Error(w, "Unable to update application", http.StatusInternalServerError)
-			return
-		}
-		// Success - return the modified application
-		monitoring.ApplicationUpdated.Increment()
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(newAppFromModel(*application)); err != nil {
-			logging.Warning("Unable to marshal application with EUI %s into JSON: %v", application.AppEUI, err)
-		}
-		return
-
 	case http.MethodDelete:
-		if err := s.removeAppOutputs(application.AppEUI); err != nil {
-			http.Error(w, "Unable to remove outputs", http.StatusInternalServerError)
-			return
-		}
-		err := s.context.Storage.Application.Delete(application.AppEUI, s.connectUserID(r))
+		err := s.context.Storage.DeleteApplication(application.AppEUI)
 		switch err {
 		case nil:
 			monitoring.ApplicationRemoved.Increment()

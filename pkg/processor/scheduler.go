@@ -46,7 +46,7 @@ const DefaultRXDelay time.Duration = 200 * time.Millisecond
 // value is in us. (note that 1 second is incorrect)
 // TODO(stalehd): Use device method for this.
 func (s *Scheduler) calculateRxDelay(receivedMessage server.LoRaMessage) time.Duration {
-	spentTime := time.Now().Sub(receivedMessage.FrameContext.GatewayContext.ReceivedAt)
+	spentTime := time.Since(receivedMessage.FrameContext.GatewayContext.ReceivedAt)
 	delay := s.fixedRxDelay - spentTime
 	if delay < 0 {
 		return 0
@@ -79,26 +79,24 @@ func (s *Scheduler) sendAt(delay time.Duration,
 	frameContext server.FrameContext,
 	doneChannel chan protocol.EUI) {
 
-	select {
-	case <-time.After(delay):
-		frameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeSchedulerSend)
-		payload, err := s.buildMessageToSend(device, frameContext)
-		payload.FrameContext.GatewayContext.SectionTimer.End()
-		// If there's an error there's no data to send.
-		if err == nil {
-			payload.FrameContext.GatewayContext.OutTimer.Begin(monitoring.TimeOutgoing)
-			monitoring.Stopwatch(monitoring.SchedulerChannelOut, func() {
-				output <- payload
-			})
-		}
-		doneChannel <- device.DeviceEUI
-		monitoring.SchedulerOut.Increment()
-		switch payload.Payload.MHDR.MType {
-		case protocol.ConfirmedDataDown:
-			monitoring.LoRaConfirmedDown.Increment()
-		case protocol.UnconfirmedDataDown:
-			monitoring.LoRaUnconfirmedDown.Increment()
-		}
+	time.Sleep(delay)
+	frameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeSchedulerSend)
+	payload, err := s.buildMessageToSend(device, frameContext)
+	payload.FrameContext.GatewayContext.SectionTimer.End()
+	// If there's an error there's no data to send.
+	if err == nil {
+		payload.FrameContext.GatewayContext.OutTimer.Begin(monitoring.TimeOutgoing)
+		monitoring.Stopwatch(monitoring.SchedulerChannelOut, func() {
+			output <- payload
+		})
+	}
+	doneChannel <- device.DeviceEUI
+	monitoring.SchedulerOut.Increment()
+	switch payload.Payload.MHDR.MType {
+	case protocol.ConfirmedDataDown:
+		monitoring.LoRaConfirmedDown.Increment()
+	case protocol.UnconfirmedDataDown:
+		monitoring.LoRaUnconfirmedDown.Increment()
 	}
 }
 

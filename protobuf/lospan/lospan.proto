@@ -4,21 +4,13 @@ package lospan;
 
 option go_package = "./lospan";
 
-
-message HelloRequest {
-
-};
-
-message HelloResponse {
-
-};
-
 service Lospan {
-    rpc Hello(HelloRequest) returns (HelloResponse);
-    
+    // ListApplications lists all applications 
     rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse);
 
-    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse);
+    rpc RetrieveApplication(GetApplicationRequest) returns (RetrieveApplicationResponse);
+
+    rpc Createpplication(CreateApplicationRequest) returns (CreateApplicationResponse);
 
     rpc UpdateApplication(UpdateApplicationRequest) returns (UpdateApplicationResponse);
 
@@ -26,10 +18,29 @@ service Lospan {
 
     rpc ListDevices(ListDeviceRequest) returns (ListDeviceResponse);
 
-    rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+    rpc CreateDevice(CreateDeviceRequest) returns (CreateDeviceResponse);
 
+    rpc RetrieveDevice(RetrieveDeviceRequest) returns (RetrieveDeviceResponse);
+
+    // UpdateDevice updates a devices
     rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
 
+    // DeleteDevice removes a device
     rpc DeleteDevice(DeleteDeviceRequest) returns (DeleteDeviceResponse);
 
+    // SendMessage sends a message to a device
+    rpc SendMessage(SendRequest) returns (SendResponse);
+
+    // StreamData streams data for an application or a gateway to the client.
+    rpc StreamData(StreamDataRequest) returns (stream StreamDataResponse);
+
+    rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
+
+    rpc CreateGateway(CreateGatewayRequest) returns (CreateGatewayResponse);
+
+    rpc RetrieveGateway(RetrieveGatewayRequest) returns (RetrieveGatewayResponse);
+
+    rpc UpdateGateway(UpdateGatewayRequest) returns (UpdateGatewayResponse);
+
+    rpc DeleteGateway(DeleteGatewayRequest) returns (DeleteGatewayResponse);
 };

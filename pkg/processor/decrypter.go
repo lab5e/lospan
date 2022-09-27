@@ -88,7 +88,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 	// Update frame counter with the next expected message.
 	if decoded.Payload.MACPayload.FHDR.FCnt >= device.FCntUp {
 		device.FCntUp = decoded.Payload.MACPayload.FHDR.FCnt + 1
-		if err := d.context.Storage.Device.UpdateState(*device); err != nil {
+		if err := d.context.Storage.UpdateDeviceState(*device); err != nil {
 			logging.Warning("Unable to update frame counters for device with EUI %s: %v", device.DeviceEUI, err)
 		}
 	}
@@ -106,12 +106,12 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		DevAddr:    device.DevAddr,
 	}
 
-	if err := d.context.Storage.DeviceData.Put(device.DeviceEUI, deviceData); err != nil {
+	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, deviceData); err != nil {
 		logging.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
 		return
 	}
 
-	application, err := d.context.Storage.Application.GetByEUI(device.AppEUI, model.SystemUserID)
+	application, err := d.context.Storage.GetApplicationByEUI(device.AppEUI)
 	if err != nil {
 		logging.Warning("Unable to retrieve application with EUI %s: %v", device.AppEUI, err)
 		return
@@ -124,7 +124,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		d.context.FrameOutput.SetMessageAckFlag(device.DeviceEUI, true)
 	}
 
-	msg, err := d.context.Storage.DeviceData.GetDownstream(device.DeviceEUI)
+	msg, err := d.context.Storage.GetDownstreamData(device.DeviceEUI)
 	if err == nil {
 		// Update state of message -- note that this could cause some inconsistent
 		// behaviour if you create a message (with ack) and replaces it with a new
@@ -138,7 +138,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		// Since the message from t=1.2 isn't sent yet the ack will be ignored.
 		if decoded.Payload.MACPayload.FHDR.FCtrl.ACK && msg.State() == model.SentState && msg.Ack {
 			msg.AckTime = time.Now().Unix()
-			if err := d.context.Storage.DeviceData.UpdateDownstream(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
+			if err := d.context.Storage.UpdateDownstreamData(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
 				logging.Warning("Unable to update downstream message: %v", err)
 			}
 		}
@@ -170,7 +170,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 
 func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 	logging.Debug("Verifying message from device with DevAddr %s", decoded.Payload.MACPayload.FHDR.DevAddr)
-	deviceChan, err := d.context.Storage.Device.GetByDevAddr(decoded.Payload.MACPayload.FHDR.DevAddr)
+	deviceChan, err := d.context.Storage.GetDeviceByDevAddr(decoded.Payload.MACPayload.FHDR.DevAddr)
 	if err != nil {
 		logging.Warning("Unable to retrieve device from storage. Network ID: %x, Network address: %x. Error: %v",
 			decoded.Payload.MACPayload.FHDR.DevAddr.NwkID,

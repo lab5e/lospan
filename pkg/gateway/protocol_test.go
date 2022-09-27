@@ -1,20 +1,5 @@
 package gateway
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"testing"
 
@@ -24,13 +9,14 @@ import (
 func TestBinaryMarshal(t *testing.T) {
 	pkt := GwPacket{}
 	// A PUSH_DATA sentence with EUI AABBCCDD and the string 'abcdef'
-	buffer := []byte{0, 0x11, 0x22, 0, 0xAA, 0xAA, 0xBB, 0xBB, 0xCC, 0xCC, 0xDD, 0xDD, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46}
+	buffer := []byte{0, 0x11, 0x22, 0, 0x11, 0xAA, 0xBB, 0xBB, 0xCC, 0xCC, 0xDD, 0xDD, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46}
 
 	err := pkt.UnmarshalBinary(buffer)
 	if err != nil {
 		t.Fatal("Error unmarshaling bytes for PUSH_DATA: ", err)
 	}
-	if pkt.GatewayEUI != protocol.EUIFromUint64(0xAAAABBBBCCCCDDDD) {
+	eui, err := protocol.EUIFromString("11-AA-BB-BB-CC-CC-DD-DD")
+	if pkt.GatewayEUI != eui {
 		t.Fatalf("EUI not what I'd expected: 0x%08X", pkt.GatewayEUI)
 	}
 	if pkt.Token != 0x1122 {
@@ -102,7 +88,7 @@ func TestBinaryUnmarsha(t *testing.T) {
 		ProtocolVersion: 0,
 		Token:           0x1234,
 		Identifier:      PushData,
-		GatewayEUI:      protocol.EUIFromUint64(0xAAAABBBBCCCCDDDD),
+		GatewayEUI:      protocol.EUIFromInt64(0x11AABBBBCCCCDDDD),
 		JSONString:      "ABCDEF",
 	}
 

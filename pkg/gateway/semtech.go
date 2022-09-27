@@ -1,20 +1,5 @@
 package gateway
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/base64"
 	"encoding/json"
@@ -30,7 +15,6 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
-	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -56,7 +40,7 @@ type GenericPacketForwarder struct {
 	udpOutput    chan GwPacket             // Internal channel for packets that are received on the UDP interface
 	serverPort   int                       // Server port to listen on
 	terminate    chan bool
-	storage      storage.GatewayStorage
+	storage      *storage.Storage
 	context      *server.Context
 	mutex        *sync.Mutex    // Mutex for pullAckPort map
 	pullAckPorts map[string]int // Map of port <-> gateway
@@ -107,7 +91,7 @@ func (p *GenericPacketForwarder) Input() chan<- server.GatewayPacket {
 // will listen on and the gatewayPort specifies which port the gateway is
 // supposed to listen on. There's no need to configure the gateways since the
 // gateway's IP will be attached to the received data.
-func NewGenericPacketForwarder(serverPort int, storage storage.GatewayStorage, context *server.Context) *GenericPacketForwarder {
+func NewGenericPacketForwarder(serverPort int, storage *storage.Storage, context *server.Context) *GenericPacketForwarder {
 	return &GenericPacketForwarder{
 		input:        make(chan server.GatewayPacket),
 		output:       make(chan server.GatewayPacket),
@@ -243,7 +227,7 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 			case PushData:
 				logging.Debug("PUSH_DATA received from %s: %s", val.GatewayEUI, val.JSONString)
 				if !p.context.Config.DisableGatewayChecks {
-					gw, err := p.storage.Get(val.GatewayEUI, model.SystemUserID)
+					gw, err := p.storage.GetGateway(val.GatewayEUI)
 					if err != nil {
 						logging.Info("Unable to locate gateway with EUI %s: %v", val.GatewayEUI, err)
 						continue
@@ -383,7 +367,7 @@ func (p *GenericPacketForwarder) encodeAndSend(packet server.GatewayPacket) {
 		GatewayEUI:      packet.Gateway.GatewayEUI,
 		JSONString:      string(buffer),
 	}
-	timeToProcess := time.Now().Sub(packet.ReceivedAt)
+	timeToProcess := time.Since(packet.ReceivedAt)
 	const assumedLatency = 0.2
 	// Assume 100ms latency between gateway and
 	// Congress. This is roughly what we can expect in Europe. Norway -> Ireland

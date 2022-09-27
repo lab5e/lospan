@@ -37,5 +37,5 @@ type GwForwarder interface {
 // NewGwForwarder creates a new gateway forwarder instance. The input and
 // output channels
 func NewGwForwarder(port int, context *server.Context) GwForwarder {
-	return gateway.NewGenericPacketForwarder(port, context.Storage.Gateway, context)
+	return gateway.NewGenericPacketForwarder(port, context.Storage, context)
 }

@@ -1,20 +1,5 @@
 package processor
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"crypto/rand"
 	"reflect"
@@ -29,7 +14,6 @@ import (
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
 )
 
 // Test methods. Simplifies setting up test context
@@ -43,11 +27,10 @@ func init() {
 }
 
 // NewStorageTestContext creates a new storage context. This is populated with dummy data.
-func NewStorageTestContext() storage.Storage {
+func NewStorageTestContext() *storage.Storage {
 
 	application := model.Application{
 		AppEUI: TestAppEUI,
-		Tags:   model.NewTags(),
 	}
 
 	// EUI: 750A093A2C2269F3
@@ -69,13 +52,13 @@ func NewStorageTestContext() storage.Storage {
 		RelaxedCounter: true,
 	}
 
-	store := memstore.CreateMemoryStorage(0, 0)
+	store := storage.NewMemoryStorage()
 
-	if err := store.Application.Put(application, model.SystemUserID); err != nil {
+	if err := store.CreateApplication(application); err != nil {
 		logging.Error("Could not add application to storage: %v", err)
 	}
 
-	store.Device.Put(device, application.AppEUI)
+	store.CreateDevice(device, application.AppEUI)
 
 	return store
 }
@@ -134,8 +117,6 @@ func newPHYPayloadMessage(messageType protocol.MType, devAddr protocol.DevAddr) 
 	return &ret
 }
 
-var sendTime = time.Now()
-
 func sendMessageOnChannel(c *testContext, msg *protocol.PHYPayload, device model.Device) {
 	band, _ := band.NewBand(band.EU868Band)
 	gwInput := server.GatewayPacket{
@@ -144,7 +125,7 @@ func sendMessageOnChannel(c *testContext, msg *protocol.PHYPayload, device model
 			DataRate: "SF7BW125",
 		},
 		Gateway: server.GatewayContext{
-			GatewayEUI: protocol.EUIFromUint64(0x0101010102020202),
+			GatewayEUI: protocol.EUIFromInt64(0x0101010102020202),
 		},
 		ReceivedAt: c.messageTs,
 	}
@@ -157,7 +138,7 @@ func sendMessageOnChannel(c *testContext, msg *protocol.PHYPayload, device model
 type testContext struct {
 	config    *server.Configuration
 	context   *server.Context
-	datastore storage.Storage
+	datastore *storage.Storage
 	app       model.Application
 	device    model.Device
 	forwarder *testForwarder
@@ -170,21 +151,20 @@ func newTestContext(t *testing.T) testContext {
 	ret := testContext{t: t}
 	ret.config = server.NewDefaultConfig()
 	ret.config.MemoryDB = true
-	ret.datastore = memstore.CreateMemoryStorage(0, 0)
+	ret.datastore = storage.NewMemoryStorage()
 	frameOutput := server.NewFrameOutputBuffer()
-	keyGenerator, _ := server.NewEUIKeyGenerator(ret.config.RootMA(), uint32(ret.config.NetworkID), ret.datastore.Sequence)
+	keyGenerator, _ := server.NewEUIKeyGenerator(ret.config.RootMA(), uint32(ret.config.NetworkID), ret.datastore)
 
 	appRouter := pubsub.NewEventRouter(5)
 	gwEventRouter := pubsub.NewEventRouter(5)
 	ret.context = &server.Context{
-		Storage:       &ret.datastore,
+		Storage:       ret.datastore,
 		Terminator:    make(chan bool),
 		FrameOutput:   &frameOutput,
 		Config:        ret.config,
 		KeyGenerator:  &keyGenerator,
 		GwEventRouter: &gwEventRouter,
 		AppRouter:     &appRouter,
-		AppOutput:     server.NewAppOutputManager(&appRouter),
 	}
 	ret.forwarder = newTestForwarder()
 	ret.pipeline = NewPipeline(ret.context, ret.forwarder)
@@ -192,7 +172,7 @@ func newTestContext(t *testing.T) testContext {
 	ret.app = model.NewApplication()
 	ret.app.AppEUI, _ = keyGenerator.NewAppEUI()
 
-	ret.datastore.Application.Put(ret.app, model.SystemUserID)
+	ret.datastore.CreateApplication(ret.app)
 
 	ret.device = model.NewDevice()
 	ret.device.DeviceEUI, _ = keyGenerator.NewDeviceEUI()
@@ -204,7 +184,7 @@ func newTestContext(t *testing.T) testContext {
 	ret.device.State = model.PersonalizedDevice
 	ret.device.RelaxedCounter = true
 
-	ret.datastore.Device.Put(ret.device, ret.app.AppEUI)
+	ret.datastore.CreateDevice(ret.device, ret.app.AppEUI)
 
 	return ret
 }
@@ -266,7 +246,7 @@ func TestProcessingPipeline(t *testing.T) {
 	downMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 200)
 	downMsg.Ack = false
 	downMsg.Data = "010203040506070809"
-	if err := c.datastore.DeviceData.PutDownstream(c.device.DeviceEUI, downMsg); err != nil {
+	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, downMsg); err != nil {
 		t.Fatalf("Unable to store downstream: %v", err)
 	}
 
@@ -287,7 +267,7 @@ func TestProcessingPipeline(t *testing.T) {
 			t.Fatalf("Did not get the expected data: %v", phy.MACPayload.FRMPayload)
 		}
 	})
-	downMsg, err := c.datastore.DeviceData.GetDownstream(c.device.DeviceEUI)
+	downMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -309,8 +289,8 @@ func TestProcessingPipeline(t *testing.T) {
 	downMsgAck := model.NewDownstreamMessage(c.device.DeviceEUI, 100)
 	downMsgAck.Ack = true
 	downMsgAck.Data = "aabbccddeeff00112233"
-	c.datastore.DeviceData.DeleteDownstream(c.device.DeviceEUI)
-	if err := c.datastore.DeviceData.PutDownstream(c.device.DeviceEUI, downMsgAck); err != nil {
+	c.datastore.DeleteDownstreamData(c.device.DeviceEUI)
+	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, downMsgAck); err != nil {
 		t.Fatalf("Unable to store downstream message: %v", err)
 	}
 	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
@@ -346,7 +326,7 @@ func TestProcessingPipeline(t *testing.T) {
 	if msg := c.forwarder.grabMessage(timeToWaitForNoMessage); msg != nil {
 		t.Fatalf("Did not expect downstream message to be sent a 2nd time but got %v", msg)
 	}
-	updatedAckMsg, err := c.datastore.DeviceData.GetDownstream(c.device.DeviceEUI)
+	updatedAckMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -366,7 +346,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedAckMsg, err = c.datastore.DeviceData.GetDownstream(c.device.DeviceEUI)
+	updatedAckMsg, err = c.datastore.GetDownstreamData(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -379,12 +359,12 @@ func TestProcessingPipeline(t *testing.T) {
 	// Add downstream message, shut down pipeline (in effect stopping the server),
 	// launch a new pipeline and see if the message is forwarded appropriately.
 
-	c.datastore.DeviceData.DeleteDownstream(c.device.DeviceEUI)
+	c.datastore.DeleteDownstreamData(c.device.DeviceEUI)
 	persistedMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 50)
 	persistedMsg.Ack = true
 	persistedMsg.Data = "beefbeefbeefbeef"
 
-	if err := c.datastore.DeviceData.PutDownstream(c.device.DeviceEUI, persistedMsg); err != nil {
+	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, persistedMsg); err != nil {
 		t.Fatalf("Unable to store downstream message: %v", err)
 	}
 
@@ -397,7 +377,7 @@ func TestProcessingPipeline(t *testing.T) {
 	})
 	c.forwarder.Stop()
 
-	updatedMsg, err := c.datastore.DeviceData.GetDownstream(c.device.DeviceEUI)
+	updatedMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -430,7 +410,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedMsg, err = c.datastore.DeviceData.GetDownstream(c.device.DeviceEUI)
+	updatedMsg, err = c.datastore.GetDownstreamData(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -480,7 +460,6 @@ func makeRandomDevice(appEUI protocol.EUI) model.Device {
 // but different keys. Emulate one message from each of the devices and
 // make sure the correct device gets updated.
 func TestDuplicateDevAddr(t *testing.T) {
-	const timeToWaitForNoMessage = 20 * time.Millisecond
 
 	c := newTestContext(t)
 	c.pipeline.Scheduler.SetRXDelay(5 * time.Millisecond)
@@ -491,15 +470,15 @@ func TestDuplicateDevAddr(t *testing.T) {
 	app1.AppEUI = makeRandomEUI()
 	app2.AppEUI = makeRandomEUI()
 
-	c.datastore.Application.Put(app1, model.SystemUserID)
-	c.datastore.Application.Put(app2, model.SystemUserID)
+	c.datastore.CreateApplication(app1)
+	c.datastore.CreateApplication(app2)
 
 	device1 := makeRandomDevice(app1.AppEUI)
 	device2 := makeRandomDevice(app2.AppEUI)
 	device2.DevAddr = device1.DevAddr
 
-	c.datastore.Device.Put(device1, app1.AppEUI)
-	c.datastore.Device.Put(device2, app2.AppEUI)
+	c.datastore.CreateDevice(device1, app1.AppEUI)
+	c.datastore.CreateDevice(device2, app2.AppEUI)
 
 	msg1 := newPHYPayloadMessage(protocol.ConfirmedDataUp, device1.DevAddr)
 	msg1.MACPayload.FRMPayload = []byte{1, 1, 1, 1}
@@ -520,7 +499,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 	})
 
 	// Data for device 1 should contain *one* packet with payload "01010101"
-	ch, err := c.datastore.DeviceData.GetByDeviceEUI(device1.DeviceEUI, 1)
+	ch, err := c.datastore.GetUpstreamDataByDeviceEUI(device1.DeviceEUI, 1)
 	if err != nil {
 		t.Fatalf("Got error retrieving data for device 1: %v", err)
 	}
@@ -535,7 +514,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 		t.Fatalf("Got %d data elements, but expected 1", count)
 	}
 	// Data for deviec 2 should contain *one* packet with payload "02020202"
-	ch, err = c.datastore.DeviceData.GetByDeviceEUI(device2.DeviceEUI, 1)
+	ch, err = c.datastore.GetUpstreamDataByDeviceEUI(device2.DeviceEUI, 1)
 	if err != nil {
 		t.Fatalf("Got error retrieving data for device 2: %v", err)
 	}

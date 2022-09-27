@@ -1,23 +1,7 @@
 package restapi
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"bytes"
-	"crypto/rand"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -25,10 +9,9 @@ import (
 	"testing"
 
 	"github.com/ExploratoryEngineering/pubsub"
-	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
-	"github.com/lab5e/lospan/pkg/storage/memstore"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 var ma = protocol.MA{Prefix: [5]byte{0, 1, 3, 4, 5}, Size: protocol.MALarge}
@@ -42,19 +25,18 @@ func createTestServer(config server.Configuration) *Server {
 	// NetID
 	netID := uint32(0)
 
-	store := memstore.CreateMemoryStorage(0, 0)
+	store := storage.NewMemoryStorage()
 
-	keygen, _ := server.NewEUIKeyGenerator(ma, netID, store.Sequence)
+	keygen, _ := server.NewEUIKeyGenerator(ma, netID, store)
 
 	fob := server.NewFrameOutputBuffer()
 
 	appRouter := pubsub.NewEventRouter(5)
 	context := &server.Context{
-		Storage:      &store,
+		Storage:      store,
 		FrameOutput:  &fob,
 		KeyGenerator: &keygen,
 		AppRouter:    &appRouter,
-		AppOutput:    server.NewAppOutputManager(&appRouter),
 		Config:       &config,
 	}
 
@@ -117,13 +99,8 @@ func TestServerStartupWithAuth(t *testing.T) {
 		t.Fatalf("Expected %d response for /applications but got %d", http.StatusUnauthorized, res.StatusCode)
 	}
 
-	// Inject application token into application request
-	token, _ := model.NewAPIToken(model.SystemUserID, "/", true)
-	h.context.Storage.Token.Put(token, model.SystemUserID)
-
 	body := strings.NewReader("")
 	req, _ := http.NewRequest(http.MethodGet, h.loopbackURL()+"/applications", body)
-	req.Header.Add("X-API-Token", token.Token)
 
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
@@ -132,13 +109,6 @@ func TestServerStartupWithAuth(t *testing.T) {
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("Didn't get %d with token but got %d", http.StatusOK, res.StatusCode)
 	}
-}
-func makeRandomEUI() protocol.EUI {
-	randomBytes := make([]byte, 8)
-	rand.Read(randomBytes)
-	ret := protocol.EUI{}
-	copy(ret.Octets[:], randomBytes)
-	return ret
 }
 
 func checkContentType(t *testing.T, url string, resp *http.Response) {

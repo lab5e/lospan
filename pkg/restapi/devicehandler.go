@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lab5e/lospan/pkg/monitoring"
-
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -182,7 +180,6 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 		return
 	}
 
-	monitoring.DeviceCreated.Increment()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newDeviceFromModel(&deviceToSave)); err != nil {
@@ -350,7 +347,6 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unable to update device", http.StatusInternalServerError)
 			return
 		}
-		monitoring.DeviceUpdated.Increment()
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newDeviceFromModel(device)); err != nil {
 			logging.Warning("Unable to marshal device with EUI %s to JSON: %v", device.DeviceEUI, err)
@@ -360,7 +356,6 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 		err := s.context.Storage.DeleteDevice(device.DeviceEUI)
 		switch err {
 		case nil:
-			monitoring.DeviceRemoved.Increment()
 			w.WriteHeader(http.StatusNoContent)
 
 		case storage.ErrNotFound:

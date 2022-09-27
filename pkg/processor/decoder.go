@@ -17,7 +17,6 @@ package processor
 //
 import (
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 )
@@ -34,8 +33,6 @@ type Decoder struct {
 func (d *Decoder) Start() {
 	for p := range d.input {
 		go func(raw server.GatewayPacket) {
-			raw.SectionTimer.Begin(monitoring.TimeDecoder)
-			monitoring.GetGatewayCounters(raw.Gateway.GatewayEUI).MessagesIn.Increment()
 			// The initial message type isn't important
 			decoded := protocol.NewPHYPayload(protocol.Proprietary)
 			if err := decoded.UnmarshalBinary(raw.RawMessage); err != nil {
@@ -49,11 +46,7 @@ func (d *Decoder) Start() {
 				Payload:      decoded,
 				FrameContext: context,
 			}
-			msg.FrameContext.GatewayContext.SectionTimer.End()
-			monitoring.Stopwatch(monitoring.DecoderChannelOut, func() {
-				d.output <- msg
-			})
-			monitoring.Decoder.Increment()
+			d.output <- msg
 		}(p)
 	}
 	logging.Debug("Input channel for Decoder closed. Terminating")

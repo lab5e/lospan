@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -35,7 +34,6 @@ type Encoder struct {
 }
 
 func (e *Encoder) processMessage(packet server.LoRaMessage) {
-	packet.FrameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeEncoder)
 	var buffer []byte
 	var err error
 
@@ -108,22 +106,14 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 		return
 	}
 
-	packet.FrameContext.GatewayContext.SectionTimer.End()
 	// Copy relevant data to the outgoing packet.
-	monitoring.Stopwatch(monitoring.EncoderChannelOut, func() {
-		e.output <- server.GatewayPacket{
-			RawMessage:   buffer,
-			Radio:        packet.FrameContext.GatewayContext.Radio,
-			Gateway:      packet.FrameContext.GatewayContext.Gateway,
-			SectionTimer: packet.FrameContext.GatewayContext.SectionTimer,
-			OutTimer:     packet.FrameContext.GatewayContext.OutTimer,
-			ReceivedAt:   packet.FrameContext.GatewayContext.ReceivedAt,
-			Deadline:     packet.FrameContext.GatewayContext.Deadline,
-		}
-	})
-	monitoring.Encoder.Increment()
-	monitoring.GetGatewayCounters(packet.FrameContext.GatewayContext.Gateway.GatewayEUI).MessagesOut.Increment()
-	monitoring.GetAppCounters(packet.FrameContext.Application.AppEUI).MessagesOut.Increment()
+	e.output <- server.GatewayPacket{
+		RawMessage: buffer,
+		Radio:      packet.FrameContext.GatewayContext.Radio,
+		Gateway:    packet.FrameContext.GatewayContext.Gateway,
+		ReceivedAt: packet.FrameContext.GatewayContext.ReceivedAt,
+		Deadline:   packet.FrameContext.GatewayContext.Deadline,
+	}
 }
 
 // Start starts the Encoder instance. It will terminate when the input channel

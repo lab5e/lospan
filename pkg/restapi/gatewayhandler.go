@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -84,7 +83,6 @@ func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	monitoring.GatewayCreated.Increment()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newGatewayFromModel(modelGw)); err != nil {
@@ -165,7 +163,6 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unable to update gateway", http.StatusInternalServerError)
 			return
 		}
-		monitoring.GatewayUpdated.Increment()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newGatewayFromModel(modelGateway)); err != nil {
@@ -178,8 +175,6 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unable to remove gateway", http.StatusInternalServerError)
 			return
 		}
-		monitoring.GatewayRemoved.Increment()
-		monitoring.RemoveGatewayCounters(eui)
 		w.WriteHeader(http.StatusNoContent)
 
 	default:

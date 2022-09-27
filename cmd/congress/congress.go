@@ -6,7 +6,6 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/gateway"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/processor"
 	"github.com/lab5e/lospan/pkg/restapi"
 	"github.com/lab5e/lospan/pkg/server"
@@ -20,7 +19,6 @@ type Server struct {
 	context    *server.Context
 	forwarder  processor.GwForwarder
 	pipeline   *processor.Pipeline
-	monitoring *monitoring.Endpoint
 	restapi    *restapi.Server
 	terminator chan bool
 }
@@ -96,14 +94,6 @@ func NewServer(config *server.Configuration) (*Server, error) {
 		return nil, err
 	}
 
-	c.monitoring, err = monitoring.NewEndpoint(true, config.DebugPort, config.ProfilingEndpoint, config.RuntimeTrace)
-	if config.ProfilingEndpoint {
-		logging.Warning("Profiling is turned ON - access monitoring endpoint to inspect")
-	}
-	if err != nil {
-		logging.Error("Unable to create monitoring endpoint: %v", err)
-		return nil, err
-	}
 	return c, nil
 }
 
@@ -113,12 +103,6 @@ func (c *Server) Start() error {
 	c.pipeline.Start()
 	logging.Debug("Starting forwarder")
 	go c.forwarder.Start()
-
-	if err := c.monitoring.Start(); err != nil {
-		logging.Error("Unable to launch monitoring endpoint: %v", err)
-		return err
-	}
-	logging.Warning("Monitoring is available at http://localhost:%d/debug", c.monitoring.Port())
 
 	logging.Debug("Launching http server")
 	if err := c.restapi.Start(); err != nil {
@@ -134,7 +118,6 @@ func (c *Server) Start() error {
 func (c *Server) Shutdown() error {
 	c.forwarder.Stop()
 	c.restapi.Shutdown()
-	c.monitoring.Shutdown()
 	c.context.Storage.Close()
 
 	return nil

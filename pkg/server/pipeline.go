@@ -21,7 +21,6 @@ import (
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -70,14 +69,11 @@ type FrameContext struct {
 
 // GatewayPacket contains a byte buffer plus radio statistics.
 type GatewayPacket struct {
-	RawMessage   []byte
-	Radio        RadioContext
-	Gateway      GatewayContext
-	ReceivedAt   time.Time
-	SectionTimer monitoring.Timer
-	InTimer      monitoring.Timer // processing from gw -> scheduler, waiting for send
-	OutTimer     monitoring.Timer // processing from scheduler -> gw, sending
-	Deadline     float64          // Send deadline for packet (in seconds)
+	RawMessage []byte
+	Radio      RadioContext
+	Gateway    GatewayContext
+	ReceivedAt time.Time
+	Deadline   float64 // Send deadline for packet (in seconds)
 }
 
 // LoRaMessage contains the decoded LoRa message

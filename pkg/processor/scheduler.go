@@ -18,8 +18,6 @@ package processor
 import (
 	"time"
 
-	"github.com/lab5e/lospan/pkg/monitoring"
-
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -80,24 +78,12 @@ func (s *Scheduler) sendAt(delay time.Duration,
 	doneChannel chan protocol.EUI) {
 
 	time.Sleep(delay)
-	frameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeSchedulerSend)
 	payload, err := s.buildMessageToSend(device, frameContext)
-	payload.FrameContext.GatewayContext.SectionTimer.End()
 	// If there's an error there's no data to send.
 	if err == nil {
-		payload.FrameContext.GatewayContext.OutTimer.Begin(monitoring.TimeOutgoing)
-		monitoring.Stopwatch(monitoring.SchedulerChannelOut, func() {
-			output <- payload
-		})
+		output <- payload
 	}
 	doneChannel <- device.DeviceEUI
-	monitoring.SchedulerOut.Increment()
-	switch payload.Payload.MHDR.MType {
-	case protocol.ConfirmedDataDown:
-		monitoring.LoRaConfirmedDown.Increment()
-	case protocol.UnconfirmedDataDown:
-		monitoring.LoRaUnconfirmedDown.Increment()
-	}
 }
 
 // Start launches the scheduler. When the notifier channel is closed it will stop
@@ -110,7 +96,6 @@ func (s *Scheduler) Start() {
 				close(s.output)
 				return
 			}
-			message.FrameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeSchedulerProcess)
 			device := message.FrameContext.Device
 			// Check if this message is already scheduled. If so - mark it as
 			// a duplicate and skip it. Messages sent within the same n milliseconds
@@ -124,10 +109,7 @@ func (s *Scheduler) Start() {
 
 			// this isn't a duplicate. Add it
 			s.scheduled[device.DeviceEUI] = true
-			message.FrameContext.GatewayContext.SectionTimer.End()
-			message.FrameContext.GatewayContext.InTimer.End()
 			go s.sendAt(s.calculateRxDelay(message), device, s.output, message.FrameContext, s.completed)
-			monitoring.SchedulerIn.Increment()
 
 		case eui := <-s.completed:
 			// Message has been sent. Remove it from the map

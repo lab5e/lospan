@@ -16,8 +16,6 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/lab5e/lospan/pkg/monitoring"
-
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -67,18 +65,13 @@ func processMACCommand(cmd protocol.MACCommand) {
 func (m *MACProcessor) Start() {
 	for v := range m.input {
 		go func(val server.LoRaMessage) {
-			val.FrameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeMACProcessor)
 			for _, cmd := range val.Payload.MACPayload.MACCommands.List() {
 				processMACCommand(cmd)
 			}
 			for _, cmd := range val.Payload.MACPayload.FHDR.FOpts.List() {
 				processMACCommand(cmd)
 			}
-			val.FrameContext.GatewayContext.SectionTimer.End()
-			monitoring.Stopwatch(monitoring.MACProcessorChannelOut, func() {
-				m.notifier <- val
-			})
-			monitoring.MACProcessor.Increment()
+			m.notifier <- val
 		}(v)
 	}
 	logging.Debug("Input channel for MAC processor closed. Terminating")

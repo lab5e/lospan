@@ -5,8 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/lab5e/lospan/pkg/monitoring"
-
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -102,7 +100,6 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 		application.Tags = make(map[string]string)
 	}
 
-	monitoring.ApplicationCreated.Increment()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(application); err != nil {
@@ -181,8 +178,6 @@ func (s *Server) applicationInfoHandler(w http.ResponseWriter, r *http.Request) 
 		err := s.context.Storage.DeleteApplication(application.AppEUI)
 		switch err {
 		case nil:
-			monitoring.ApplicationRemoved.Increment()
-			monitoring.RemoveAppCounters(application.AppEUI)
 			w.WriteHeader(http.StatusNoContent)
 		case storage.ErrNotFound:
 			// This is covered above but race conditions might apply here

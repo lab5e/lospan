@@ -1,24 +1,7 @@
 package processor
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"time"
-
-	"github.com/lab5e/lospan/pkg/monitoring"
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
@@ -49,7 +32,6 @@ func (d *Decrypter) validFrameCounter(device *model.Device, decoded server.LoRaM
 		if device.FCntUp > decoded.Payload.MACPayload.FHDR.FCnt {
 			logging.Info("Frame counter check failed for device %s. Expected %d but got %d. Ignoring message.",
 				device.DeviceEUI, device.FCntUp, decoded.Payload.MACPayload.FHDR.FCnt)
-			monitoring.LoRaCounterFailed.Increment()
 			return false
 		}
 	}
@@ -77,12 +59,6 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		// Set the key warning for the device if there's more than one device
 		// that matches DevAddr/NwkSKey
 		device.KeyWarning = true
-	}
-	switch decoded.Payload.MHDR.MType {
-	case protocol.ConfirmedDataUp:
-		monitoring.LoRaConfirmedUp.Increment()
-	case protocol.UnconfirmedDataUp:
-		monitoring.LoRaUnconfirmedUp.Increment()
 	}
 
 	// Update frame counter with the next expected message.
@@ -152,10 +128,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		logging.Warning("Unable to retrieve downstream message: %v", err)
 	}
 
-	decoded.FrameContext.GatewayContext.SectionTimer.End()
-	monitoring.Stopwatch(monitoring.DecrypterChannelOut, func() {
-		d.macOutput <- decoded
-	})
+	d.macOutput <- decoded
 
 	d.context.AppRouter.Publish(application.AppEUI, &server.PayloadMessage{
 		Payload:      decoded.Payload.MACPayload.FRMPayload,
@@ -163,8 +136,6 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		Application:  application,
 		FrameContext: decoded.FrameContext,
 	})
-	monitoring.Decrypter.Increment()
-	monitoring.GetAppCounters(application.AppEUI).MessagesIn.Increment()
 
 }
 
@@ -202,7 +173,6 @@ func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 		}
 	}
 	if len(matchingDevices) == 0 && checked > 0 {
-		monitoring.LoRaMICFailed.Increment()
 		logging.Info("MIC validation failed for device with DevAddr: %s", decoded.Payload.MACPayload.FHDR.DevAddr)
 		return
 	}
@@ -223,17 +193,13 @@ func (d *Decrypter) Start() {
 	}
 	for m := range d.input {
 		go func(decoded server.LoRaMessage) {
-			decoded.FrameContext.GatewayContext.SectionTimer.Begin(monitoring.TimeDecrypter)
 			if decoded.FrameContext.GatewayContext.RawMessage == nil {
 				logging.Error("Missing raw message representation. Unable to proceed.")
-				decoded.FrameContext.GatewayContext.SectionTimer.End()
 				return
 			}
 			if decoded.Payload.MHDR.MType == protocol.JoinRequest {
 				go func() {
-					if !d.processJoinRequest(decoded) {
-						decoded.FrameContext.GatewayContext.SectionTimer.End()
-					}
+					d.processJoinRequest(decoded)
 				}()
 				return
 			}

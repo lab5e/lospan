@@ -18,14 +18,12 @@ package processor
 import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/frequency"
-	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 )
 
 // Process the join request. Returns false if it failed.
 func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
-	monitoring.LoRaJoinRequest.Increment()
 	joinRequest := &decoded.Payload.JoinRequestPayload
 
 	device, err := d.context.Storage.GetDeviceByEUI(joinRequest.DevEUI)
@@ -112,8 +110,6 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	// message for it. TODO (stalehd): this is butt ugly. Needs redesign.
 	decoded.Payload.MACPayload.FHDR.DevAddr = joinAccept.DevAddr
 
-	decoded.FrameContext.GatewayContext.SectionTimer.End()
 	d.macOutput <- decoded
-	monitoring.LoRaJoinAccept.Increment()
 	return true
 }

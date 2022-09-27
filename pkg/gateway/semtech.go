@@ -8,8 +8,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/lab5e/lospan/pkg/monitoring"
-
 	"sync"
 
 	"github.com/ExploratoryEngineering/logging"
@@ -176,7 +174,6 @@ func (p *GenericPacketForwarder) udpSender(serverConn *net.UDPConn) {
 			logging.Warning("Unable to write UDP message to gateway at %s: %v", targetAddr, err)
 			continue
 		}
-		monitoring.GatewayOut.Increment()
 	}
 	logging.Debug("UDP output channel closed. Terminating UDP sender")
 }
@@ -190,7 +187,6 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 	for {
 		select {
 		case val, ok := <-p.input:
-			val.SectionTimer.Begin(monitoring.TimeGatewaySend)
 			// Generate a txpk message, aka PULL_RESP
 			if !ok {
 				logging.Debug("Input channel for forwarder closed. Terminating")
@@ -203,8 +199,6 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 				return
 			}
 			p.encodeAndSend(val)
-			val.OutTimer.End()
-			val.SectionTimer.End()
 
 		case val := <-p.udpInput:
 			// This is a message from the server. If it is a JSON sentence decoded it and forward i
@@ -249,7 +243,6 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 					GatewayEUI:      val.GatewayEUI,
 					ProtocolVersion: val.ProtocolVersion,
 				}
-				monitoring.GatewayIn.Increment()
 			case TxAck:
 				// Ignore (for now)
 			default:
@@ -289,11 +282,6 @@ func (p *GenericPacketForwarder) lookupFrequency(rfchain uint8, channel uint8) f
 func (p *GenericPacketForwarder) decodeReceivedJSON(val GwPacket) {
 	rxData := RXData{}
 
-	incomingTimer := monitoring.NewTimer()
-	incomingTimer.Begin(monitoring.TimeIncoming)
-
-	timer := monitoring.NewTimer()
-	timer.Begin(monitoring.TimeGatewayReceive)
 	var err error
 	if err = json.Unmarshal([]byte(val.JSONString), &rxData); err != nil {
 		logging.Info("Unable to unmarshal JSON from %s:%d: %v (json=%s)", val.Host, val.Port, err, val.JSONString)
@@ -320,18 +308,13 @@ func (p *GenericPacketForwarder) decodeReceivedJSON(val GwPacket) {
 				GatewayClock:    packet.Timestamp,
 				ProtocolVersion: val.ProtocolVersion,
 			},
-			ReceivedAt:   time.Now(),
-			SectionTimer: timer,
-			InTimer:      incomingTimer,
+			ReceivedAt: time.Now(),
 		}
 		if gwPacket.RawMessage, err = base64.StdEncoding.DecodeString(packet.RFPackets); err != nil {
 			logging.Info("Unable to convert base64 string into bytes: %v (source=%s)", err, packet.RFPackets)
 			return
 		}
-		gwPacket.SectionTimer.End()
-		monitoring.Stopwatch(monitoring.GatewayChannelOut, func() {
-			p.output <- gwPacket
-		})
+		p.output <- gwPacket
 	}
 }
 
@@ -375,6 +358,5 @@ func (p *GenericPacketForwarder) encodeAndSend(packet server.GatewayPacket) {
 	if timeToProcess.Seconds() > (packet.Deadline - assumedLatency) {
 		logging.Error("Packet to %s missed deadline of %.2f seconds with assumedLatency of %.2f (took %.2f s)",
 			packet.Gateway.GatewayEUI, packet.Deadline, assumedLatency, timeToProcess.Seconds())
-		monitoring.MissedDeadline.Increment()
 	}
 }

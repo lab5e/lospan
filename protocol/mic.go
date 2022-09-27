@@ -18,7 +18,7 @@ package protocol
 import (
 	"encoding/binary"
 
-	"github.com/lab5e/lospan/cmac"
+	"github.com/lab5e/lospan/pkg/cmac"
 )
 
 // CalculateMIC calculates the Message Integrity Code [4.4]

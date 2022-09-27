@@ -28,9 +28,9 @@ import (
 	"sync"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/band"
 	"github.com/lab5e/lospan/events/gwevents"
 	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/protocol"
 	"github.com/lab5e/lospan/server"
 	"github.com/lab5e/lospan/storage"

@@ -21,8 +21,8 @@ import (
 
 	"bytes"
 
-	"github.com/lab5e/lospan/band"
 	"github.com/lab5e/lospan/model"
+	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/protocol"
 )
 

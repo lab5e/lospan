@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/pubsub"
-	"github.com/lab5e/lospan/band"
+	"github.com/lab5e/lospan/pkg/band"
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/model"

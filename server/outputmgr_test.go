@@ -22,7 +22,7 @@ import (
 	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/storage/memstore"
+	"github.com/lab5e/lospan/pkg/storage/memstore"
 )
 
 func makeRandomEUI() protocol.EUI {

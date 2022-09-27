@@ -23,7 +23,7 @@ import (
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 // Pipeline data structures used by the server

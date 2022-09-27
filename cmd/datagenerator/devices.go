@@ -24,8 +24,8 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/storage"
 	"github.com/lab5e/lospan/server"
-	"github.com/lab5e/lospan/storage"
 )
 
 func generateDevices(count int, app model.Application, datastore storage.Storage, keyGen *server.KeyGenerator, callback func(createdDevice model.Device)) {

@@ -22,7 +22,7 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 func generateGateways(id model.UserID, count int, datastore storage.Storage) []model.Gateway {

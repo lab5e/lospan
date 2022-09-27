@@ -21,8 +21,8 @@ import (
 
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/storage/memstore"
 	"github.com/lab5e/lospan/server"
-	"github.com/lab5e/lospan/storage/memstore"
 )
 
 func TestOTAAJoinRequestProcessing(t *testing.T) {

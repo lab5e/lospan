@@ -21,8 +21,8 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/storage"
 	"github.com/lab5e/lospan/server"
-	"github.com/lab5e/lospan/storage"
 )
 
 // Encoder receives LoRaMessage data structures on a channel, encodes into a

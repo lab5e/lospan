@@ -1,4 +1,4 @@
-package main
+package memstore
 
 //
 //Copyright 2018 Telenor Digital AS
@@ -16,20 +16,12 @@ package main
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/pkg/storage"
+	"testing"
+
+	"github.com/lab5e/lospan/pkg/storage/storagetest"
 )
 
-func generateTokens(id model.UserID, count int, datastore storage.Storage) {
-	for i := 0; i < count; i++ {
-		randomToken, err := model.NewAPIToken(id, "/", true)
-		if err != nil {
-			logging.Error("Unable to create token: %v", err)
-		} else {
-			if err := datastore.Token.Put(randomToken, id); err != nil {
-				logging.Error("Unable to store token: %v", err)
-			}
-		}
-	}
+func TestMemoryStorage(t *testing.T) {
+	storage := CreateMemoryStorage(0, 0)
+	storagetest.DoStorageTests(&storage, t)
 }

@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lab5e/lospan/storage/dbstore"
+	"github.com/lab5e/lospan/pkg/storage/dbstore"
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"

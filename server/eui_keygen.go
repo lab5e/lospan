@@ -24,7 +24,7 @@ import (
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 const (

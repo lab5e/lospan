@@ -23,8 +23,8 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/storage"
 	"github.com/lab5e/lospan/server"
-	"github.com/lab5e/lospan/storage"
 )
 
 // These are the app output resources for applications.

@@ -24,7 +24,7 @@ import (
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/storage"
+	"github.com/lab5e/lospan/pkg/storage"
 )
 
 // tagListResource lists tag on a resource. This method is common for all

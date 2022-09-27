@@ -17,9 +17,9 @@ package processor
 //
 import (
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/frequency"
 	"github.com/lab5e/lospan/model"
 	"github.com/lab5e/lospan/monitoring"
+	"github.com/lab5e/lospan/pkg/frequency"
 	"github.com/lab5e/lospan/protocol"
 	"github.com/lab5e/lospan/server"
 )

@@ -15,4 +15,21 @@ message HelloResponse {
 
 service Lospan {
     rpc Hello(HelloRequest) returns (HelloResponse);
+    
+    rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse);
+
+    rpc GetApplication(GetApplicationRequest) returns (GetApplicationResponse);
+
+    rpc UpdateApplication(UpdateApplicationRequest) returns (UpdateApplicationResponse);
+
+    rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse);
+
+    rpc ListDevices(ListDeviceRequest) returns (ListDeviceResponse);
+
+    rpc GetDevice(GetDeviceRequest) returns (GetDeviceResponse);
+
+    rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
+
+    rpc DeleteDevice(DeleteDeviceRequest) returns (DeleteDeviceResponse);
+
 };

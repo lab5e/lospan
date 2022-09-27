@@ -29,7 +29,6 @@ import (
 	"github.com/lab5e/lospan/pkg/utils"
 
 	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/net/websocket"
 )
 
 // Server is a type capable of serving the REST API for Congress. It can be started
@@ -137,33 +136,13 @@ func (h *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *Server) handler() http.HandlerFunc {
 	router := rest.NewParameterRouter()
 	router.AddRoute("/", h.rootHandler)
-	router.AddRoute("/status", h.statusHandler)
 	router.AddRoute("/applications", h.applicationListHandler)
 	router.AddRoute("/applications/{aeui}", h.applicationInfoHandler)
 	router.AddRoute("/applications/{aeui}/devices", h.deviceListHandler)
 	router.AddRoute("/applications/{aeui}/devices/{deui}", h.deviceInfoHandler)
 	router.AddRoute("/applications/{aeui}/devices/{deui}/message", h.deviceSendHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}/data", h.deviceDataHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}/source", h.deviceSourceHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}/tags", h.deviceTagHandler)
-	router.AddRoute("/applications/{aeui}/devices/{deui}/tags/{name}", h.deviceTagNameHandler)
-	router.AddRoute("/applications/{aeui}", h.applicationInfoHandler)
-	router.AddRoute("/applications/{aeui}/stream", websocket.Handler(h.applicationWebsocketHandler).ServeHTTP)
-	router.AddRoute("/applications/{aeui}/data", h.applicationDataHandler)
-	router.AddRoute("/applications/{aeui}/tags", h.applicationTagHandler)
-	router.AddRoute("/applications/{aeui}/tags/{name}", h.applicationTagNameHandler)
-	router.AddRoute("/applications/{aeui}/stats", h.applicationStatsHandler)
 	router.AddRoute("/gateways", h.gatewayListHandler)
-	router.AddRoute("/gateways/public", h.gatewayPublicList)
 	router.AddRoute("/gateways/{geui}", h.gatewayInfoHandler)
-	router.AddRoute("/gateways/{geui}/tags", h.gatewayTagHandler)
-	router.AddRoute("/gateways/{geui}/tags/{name}", h.gatewayTagNameHandler)
-	router.AddRoute("/gateways/{geui}/stream", websocket.Handler(h.gatewayWebsocketHandler).ServeHTTP)
-	router.AddRoute("/gateways/{geui}/stats", h.gatewayStatsHandler)
-	router.AddRoute("/tokens", h.tokenListHandler)
-	router.AddRoute("/tokens/{token}", h.tokenInfoHandler)
-	router.AddRoute("/applications/{aeui}/outputs", h.outputHandler)
-	router.AddRoute("/applications/{aeui}/outputs/{oeui}", h.outputInfoHandler)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		router.GetHandler(r.RequestURI).ServeHTTP(w, r)

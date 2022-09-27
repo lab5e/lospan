@@ -21,14 +21,11 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/ExploratoryEngineering/logging"
-	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/monitoring"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
-	"golang.org/x/net/websocket"
 )
 
 func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
@@ -206,79 +203,5 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
-// Handler for websocket with live view from gateway
-func (s *Server) gatewayWebsocketHandler(ws *websocket.Conn) {
-	defer ws.Close()
-	eui, err := euiFromPathParameter(ws.Request(), "geui")
-	if err != nil {
-		logging.Info("Unable to retrieve EUI parameter from path: %v", err)
-		writeError(ws, "Invalid gateway EUI")
-		return
-	}
-	_, err = s.context.Storage.Gateway.Get(eui, s.connectUserID(ws.Request()))
-	if err != nil {
-		if err != storage.ErrNotFound {
-			logging.Warning("Unable to read gateway with EUI %s: %v", eui, err)
-		}
-		writeError(ws, "Gateway not found")
-		return
-	}
-
-	gwEventChannel := s.context.GwEventRouter.Subscribe(eui)
-
-	defer s.context.GwEventRouter.Unsubscribe(gwEventChannel)
-
-	for {
-		var result interface{}
-		select {
-		case result = <-gwEventChannel:
-		case <-time.After(60 * time.Second):
-			// No event for 60 seconds -- send inactive event
-			result = gwevents.NewInactive()
-		}
-
-		if err := json.NewEncoder(ws).Encode(result); err != nil {
-			logging.Warning("Unable to marshal JSON for websocket: %v", err)
-			return
-		}
-	}
-}
-
-func (s *Server) gatewayStatsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	eui, err := euiFromPathParameter(r, "geui")
-	if err != nil {
-		http.Error(w, "Invalid EUI", http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(monitoring.GetGatewayCounters(eui))
-}
-
-func (s *Server) gatewayPublicList(w http.ResponseWriter, r *http.Request) {
-	gateways, err := s.context.Storage.Gateway.ListAll()
-	if err != nil {
-		logging.Warning("Unable to get list of gateways: %v", err)
-		http.Error(w, "Unable to read list of gateways", http.StatusInternalServerError)
-		return
-	}
-
-	var list apiPublicGatewayList
-	for gateway := range gateways {
-		list.Gateways = append(list.Gateways, newPublicGatewayFromModel(gateway))
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(list); err != nil {
-		logging.Warning("Unable to marshal gateway list: %v", err)
 	}
 }

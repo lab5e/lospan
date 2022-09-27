@@ -16,21 +16,15 @@ package restapi
 //limitations under the License.
 //
 import (
-	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/lab5e/lospan/pkg/monitoring"
-
-	"golang.org/x/net/websocket"
 
 	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
@@ -273,133 +267,4 @@ func (s *Server) applicationInfoHandler(w http.ResponseWriter, r *http.Request) 
 	default:
 		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)
 	}
-}
-
-func (s *Server) applicationDataHandler(w http.ResponseWriter, r *http.Request) {
-	application := s.getApplication(w, r)
-	if application == nil {
-		return
-	}
-
-	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-	if err != nil {
-		limit = int64(defaultMaxDeviceDataCount)
-	}
-	since, err := strconv.ParseInt(r.URL.Query().Get("since"), 10, 64)
-	if err != nil {
-		since = -1
-	}
-
-	switch r.Method {
-
-	case http.MethodGet:
-		// Since parameter is in ms, time stamp is in ns
-		if since > 0 {
-			since = FromUnixMillis(since)
-		}
-		ret, err := s.context.Storage.DeviceData.GetByApplicationEUI(application.AppEUI, int(limit))
-		if err != nil {
-			logging.Warning("Unable to retrieve data for application %s: %v", application.AppEUI, err)
-			http.Error(w, "Unable to retrieve data for application", http.StatusInternalServerError)
-			return
-		}
-
-		dataList := newAPIDataList()
-		for data := range ret {
-			if data.Timestamp < since {
-				continue
-			}
-			dataList.Messages = append(dataList.Messages, newDeviceDataFromModel(data, application.AppEUI))
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(dataList); err != nil {
-			logging.Warning("Unable to marshal application data (EUI: %s): %v", application.AppEUI, err)
-		}
-
-	default:
-		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
-	}
-}
-
-// Websocket error function. Writes error to the websocket and closes it.
-func writeError(ws *websocket.Conn, msg string) {
-	if err := json.NewEncoder(ws).Encode(newWSError(msg)); err != nil {
-		logging.Warning("Unable to write and marshal WS error JSON: %v", err)
-	}
-}
-
-// Websocket handler. Subscribes to messages for the given EUI and forwards them
-// to the websocket.
-func (s *Server) applicationWebsocketHandler(ws *websocket.Conn) {
-	defer ws.Close()
-	appEUI, err := euiFromPathParameter(ws.Request(), "aeui")
-	if nil != err {
-		writeError(ws, err.Error())
-		return
-	}
-	_, err = s.context.Storage.Application.GetByEUI(appEUI, s.connectUserID(ws.Request()))
-	if err == storage.ErrNotFound {
-		writeError(ws, "Unknown application EUI")
-		return
-	}
-	if err != nil {
-		writeError(ws, "Unable to read application")
-		logging.Warning("Unable to read application with EUI %s: %v", appEUI, err)
-		return
-	}
-
-	ch := s.context.AppRouter.Subscribe(appEUI)
-	defer s.context.AppRouter.Unsubscribe(ch)
-
-	for {
-		select {
-		case p := <-ch:
-			message, ok := p.(*server.PayloadMessage)
-			if !ok {
-				logging.Error("Expected type %T on channel but got the type %T. Publisher error?", message, p)
-				continue
-			}
-			deviceMessage := newWSData(&apiDeviceData{
-				DevAddr:    message.Device.DevAddr.String(),
-				Timestamp:  ToUnixMillis(message.FrameContext.GatewayContext.ReceivedAt.UnixNano()),
-				Data:       hex.EncodeToString(message.Payload),
-				AppEUI:     message.Application.AppEUI.String(),
-				DeviceEUI:  message.Device.DeviceEUI.String(),
-				RSSI:       message.FrameContext.GatewayContext.Radio.RSSI,
-				SNR:        message.FrameContext.GatewayContext.Radio.SNR,
-				Frequency:  message.FrameContext.GatewayContext.Radio.Frequency,
-				DataRate:   message.FrameContext.GatewayContext.Radio.DataRate,
-				GatewayEUI: message.FrameContext.GatewayContext.Gateway.GatewayEUI.String(),
-			},
-			)
-
-			if err := json.NewEncoder(ws).Encode(deviceMessage); err != nil {
-				return
-			}
-
-		case <-time.After(30 * time.Second):
-			if err := json.NewEncoder(ws).Encode(newWSKeepAlive()); err != nil {
-				logging.Info("Unable to send keepalive to websocket at %v. Closing web socket", ws.RemoteAddr())
-				return
-			}
-		}
-	}
-}
-
-func (s *Server) applicationStatsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
-		return
-	}
-
-	eui, err := euiFromPathParameter(r, "aeui")
-	if err != nil {
-		http.Error(w, "Invalid EUI", http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(monitoring.GetAppCounters(eui))
 }

@@ -19,10 +19,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/lab5e/lospan/pkg/monitoring"
@@ -397,53 +395,6 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) deviceDataHandler(w http.ResponseWriter, r *http.Request) {
-	// network EUI isn't checked except for a valid format.
-	appEUI, device := s.getDevice(w, r)
-	if device == nil {
-		return
-	}
-
-	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 32)
-	if err != nil {
-		limit = int64(defaultMaxDeviceDataCount)
-	}
-	since, err := strconv.ParseInt(r.URL.Query().Get("since"), 10, 64)
-	if err != nil {
-		since = -1
-	}
-	switch r.Method {
-
-	case http.MethodGet:
-		ret, err := s.context.Storage.DeviceData.GetByDeviceEUI(device.DeviceEUI, int(limit))
-		if err != nil {
-			logging.Warning("Unable to retrieve data for device with EUI %s: %v", device.DeviceEUI, err)
-			http.Error(w, "Unable to retrieve data for device", http.StatusInternalServerError)
-			return
-		}
-		// Input in is ms, parameter is in ns
-		if since > 0 {
-			since = FromUnixMillis(since)
-		}
-		dataList := newAPIDataList()
-		for data := range ret {
-			if data.Timestamp < since {
-				continue
-			}
-			dataList.Messages = append(dataList.Messages, newDeviceDataFromModel(data, appEUI))
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(dataList); err != nil {
-			logging.Warning("Unable to marshal device data for device with EUI %s: %v", device.DeviceEUI, err)
-		}
-
-	default:
-		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
-	}
-}
-
 // Remove downstream message if exists and completed (sent and/or acked).
 // Returns false if there's an error. The existing message is left as is if
 // it should be kept (ie it isn't sent yet or not acked yet). This might be
@@ -598,45 +549,4 @@ func keyToSource(key protocol.AESKey) string {
 		key.Key[4], key.Key[5], key.Key[6], key.Key[7],
 		key.Key[8], key.Key[9], key.Key[10], key.Key[11],
 		key.Key[12], key.Key[13], key.Key[14], key.Key[15])
-}
-
-func (s *Server) deviceSourceHandler(w http.ResponseWriter, r *http.Request) {
-	_, device := s.getDevice(w, r)
-	if device == nil {
-		return
-	}
-
-	params := templateParameters{}
-	if device.State == model.PersonalizedDevice {
-		params.DeviceEUI = euiToSource(protocol.EUI{})
-		params.AppKey = keyToSource(protocol.AESKey{})
-		params.AppEUI = euiToSource(protocol.EUI{})
-		params.DevAddr = fmt.Sprintf("0x%s", device.DevAddr)
-		params.NwkSKey = keyToSource(device.NwkSKey)
-		params.AppSKey = keyToSource(device.AppSKey)
-		params.OTAA = false
-	} else {
-		application, err := s.context.Storage.Application.GetByEUI(device.AppEUI, s.connectUserID(r))
-		if err != nil {
-			logging.Warning("Unable to retrieve application with EUI %s: %v", device.AppEUI, err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		params.DeviceEUI = euiToSource(device.DeviceEUI)
-		params.AppKey = keyToSource(device.AppKey)
-		params.AppEUI = euiToSource(application.AppEUI)
-		params.DevAddr = "0x0"
-		params.AppSKey = keyToSource(protocol.AESKey{})
-		params.NwkSKey = keyToSource(protocol.AESKey{})
-		params.OTAA = true
-	}
-
-	templateType := r.URL.Query().Get("type")
-	templateText := getSourceTemplate(templateType)
-	t := template.Must(template.New("source_" + templateType).Parse(templateText))
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
-	if err := t.Execute(w, params); err != nil {
-		logging.Warning("Unable to execute template: %v", err)
-	}
 }

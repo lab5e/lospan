@@ -25,7 +25,7 @@ import (
 	"encoding/json"
 
 	"github.com/ExploratoryEngineering/logging"
-	cgw "github.com/lab5e/lospan/gateway"
+	cgw "github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/protocol"
 )
 

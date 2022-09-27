@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/lab5e/lospan/gateway"
+	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/server"
 )
 

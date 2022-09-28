@@ -7,7 +7,7 @@ option go_package = "./lospan";
 // Application is a logical construct on top of devices. Devices in the same application share the same
 // application key
 message Application {
-    string eui = 1;
+    string eui = 1; 
 };
 
 // Device is the ... device that connects to the gateway
@@ -26,9 +26,14 @@ message DownstreamMessage{
 
 };
 
-// Gateway is a LoRaWAN gateway/concentrator. This 
+// Gateway is a LoRaWAN gateway/concentrator. 
 message Gateway {
-
+    string eui = 1;
+    optional string ip = 2; // Strictly not optional but used when updating
+    optional bool strict_ip = 3;
+    optional float latitude = 4;
+    optional float longitude = 5;
+    optional float altitude = 6;
 };
 
 // GatewayMessage is a monitoring message to and from the gateway. This reflects the LoRaWAN gateway UDP

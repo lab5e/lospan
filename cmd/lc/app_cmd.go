@@ -7,8 +7,9 @@ import (
 
 type appCmd struct {
 	List listAppCmd   `kong:"cmd,help='List applications',aliases='ls'"`
-	Add  addAppCmd    `kong:"cmd,help='Add application',aliases='create,new'"`
-	Del  deleteAppCmd `kong:"cmd,help='Remove application',aliases='rm,delete'"`
+	Add  addAppCmd    `kong:"cmd,help='Add application',aliases='create,new,n'"`
+	Del  deleteAppCmd `kong:"cmd,help='Remove application',aliases='rm,delete,d'"`
+	Get  getAppCmd    `kong:"cmd,help='Retrieve application',aliases='show,retrieve,g'"`
 }
 
 func (c *appCmd) Run(args *params) error {
@@ -41,7 +42,7 @@ func (c *listAppCmd) Run(args *params) error {
 type addAppCmd struct {
 }
 
-func (c *addAppCmd) Run(args *params) error {
+func (*addAppCmd) Run(args *params) error {
 	client, ctx, done, err := createClient(args.Address)
 	if err != nil {
 		return err
@@ -62,7 +63,7 @@ type deleteAppCmd struct {
 	EUI string `kong:"help='Application EUI to delete'"`
 }
 
-func (deleteAppCmd) Run(args *params) error {
+func (*deleteAppCmd) Run(args *params) error {
 	client, ctx, done, err := createClient(args.Address)
 	if err != nil {
 		return err
@@ -74,5 +75,24 @@ func (deleteAppCmd) Run(args *params) error {
 		return err
 	}
 	lg.Info("Removed application with EUI %s", app.Eui)
+	return nil
+}
+
+type getAppCmd struct {
+	EUI string `kong:"help='Application EUI to retrieve'"`
+}
+
+func (*getAppCmd) Run(args *params) error {
+	client, ctx, done, err := createClient(args.Address)
+	if err != nil {
+		return err
+	}
+	defer done()
+
+	app, err := client.GetApplication(ctx, &lospan.GetApplicationRequest{Eui: args.App.Get.EUI})
+	if err != nil {
+		return err
+	}
+	lg.Info("Application EUI=%s", app.Eui)
 	return nil
 }

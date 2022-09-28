@@ -117,42 +117,41 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 }
 
 func (s *Storage) readGateway(rows *sql.Rows) (model.Gateway, error) {
-	var euiStr, ipStr string
-	var err error
-	var json []uint8
+	var eui int64
+	var ipStr string
 	gw := model.NewGateway()
-	if err := rows.Scan(&euiStr, &gw.Latitude, &gw.Longitude, &gw.Altitude, &ipStr, &gw.StrictIP, &json); err != nil {
+	if err := rows.Scan(&eui, &gw.Latitude, &gw.Longitude, &gw.Altitude, &ipStr, &gw.StrictIP); err != nil {
 		return gw, err
 	}
-	if gw.GatewayEUI, err = protocol.EUIFromString(euiStr); err != nil {
-		return gw, err
-	}
+	gw.GatewayEUI = protocol.EUIFromInt64(eui)
 	gw.IP = net.ParseIP(ipStr)
 	return gw, nil
 }
 
-func (s *Storage) getGwList(rows *sql.Rows, err error) (chan model.Gateway, error) {
+func (s *Storage) getGwList(rows *sql.Rows, err error) ([]model.Gateway, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := make(chan model.Gateway)
-	go func() {
-		defer rows.Close()
-		defer close(ret)
-		for rows.Next() {
-			gw, err := s.readGateway(rows)
-			if err != nil {
-				lg.Warning("Unable to read gateway list: %v", err)
-				continue
-			}
-			ret <- gw
+	var ret []model.Gateway
+
+	defer rows.Close()
+
+	for rows.Next() {
+		gw, err := s.readGateway(rows)
+		if err != nil {
+			lg.Warning("Unable to read gateway list: %v", err)
+			continue
 		}
-	}()
+		ret = append(ret, gw)
+	}
 	return ret, nil
 }
 
 // GetGatewayList returns a list of gateways
-func (s *Storage) GetGatewayList() (chan model.Gateway, error) {
+func (s *Storage) GetGatewayList() ([]model.Gateway, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	return s.getGwList(s.gwStmt.listStatement.Query())
 }
 
@@ -176,14 +175,17 @@ func (s *Storage) getGateway(rows *sql.Rows, err error) (model.Gateway, error) {
 
 // GetGateway returns a gateway from the store
 func (s *Storage) GetGateway(eui protocol.EUI) (model.Gateway, error) {
-	return s.getGateway(s.gwStmt.getSysStatement.Query(eui.String()))
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	return s.getGateway(s.gwStmt.getSysStatement.Query(eui.ToInt64()))
 }
 
 // CreateGateway creates a new gateway in the store
 func (s *Storage) CreateGateway(gateway model.Gateway) error {
-	return doSQLExec(s.db, s.gwStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.gwStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
-			gateway.GatewayEUI.String(),
+			gateway.GatewayEUI.ToInt64(),
 			gateway.Latitude,
 			gateway.Longitude,
 			gateway.Altitude,
@@ -194,15 +196,15 @@ func (s *Storage) CreateGateway(gateway model.Gateway) error {
 
 // DeleteGateway removes a gateway from the store
 func (s *Storage) DeleteGateway(eui protocol.EUI) error {
-	return doSQLExec(s.db, s.gwStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
-		return st.Exec(eui.String())
+	return s.doSQLExec(s.gwStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
+		return st.Exec(eui.ToInt64())
 	})
 }
 
 // UpdateGateway updates a gateway in the store
 func (s *Storage) UpdateGateway(gateway model.Gateway) error {
-	return doSQLExec(s.db, s.gwStmt.updateStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.gwStmt.updateStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(gateway.Latitude, gateway.Longitude, gateway.Altitude,
-			gateway.IP.String(), gateway.StrictIP, gateway.GatewayEUI.String())
+			gateway.IP.String(), gateway.StrictIP, gateway.GatewayEUI.ToInt64())
 	})
 }

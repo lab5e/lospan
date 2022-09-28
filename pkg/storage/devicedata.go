@@ -39,6 +39,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 		INSERT INTO
 			lora_device_data (
 				device_eui,
+				application_eui,
 				data,
 				time_stamp,
 				gateway_eui,
@@ -47,7 +48,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 				frequency,
 				data_rate,
 				dev_addr)
-		VALUES ($1,	$2,	$3, $4, $5, $6, $7, $8, $9)`
+		VALUES ($1,	$2,	$3, $4, $5, $6, $7, $8, $9, $10)`
 	if d.putStatement, err = db.Prepare(sqlInsert); err != nil {
 		return fmt.Errorf("unable to prepare insert statement: %v", err)
 	}
@@ -55,6 +56,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 	sqlSelect := `
 		SELECT
 			device_eui,
+			application_eui,
 			data,
 			time_stamp,
 			gateway_eui,
@@ -75,12 +77,23 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 	}
 
 	sqlDataList := `
-		SELECT d.device_eui, d.data, d.time_stamp, gateway_eui, rssi, snr, frequency, data_rate, d.dev_addr
-		FROM lora_device_data d
-			INNER JOIN lora_device dev ON d.device_eui = dev.eui
-			INNER JOIN lora_application app ON dev.application_eui = app.eui
-		WHERE app.eui = $1
-			ORDER BY d.time_stamp DESC
+		SELECT 
+			device_eui, 
+			application_eui, 
+			data, 
+			time_stamp, 
+			gateway_eui, 
+			rssi, 
+			snr, 
+			frequency, 
+			data_rate, 
+			dev_addr
+		FROM 
+			lora_device_data 
+		WHERE 
+			application_eui = $1
+		ORDER BY 
+			time_stamp DESC
 		LIMIT $2`
 	if d.appDataList, err = db.Prepare(sqlDataList); err != nil {
 		return fmt.Errorf("unable to prepare app list statement: %v", err)
@@ -150,10 +163,11 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 }
 
 // CreateUpstreamData stores a new data element in the backend. The element is associated with the specified DevAddr
-func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, data model.DeviceData) error {
-	return doSQLExec(s.db, s.dataStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
+func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, applicationEUI protocol.EUI, data model.DeviceData) error {
+	return s.doSQLExec(s.dataStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		b64str := base64.StdEncoding.EncodeToString(data.Data)
-		return st.Exec(deviceEUI.String(),
+		return st.Exec(deviceEUI.ToInt64(),
+			applicationEUI.ToInt64(),
 			b64str,
 			data.Timestamp,
 			data.GatewayEUI.String(),
@@ -169,13 +183,13 @@ func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, data model.DeviceDa
 func (s *Storage) readData(rows *sql.Rows) (model.DeviceData, error) {
 	ret := model.DeviceData{}
 	var err error
-	var devEUI, dataStr, gwEUI, devAddr string
-	if err = rows.Scan(&devEUI, &dataStr, &ret.Timestamp, &gwEUI, &ret.RSSI, &ret.SNR, &ret.Frequency, &ret.DataRate, &devAddr); err != nil {
+	var dataStr, gwEUI, devAddr string
+	var devEUI, appEUI int64
+	if err = rows.Scan(&devEUI, &appEUI, &dataStr, &ret.Timestamp, &gwEUI, &ret.RSSI, &ret.SNR, &ret.Frequency, &ret.DataRate, &devAddr); err != nil {
 		return ret, err
 	}
-	if ret.DeviceEUI, err = protocol.EUIFromString(devEUI); err != nil {
-		return ret, err
-	}
+	ret.DeviceEUI = protocol.EUIFromInt64(devEUI)
+	ret.AppEUI = protocol.EUIFromInt64(appEUI)
 	if ret.Data, err = base64.StdEncoding.DecodeString(dataStr); err != nil {
 		return ret, err
 	}
@@ -188,40 +202,40 @@ func (s *Storage) readData(rows *sql.Rows) (model.DeviceData, error) {
 	return ret, nil
 }
 
-func (s *Storage) doQuery(stmt *sql.Stmt, eui string, limit int) (chan model.DeviceData, error) {
-	rows, err := stmt.Query(eui, limit)
+func (s *Storage) doQuery(stmt *sql.Stmt, eui protocol.EUI, limit int) ([]model.DeviceData, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	rows, err := stmt.Query(eui.ToInt64(), limit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to query device data for device with EUI %s: %v", eui, err)
 	}
-	outputChan := make(chan model.DeviceData)
-	go func() {
-		defer rows.Close()
-		defer close(outputChan)
-		for rows.Next() {
-			ret, err := s.readData(rows)
-			if err != nil {
-				lg.Warning("Unable to decode data for device with EUI %s: %v", eui, err)
-				continue
-			}
-			outputChan <- ret
+	var ret []model.DeviceData
+	defer rows.Close()
+	for rows.Next() {
+		data, err := s.readData(rows)
+		if err != nil {
+			lg.Warning("Unable to decode data for device with EUI %s: %v", eui, err)
+			return ret, err
 		}
-	}()
-	return outputChan, nil
+		ret = append(ret, data)
+	}
+
+	return ret, nil
 }
 
 // GetUpstreamDataByDeviceEUI retrieves all of the data stored for that DevAddr
-func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) (chan model.DeviceData, error) {
-	return s.doQuery(s.dataStmt.listStatement, deviceEUI.String(), limit)
+func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) ([]model.DeviceData, error) {
+	return s.doQuery(s.dataStmt.listStatement, deviceEUI, limit)
 }
 
 // GetDownstreamDataByApplicationEUI returns
-func (s *Storage) GetDownstreamDataByApplicationEUI(applicationEUI protocol.EUI, limit int) (chan model.DeviceData, error) {
-	return s.doQuery(s.dataStmt.appDataList, applicationEUI.String(), limit)
+func (s *Storage) GetDownstreamDataByApplicationEUI(applicationEUI protocol.EUI, limit int) ([]model.DeviceData, error) {
+	return s.doQuery(s.dataStmt.appDataList, applicationEUI, limit)
 }
 
 // CreateDownstreamData creates new downstream data for a device
 func (s *Storage) CreateDownstreamData(deviceEUI protocol.EUI, message model.DownstreamMessage) error {
-	return doSQLExec(s.db, s.dataStmt.putDownstream, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.dataStmt.putDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
 			deviceEUI.String(),
 			message.Data,
@@ -235,7 +249,7 @@ func (s *Storage) CreateDownstreamData(deviceEUI protocol.EUI, message model.Dow
 
 // DeleteDownstreamData deletes a downstream message
 func (s *Storage) DeleteDownstreamData(deviceEUI protocol.EUI) error {
-	return doSQLExec(s.db, s.dataStmt.deleteDownstream, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.dataStmt.deleteDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(deviceEUI.String())
 	})
 }
@@ -243,6 +257,8 @@ func (s *Storage) DeleteDownstreamData(deviceEUI protocol.EUI) error {
 // GetDownstreamData returns a downstream message
 func (s *Storage) GetDownstreamData(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
 	ret := model.NewDownstreamMessage(deviceEUI, 0)
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	rows, err := s.dataStmt.getDownstream.Query(deviceEUI.String())
 	if err != nil {
@@ -260,7 +276,7 @@ func (s *Storage) GetDownstreamData(deviceEUI protocol.EUI) (model.DownstreamMes
 
 // UpdateDownstreamData updates a downstream message
 func (s *Storage) UpdateDownstreamData(deviceEUI protocol.EUI, sentTime int64, ackTime int64) error {
-	return doSQLExec(s.db, s.dataStmt.updateDownstream, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.dataStmt.updateDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
 			sentTime,
 			ackTime,

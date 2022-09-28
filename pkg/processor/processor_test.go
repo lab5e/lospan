@@ -504,7 +504,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 		t.Fatalf("Got error retrieving data for device 1: %v", err)
 	}
 	count := 0
-	for data := range ch {
+	for _, data := range ch {
 		if !reflect.DeepEqual(data.Data, []byte{1, 1, 1, 1}) {
 			t.Fatalf("Device data does not contain 1,1,1,1 but %v", data.Data)
 		}
@@ -519,7 +519,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 		t.Fatalf("Got error retrieving data for device 2: %v", err)
 	}
 	count = 0
-	for data := range ch {
+	for _, data := range ch {
 		if !reflect.DeepEqual(data.Data, []byte{2, 2, 2, 2}) {
 			t.Fatalf("Device data does not contain 2,2,2,2 but %v", data.Data)
 		}

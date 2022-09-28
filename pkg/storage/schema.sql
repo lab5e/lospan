@@ -35,15 +35,16 @@ CREATE TABLE IF NOT EXISTS lora_device_nonce (
 
 
 CREATE TABLE IF NOT EXISTS lora_device_data (
-    device_eui  BIGINT        NOT NULL REFERENCES lora_device (eui) ON DELETE CASCADE, 
-    data        VARCHAR(512)  NOT NULL, 
-    time_stamp  BIGINT        NOT NULL, 
-    gateway_eui BIGINT        NOT NULL, 
-    rssi        INTEGER       NOT NULL,
-    snr         NUMERIC(6,3)  NOT NULL,
-    frequency   NUMERIC(6,3)  NOT NULL,
-    data_rate   VARCHAR(20)   NOT NULL,
-    dev_addr    CHAR(8)       NOT NULL,
+    device_eui      BIGINT        NOT NULL REFERENCES lora_device (eui) ON DELETE CASCADE, 
+    application_eui BIGINT        NOT NULL,
+    data            VARCHAR(512)  NOT NULL, 
+    time_stamp      BIGINT        NOT NULL, 
+    gateway_eui     BIGINT        NOT NULL, 
+    rssi            INTEGER       NOT NULL,
+    snr             NUMERIC(6,3)  NOT NULL,
+    frequency       NUMERIC(6,3)  NOT NULL,
+    data_rate       VARCHAR(20)   NOT NULL,
+    dev_addr        CHAR(8)       NOT NULL,
 
     CONSTRAINT lora_device_data_pk PRIMARY KEY(device_eui, time_stamp)
 );

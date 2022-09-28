@@ -21,7 +21,7 @@ func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gatewayList := newGatewayList()
-	for gateway := range gateways {
+	for _, gateway := range gateways {
 		gatewayList.Gateways = append(gatewayList.Gateways, newGatewayFromModel(gateway))
 	}
 

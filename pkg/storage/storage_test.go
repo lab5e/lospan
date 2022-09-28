@@ -3,10 +3,7 @@ package storage
 import (
 	"crypto/rand"
 	"database/sql"
-	"fmt"
-	"os"
 	"testing"
-	"time"
 
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/stretchr/testify/require"
@@ -15,20 +12,25 @@ import (
 func TestStorage(t *testing.T) {
 	assert := require.New(t)
 
-	dbFile := fmt.Sprintf("%s/lospan.db", os.TempDir())
-	defer os.Remove(dbFile)
-
-	connectionString := fmt.Sprintf("file:%s", dbFile)
+	connectionString := ":memory:"
 	db, err := sql.Open(driverName, connectionString)
 	assert.Nil(err, "No error opening database")
-	assert.Nil(createSchema(db), "Error creating db in %s", dbFile)
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
 	db.Close()
 
-	s, err := CreateStorage(connectionString, 10, 5, time.Minute)
+	s, err := CreateStorage(connectionString)
 	assert.Nil(err, "Did not expect error: %v", err)
 	defer s.Close()
 
-	doStorageTests(s, t)
+	testApplicationStorage(s, t)
+	testDeviceStorage(s, t)
+	testDataStorage(s, t)
+	testGatewayStorage(s, t)
+
+	testSimpleKeySequence(s, t)
+	testMultipleSequences(s, t)
+	testConcurrentSequences(s, t)
+	testDownstreamStorage(s, t)
 }
 
 func makeRandomEUI() protocol.EUI {
@@ -49,19 +51,4 @@ func makeRandomKey() protocol.AESKey {
 	var keyBytes [16]byte
 	copy(keyBytes[:], makeRandomData())
 	return protocol.AESKey{Key: keyBytes}
-}
-
-// DoStorageTests tests all of the storage interfaces
-func doStorageTests(store *Storage, t *testing.T) {
-
-	testApplicationStorage(store, t)
-	testDeviceStorage(store, t)
-	testDataStorage(store, t)
-	testGatewayStorage(store, t)
-
-	testSimpleKeySequence(store, t)
-	testMultipleSequences(store, t)
-	testConcurrentSequences(store, t)
-	testDownstreamStorage(store, t)
-
 }

@@ -50,8 +50,7 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	var err error
 	if c.config.DBConnectionString != "" {
 		lg.Info("Using PostgreSQL as backend storage")
-		datastore, err = storage.CreateStorage(config.DBConnectionString,
-			config.DBMaxConnections, config.DBIdleConnections, config.DBConnLifetime)
+		datastore, err = storage.CreateStorage(config.DBConnectionString)
 		if err != nil {
 			lg.Error("Couldn't connect to database: %v", err)
 			return nil, err

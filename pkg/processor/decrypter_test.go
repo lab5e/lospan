@@ -59,9 +59,9 @@ func TestDecrypterProcessing(t *testing.T) {
 	go decrypter.Start()
 
 	msg := createEncryptedTestMessage()
-	d, _ := s.GetDeviceByDevAddr(msg.MACPayload.FHDR.DevAddr)
+	devices, _ := s.GetDeviceByDevAddr(msg.MACPayload.FHDR.DevAddr)
 	var msgOutput <-chan interface{}
-	for device := range d {
+	for _, device := range devices {
 		t.Logf("Found device: %T: with AppEUI %s", device, device.AppEUI)
 		msgOutput = context.AppRouter.Subscribe(device.AppEUI)
 	}

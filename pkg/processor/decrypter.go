@@ -82,7 +82,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		DevAddr:    device.DevAddr,
 	}
 
-	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, deviceData); err != nil {
+	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData); err != nil {
 		lg.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
 		return
 	}
@@ -141,7 +141,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 
 func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 	lg.Debug("Verifying message from device with DevAddr %s", decoded.Payload.MACPayload.FHDR.DevAddr)
-	deviceChan, err := d.context.Storage.GetDeviceByDevAddr(decoded.Payload.MACPayload.FHDR.DevAddr)
+	devices, err := d.context.Storage.GetDeviceByDevAddr(decoded.Payload.MACPayload.FHDR.DevAddr)
 	if err != nil {
 		lg.Warning("Unable to retrieve device from storage. Network ID: %x, Network address: %x. Error: %v",
 			decoded.Payload.MACPayload.FHDR.DevAddr.NwkID,
@@ -160,7 +160,7 @@ func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 	// wrt key for devices if there's more than one device with the same key.
 	var matchingDevices []model.Device
 	checked := 0
-	for dev := range deviceChan {
+	for _, dev := range devices {
 		checked++
 		lg.Debug("Testing MIC for device %s", dev.DeviceEUI)
 		mic, err := decoded.Payload.CalculateMIC(dev.NwkSKey, rawMessage[0:len(rawMessage)-4])

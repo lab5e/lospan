@@ -39,6 +39,8 @@ func (k *keyStatements) prepare(db *sql.DB) error {
 
 // AllocateKeys allocates a new set of keys from the backend store
 func (s *Storage) AllocateKeys(identifier string, interval uint64, initial uint64) (chan uint64, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err

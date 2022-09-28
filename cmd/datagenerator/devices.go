@@ -81,13 +81,14 @@ func generateDeviceData(device model.Device, count int, gateways []model.Gateway
 		dd.DataRate = randomDataRate()
 		dd.DevAddr = device.DevAddr
 		dd.DeviceEUI = device.DeviceEUI
+		dd.AppEUI = device.AppEUI
 		dd.Frequency = randomFrequency()
 		dd.GatewayEUI = randomGateway(gateways)
 		dd.RSSI = -int32(rand.Intn(120))
 		dd.SNR = float32(rand.Intn(20))
 		dd.Timestamp = emulatedTime.UnixNano()
 		emulatedTime = emulatedTime.Add(time.Minute)
-		if err := datastore.CreateUpstreamData(device.DeviceEUI, dd); err != nil {
+		if err := datastore.CreateUpstreamData(device.DeviceEUI, device.AppEUI, dd); err != nil {
 			lg.Error("Unable to store device data: %v", err)
 		}
 	}

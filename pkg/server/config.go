@@ -24,9 +24,6 @@ type Configuration struct {
 	MemoryDB             bool
 	OnlyLoopback         bool // use only loopback adapter - for testing
 	DebugPort            int  // Debug port - 0 for random, default 8081
-	DBMaxConnections     int
-	DBIdleConnections    int
-	DBConnLifetime       time.Duration
 	Log                  lg.LogParameters
 }
 
@@ -49,13 +46,10 @@ const (
 // isn't valid right out of the box; a storage backend must be selected.
 func NewDefaultConfig() *Configuration {
 	return &Configuration{
-		MA:                DefaultMA,
-		HTTPServerPort:    DefaultHTTPPort,
-		NetworkID:         DefaultNetworkID,
-		DebugPort:         DefaultDebugPort,
-		DBMaxConnections:  DefaultMaxConns,
-		DBConnLifetime:    DefaultConnLifetime,
-		DBIdleConnections: DefaultIdleConns,
+		MA:             DefaultMA,
+		HTTPServerPort: DefaultHTTPPort,
+		NetworkID:      DefaultNetworkID,
+		DebugPort:      DefaultDebugPort,
 	}
 }
 

@@ -20,7 +20,7 @@ func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI proto
 		http.Error(w, "Server error", http.StatusNotFound)
 	}
 	deviceList := newDeviceList()
-	for device := range devices {
+	for _, device := range devices {
 		deviceList.Devices = append(deviceList.Devices, newDeviceFromModel(&device))
 	}
 	w.Header().Set("Content-Type", "application/json")

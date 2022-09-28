@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"time"
 
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
@@ -40,7 +39,7 @@ func main() {
 	lg.SetLogLevel(lg.InfoLevel)
 	lg.Info("This is the data generator tool")
 	//datastore := memstore.CreateMemoryStorage(0, 0)
-	datastore, err := storage.CreateStorage(params.ConnectionString, 100, 50, time.Minute*5)
+	datastore, err := storage.CreateStorage(params.ConnectionString)
 	if err != nil {
 		lg.Error("Unable to create datastore: %v", err)
 		return

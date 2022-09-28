@@ -23,9 +23,6 @@ func init() {
 	flag.BoolVar(&config.DisableGatewayChecks, "disablegwcheck", false, "Disable ALL gateway checks")
 	flag.BoolVar(&config.UseSecureCookie, "securecookie", false, "Set the secure flag for the auth cookie")
 	flag.BoolVar(&config.MemoryDB, "memorydb", true, "Use in-memory database for storage (for testing)")
-	flag.IntVar(&config.DBMaxConnections, "db-max-connections", server.DefaultMaxConns, "Maximum DB connections")
-	flag.IntVar(&config.DBIdleConnections, "db-max-idle-connections", server.DefaultIdleConns, "Maximum idle DB connections")
-	flag.DurationVar(&config.DBConnLifetime, "db-max-lifetime-connections", server.DefaultConnLifetime, "Maximum life time of DB connections")
 	flag.Parse()
 }
 

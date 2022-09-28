@@ -93,6 +93,9 @@ func (s *Storage) readApplication(rows *sql.Rows) (model.Application, error) {
 
 // GetApplicationByEUI retrieves the application with the specified application EUI.
 func (s *Storage) GetApplicationByEUI(eui protocol.EUI) (model.Application, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	rows, err := s.appStmt.systemGetStatement.Query(eui.ToInt64())
 	ret := model.NewApplication()
 	if err != nil {
@@ -107,37 +110,39 @@ func (s *Storage) GetApplicationByEUI(eui protocol.EUI) (model.Application, erro
 }
 
 // ListApplications returns all applications with the given network EUI
-func (s *Storage) ListApplications() (chan model.Application, error) {
+func (s *Storage) ListApplications() ([]model.Application, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	rows, err := s.appStmt.listStatement.Query()
 	if err != nil {
 		return nil, fmt.Errorf("unable to query application list: %v", err)
 	}
-	outputChan := make(chan model.Application)
-	go func() {
-		defer rows.Close()
-		defer close(outputChan)
-		for rows.Next() {
-			app, err := s.readApplication(rows)
-			if err != nil {
-				lg.Warning("Unable to read application in list, skipping: %v", err)
-				continue
-			}
-			outputChan <- app
+	var ret []model.Application
+
+	defer rows.Close()
+
+	for rows.Next() {
+		app, err := s.readApplication(rows)
+		if err != nil {
+			lg.Warning("Unable to read application in list, skipping: %v", err)
+			continue
 		}
-	}()
-	return outputChan, nil
+		ret = append(ret, app)
+	}
+	return ret, nil
 }
 
 // CreateApplication stores an Application instance in the storage backend
 func (s *Storage) CreateApplication(application model.Application) error {
-	return doSQLExec(s.db, s.appStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.appStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(application.AppEUI.ToInt64())
 	})
 }
 
 // DeleteApplication removes the application from the store
 func (s *Storage) DeleteApplication(eui protocol.EUI) error {
-	return doSQLExec(s.db, s.appStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.appStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(eui.ToInt64())
 	})
 }

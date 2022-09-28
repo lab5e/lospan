@@ -237,8 +237,9 @@ func TestApplicationDataEndpoint(t *testing.T) {
 
 	eui, _ := protocol.EUIFromString(device.DeviceEUI)
 	for i := 0; i < 10; i++ {
-		err := h.context.Storage.CreateUpstreamData(eui, model.DeviceData{
+		err := h.context.Storage.CreateUpstreamData(eui, application.eui, model.DeviceData{
 			DeviceEUI:  eui,
+			AppEUI:     application.eui,
 			Timestamp:  int64(i),
 			Data:       []byte{0, 1, 2, 3, 4, 5},
 			GatewayEUI: eui,

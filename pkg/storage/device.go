@@ -191,7 +191,7 @@ func (s *Storage) retrieveNonces(device *model.Device) error {
 	return nil
 }
 
-func (s *Storage) readDevice(row *sql.Rows) (model.Device, error) {
+func (s *Storage) readDeviceSansNonce(row *sql.Rows) (model.Device, error) {
 	ret := model.Device{}
 	var devAddrStr, appKeyStr, appSkeyStr, nwkSkeyStr string
 	var devEUI, appEUI int64
@@ -228,7 +228,7 @@ func (s *Storage) readDevice(row *sql.Rows) (model.Device, error) {
 		return ret, fmt.Errorf("invalid NwkSKey: %v (key=%s)", err, nwkSkeyStr)
 	}
 
-	return ret, s.retrieveNonces(&ret)
+	return ret, nil
 }
 
 func (s *Storage) getDevice(rows *sql.Rows, err error) (model.Device, error) {
@@ -237,55 +237,67 @@ func (s *Storage) getDevice(rows *sql.Rows, err error) (model.Device, error) {
 	if err != nil {
 		return emptyDevice, err
 	}
-	defer rows.Close()
 	if !rows.Next() {
+		rows.Close()
 		return emptyDevice, ErrNotFound
 	}
-	device, err := s.readDevice(rows)
+	device, err := s.readDeviceSansNonce(rows)
 	if err != nil {
+		defer rows.Close()
 		return emptyDevice, err
 	}
+	rows.Close()
 	return device, s.retrieveNonces(&device)
+
 }
 
-func (s *Storage) getDeviceList(rows *sql.Rows, err error) (chan model.Device, error) {
+func (s *Storage) getDeviceList(rows *sql.Rows, err error) ([]model.Device, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to query device list: %v", err)
 	}
-	outputChan := make(chan model.Device)
-	go func() {
-		defer rows.Close()
-		defer close(outputChan)
-		for rows.Next() {
-			device, err := s.readDevice(rows)
-			if err != nil {
-				lg.Warning("unable to read device: %v; skipping it", err)
-				continue
-			}
-			outputChan <- device
+	var ret []model.Device
+
+	for rows.Next() {
+		device, err := s.readDeviceSansNonce(rows)
+		if err != nil {
+			rows.Close()
+			return ret, err
 		}
-	}()
-	return outputChan, nil
+		ret = append(ret, device)
+	}
+	rows.Close()
+	for i := range ret {
+		if err := s.retrieveNonces(&ret[i]); err != nil {
+			return ret, err
+		}
+	}
+	return ret, nil
 }
 
 // GetDeviceByDevAddr returns the device with the matching device address
-func (s *Storage) GetDeviceByDevAddr(devAddr protocol.DevAddr) (chan model.Device, error) {
+func (s *Storage) GetDeviceByDevAddr(devAddr protocol.DevAddr) ([]model.Device, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	return s.getDeviceList(s.devStmt.devAddrStatement.Query(devAddr.String()))
 }
 
 // GetDeviceByEUI retrieves a device by its EUI
 func (s *Storage) GetDeviceByEUI(devEUI protocol.EUI) (model.Device, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	return s.getDevice(s.devStmt.euiStatement.Query(devEUI.ToInt64()))
 }
 
 // GetDevicesByApplicationEUI returns all devices for the given application
-func (s *Storage) GetDevicesByApplicationEUI(appEUI protocol.EUI) (chan model.Device, error) {
+func (s *Storage) GetDevicesByApplicationEUI(appEUI protocol.EUI) ([]model.Device, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	return s.getDeviceList(s.devStmt.appEUIStatement.Query(appEUI.ToInt64()))
 }
 
 // CreateDevice creates a device in the store
 func (s *Storage) CreateDevice(device model.Device, appEUI protocol.EUI) error {
-	return doSQLExec(s.db, s.devStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.devStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(device.DeviceEUI.ToInt64(),
 			device.DevAddr.String(),
 			device.AppKey.String(),
@@ -302,28 +314,28 @@ func (s *Storage) CreateDevice(device model.Device, appEUI protocol.EUI) error {
 
 // AddDevNonce adds a nonce to the device
 func (s *Storage) AddDevNonce(device model.Device, nonce uint16) error {
-	return doSQLExec(s.db, s.devStmt.nonceStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.devStmt.nonceStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(device.DeviceEUI.ToInt64(), nonce)
 	})
 }
 
 // UpdateDeviceState updates the device state in the store
 func (s *Storage) UpdateDeviceState(device model.Device) error {
-	return doSQLExec(s.db, s.devStmt.updateStateStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.devStmt.updateStateStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(device.FCntDn, device.FCntUp, device.KeyWarning, device.DeviceEUI.ToInt64())
 	})
 }
 
 // DeleteDevice removes a device from the store
 func (s *Storage) DeleteDevice(eui protocol.EUI) error {
-	return doSQLExec(s.db, s.devStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.devStmt.deleteStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(eui.ToInt64())
 	})
 }
 
 // UpdateDevice updates the device
 func (s *Storage) UpdateDevice(device model.Device) error {
-	return doSQLExec(s.db, s.devStmt.updateStatement, func(st *sql.Stmt) (sql.Result, error) {
+	return s.doSQLExec(s.devStmt.updateStatement, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
 			device.DevAddr.String(),
 			device.AppKey.String(),

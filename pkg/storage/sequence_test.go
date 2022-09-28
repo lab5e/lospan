@@ -3,34 +3,35 @@ package storage
 import (
 	"sync"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // SimpleKeySequence tests a simple sequence
 func testSimpleKeySequence(seq *Storage, t *testing.T) {
+	assert := require.New(t)
+
 	const numKeys = 10
 	received := 0
 	ids, err := seq.AllocateKeys("something", numKeys+1, 0)
-	if err != nil {
-		t.Fatal("Could not allocate keys: ", err)
-	}
+	assert.NoError(err)
+
 	previous, ok := <-ids
-	if !ok {
-		t.Fatal("Sequence is closed")
-	}
+	assert.True(ok)
+
 	for {
 		val, ok := <-ids
 		if !ok {
 			break
 		}
-		if val != (previous + 1) {
-			t.Fatalf("Numbers aren't in sequence. Old = %d, new = %d, expected new to be %d", previous, val, val+1)
-		}
+		assert.Equal(val, previous+1, "Numbers should be in sequence. Old = %d, new = %d", previous, val)
+
 		previous = val
 		received++
 	}
-	if received != numKeys {
-		t.Fatalf("Got %d keys, expected %d.", received, numKeys)
-	}
+
+	assert.Equal(numKeys, received, "Expected %d keys", numKeys)
+
 }
 
 // MultipleSequences tests two sequences in parallel

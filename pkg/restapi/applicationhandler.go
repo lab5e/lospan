@@ -117,7 +117,7 @@ func (s *Server) applicationList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	appList := newApplicationList()
-	for application := range applications {
+	for _, application := range applications {
 		appList.Applications = append(appList.Applications, newAppFromModel(application))
 	}
 

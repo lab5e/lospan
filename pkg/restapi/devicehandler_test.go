@@ -236,7 +236,7 @@ func TestDeviceInfoEndpoint(t *testing.T) {
 		DevAddr:    "01020304"}, deviceURL, http.StatusCreated)
 
 	// Add some data to the device. One is enough.
-	err := h.context.Storage.CreateUpstreamData(device1.eui, application.eui, model.DeviceData{
+	err := h.context.Storage.CreateUpstreamData(device1.eui, application.eui, model.UpstreamMessage{
 		DeviceEUI:  device1.eui,
 		AppEUI:     application.eui,
 		Timestamp:  1,
@@ -342,7 +342,7 @@ func TestDeviceDataEndpoint(t *testing.T) {
 
 	eui, _ := protocol.EUIFromString(device.DeviceEUI)
 	for i := 0; i < 10; i++ {
-		err := h.context.Storage.CreateUpstreamData(eui, application.eui, model.DeviceData{
+		err := h.context.Storage.CreateUpstreamData(eui, application.eui, model.UpstreamMessage{
 			DeviceEUI:  eui,
 			AppEUI:     application.eui,
 			Timestamp:  int64(i),
@@ -398,7 +398,7 @@ func TestDeviceMessageInput(t *testing.T) {
 
 	eui, _ := protocol.EUIFromString(device.DeviceEUI)
 	for i := 0; i < 10; i++ {
-		err := h.context.Storage.CreateUpstreamData(eui, application.eui, model.DeviceData{
+		err := h.context.Storage.CreateUpstreamData(eui, application.eui, model.UpstreamMessage{
 			DeviceEUI:  eui,
 			Timestamp:  int64(i),
 			Data:       []byte{0, 1, 2, 3, 4, 5},

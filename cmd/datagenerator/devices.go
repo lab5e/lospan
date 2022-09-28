@@ -76,7 +76,7 @@ func randomGateway(gws []model.Gateway) protocol.EUI {
 func generateDeviceData(device model.Device, count int, gateways []model.Gateway, datastore *storage.Storage) {
 	emulatedTime := time.Now().Add(-time.Duration(count) * time.Minute)
 	for i := 0; i < count; i++ {
-		dd := model.DeviceData{}
+		dd := model.UpstreamMessage{}
 		dd.Data = makeRandomPayload()
 		dd.DataRate = randomDataRate()
 		dd.DevAddr = device.DevAddr

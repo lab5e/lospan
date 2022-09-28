@@ -6,8 +6,8 @@ import (
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
-// DeviceData contains a single transmission from an end-device.
-type DeviceData struct {
+// UpstreamMessage contains a single transmission from an end-device.
+type UpstreamMessage struct {
 	DeviceEUI  protocol.EUI     // Device address used
 	AppEUI     protocol.EUI     // Application EUI
 	Timestamp  int64            // Timestamp for message. Data type might change.
@@ -21,7 +21,7 @@ type DeviceData struct {
 }
 
 // Equals compares two DeviceData instances
-func (d *DeviceData) Equals(other DeviceData) bool {
+func (d *UpstreamMessage) Equals(other UpstreamMessage) bool {
 	return bytes.Equal(d.Data, other.Data) &&
 		d.DeviceEUI.ToInt64() == other.DeviceEUI.ToInt64() &&
 		d.AppEUI.ToInt64() == other.AppEUI.ToInt64() &&

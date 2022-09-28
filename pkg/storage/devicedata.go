@@ -163,7 +163,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 }
 
 // CreateUpstreamData stores a new data element in the backend. The element is associated with the specified DevAddr
-func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, applicationEUI protocol.EUI, data model.DeviceData) error {
+func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, applicationEUI protocol.EUI, data model.UpstreamMessage) error {
 	return s.doSQLExec(s.dataStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
 		b64str := base64.StdEncoding.EncodeToString(data.Data)
 		return st.Exec(deviceEUI.ToInt64(),
@@ -180,8 +180,8 @@ func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, applicationEUI prot
 }
 
 // Decode a single row into a DeviceData instance.
-func (s *Storage) readData(rows *sql.Rows) (model.DeviceData, error) {
-	ret := model.DeviceData{}
+func (s *Storage) readData(rows *sql.Rows) (model.UpstreamMessage, error) {
+	ret := model.UpstreamMessage{}
 	var err error
 	var dataStr, gwEUI, devAddr string
 	var devEUI, appEUI int64
@@ -202,14 +202,14 @@ func (s *Storage) readData(rows *sql.Rows) (model.DeviceData, error) {
 	return ret, nil
 }
 
-func (s *Storage) doQuery(stmt *sql.Stmt, eui protocol.EUI, limit int) ([]model.DeviceData, error) {
+func (s *Storage) doQuery(stmt *sql.Stmt, eui protocol.EUI, limit int) ([]model.UpstreamMessage, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	rows, err := stmt.Query(eui.ToInt64(), limit)
 	if err != nil {
 		return nil, fmt.Errorf("unable to query device data for device with EUI %s: %v", eui, err)
 	}
-	var ret []model.DeviceData
+	var ret []model.UpstreamMessage
 	defer rows.Close()
 	for rows.Next() {
 		data, err := s.readData(rows)
@@ -224,12 +224,12 @@ func (s *Storage) doQuery(stmt *sql.Stmt, eui protocol.EUI, limit int) ([]model.
 }
 
 // GetUpstreamDataByDeviceEUI retrieves all of the data stored for that DevAddr
-func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) ([]model.DeviceData, error) {
+func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) ([]model.UpstreamMessage, error) {
 	return s.doQuery(s.dataStmt.listStatement, deviceEUI, limit)
 }
 
 // GetDownstreamDataByApplicationEUI returns
-func (s *Storage) GetDownstreamDataByApplicationEUI(applicationEUI protocol.EUI, limit int) ([]model.DeviceData, error) {
+func (s *Storage) GetDownstreamDataByApplicationEUI(applicationEUI protocol.EUI, limit int) ([]model.UpstreamMessage, error) {
 	return s.doQuery(s.dataStmt.appDataList, applicationEUI, limit)
 }
 

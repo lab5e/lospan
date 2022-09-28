@@ -33,8 +33,8 @@ func testDataStorage(storage *Storage, t *testing.T) {
 	data1 := makeRandomData()
 	data2 := makeRandomData()
 
-	deviceData1 := model.DeviceData{Timestamp: 1, Data: data1, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 1.0}
-	deviceData2 := model.DeviceData{Timestamp: 2, Data: data2, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 2.0}
+	deviceData1 := model.UpstreamMessage{Timestamp: 1, Data: data1, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 1.0}
+	deviceData2 := model.UpstreamMessage{Timestamp: 2, Data: data2, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 2.0}
 
 	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData1), "Message 1 stored successfully")
 

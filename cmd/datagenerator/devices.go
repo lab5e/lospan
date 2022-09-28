@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -31,7 +31,7 @@ func generateDevices(count int, app model.Application, datastore *storage.Storag
 		d.DeviceEUI, _ = keyGen.NewDeviceEUI()
 		d.RelaxedCounter = false
 		if err := datastore.CreateDevice(d, app.AppEUI); err != nil {
-			logging.Error("Unable to store device: %v", err)
+			lg.Error("Unable to store device: %v", err)
 		} else {
 			callback(d)
 		}
@@ -88,7 +88,7 @@ func generateDeviceData(device model.Device, count int, gateways []model.Gateway
 		dd.Timestamp = emulatedTime.UnixNano()
 		emulatedTime = emulatedTime.Add(time.Minute)
 		if err := datastore.CreateUpstreamData(device.DeviceEUI, dd); err != nil {
-			logging.Error("Unable to store device data: %v", err)
+			lg.Error("Unable to store device data: %v", err)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func generateDownstreamMessage(device model.Device, datastore *storage.Storage) 
 		dm.Ack = rand.Intn(2) == 1
 		dm.Data = hex.EncodeToString(makeRandomPayload())
 		if err := datastore.CreateDownstreamData(device.DeviceEUI, dm); err != nil {
-			logging.Error("Unable to store downstream message: %v", err)
+			lg.Error("Unable to store downstream message: %v", err)
 		}
 	}
 }
@@ -113,7 +113,7 @@ func generateNonces(device model.Device, count int, datastore *storage.Storage) 
 	if device.State == model.OverTheAirDevice {
 		for i := 0; i < count; i++ {
 			if err := datastore.AddDevNonce(device, randomNonce()); err != nil && err != storage.ErrAlreadyExists {
-				logging.Warning("Unable to add nonce: %v", err)
+				lg.Warning("Unable to add nonce: %v", err)
 			}
 		}
 	}

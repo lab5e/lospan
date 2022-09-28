@@ -21,7 +21,7 @@ type DeviceData struct {
 
 // Equals compares two DeviceData instances
 func (d *DeviceData) Equals(other DeviceData) bool {
-	return bytes.Compare(d.Data, other.Data) == 0 &&
+	return bytes.Equal(d.Data, other.Data) &&
 		d.DeviceEUI.String() == other.DeviceEUI.String() &&
 		d.Timestamp == other.Timestamp &&
 		d.GatewayEUI.String() == other.GatewayEUI.String() &&

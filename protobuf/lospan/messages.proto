@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package lospan;
+
+option go_package = "./lospan";
+
+import "lospan/entities.proto";
+
+message ListApplicationsRequest {
+
+};
+
+message ListApplicationsResponse {
+    repeated Application applications = 1; 
+};
+message GetApplicationRequest{
+    string eui = 1;
+};
+
+message CreateApplicationRequest{
+};
+
+message DeleteApplicationRequest {
+    string eui = 1;
+}; 
+
+message ListDeviceRequest{
+    string application_eui = 1;
+};
+
+
+
+message ListDeviceResponse{
+    repeated Device devices = 1;
+};
+
+message GetDeviceRequest{
+    string eui = 1;    
+};
+
+message DeleteDeviceRequest{
+    string eui = 1;
+};
+
+message InboxRequest{
+    string eui = 1;
+};
+
+
+
+message InboxResponse{
+    repeated UpstreamMessage messages = 1;
+};
+
+message OutboxRequest{
+    string eui = 1;
+};
+
+
+message OutboxResponse{
+    repeated DownstreamMessage messages = 1;
+};
+
+message StreamMessagesRequest{
+    string eui = 1;
+};
+
+message ListGatewaysRequest{    
+};
+
+
+message ListGatewaysResponse{
+    repeated Gateway gateways = 1;
+};
+
+message GetGatewayRequest{
+    string eui = 1;
+};
+
+message DeleteGatewayRequest{
+    string eui = 1;
+};
+
+// StreamGatewayRequest requests a monitoring stream for a single gateway.
+message StreamGatewayRequest{
+    string eui = 1; // The gateway EUI
+};
+

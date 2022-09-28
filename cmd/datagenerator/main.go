@@ -4,7 +4,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -37,19 +37,18 @@ const noncesPerDevice = 30
 const gatewaysPerUser = 2
 
 func main() {
-	logging.EnableStderr(true)
-	logging.SetLogLevel(logging.InfoLevel)
-	logging.Info("This is the data generator tool")
+	lg.SetLogLevel(lg.InfoLevel)
+	lg.Info("This is the data generator tool")
 	//datastore := memstore.CreateMemoryStorage(0, 0)
 	datastore, err := storage.CreateStorage(params.ConnectionString, 100, 50, time.Minute*5)
 	if err != nil {
-		logging.Error("Unable to create datastore: %v", err)
+		lg.Error("Unable to create datastore: %v", err)
 		return
 	}
 
 	keygen, err := server.NewEUIKeyGenerator(defaultMA, 0, datastore)
 	if err != nil {
-		logging.Error("Unable to create key generator: %v", err)
+		lg.Error("Unable to create key generator: %v", err)
 		return
 	}
 

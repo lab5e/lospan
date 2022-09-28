@@ -10,7 +10,7 @@ import (
 
 	"sync"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -24,7 +24,7 @@ func init() {
 	var err error
 	defaultBand, err = band.NewBand(band.EU868Band)
 	if err != nil {
-		logging.Error("Unable to create EU868 band instance: %v", err)
+		lg.Error("Unable to create EU868 band instance: %v", err)
 	}
 }
 
@@ -50,14 +50,14 @@ func (p *GenericPacketForwarder) Start() {
 	// Set up server port (the one the gateway is going to connect to)
 	serverAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", p.serverPort))
 	if err != nil {
-		logging.Error("Unable to create UDP socket: %v", err)
+		lg.Error("Unable to create UDP socket: %v", err)
 		return
 	}
 
-	logging.Info("Generic Packet Forwarder listening on port %d", p.serverPort)
+	lg.Info("Generic Packet Forwarder listening on port %d", p.serverPort)
 	serverConn, err := net.ListenUDP("udp", serverAddr)
 	if err != nil {
-		logging.Error("Unable to listen on UDP port %d: %v", p.serverPort, err)
+		lg.Error("Unable to listen on UDP port %d: %v", p.serverPort, err)
 		return
 	}
 
@@ -111,14 +111,14 @@ func (p *GenericPacketForwarder) udpReader(serverConn *net.UDPConn) {
 	for {
 		select {
 		case <-p.terminate:
-			logging.Debug("Terminate signal received. Closing UDP reader")
+			lg.Debug("Terminate signal received. Closing UDP reader")
 			return
 		default:
 			// Nothing
 		}
 		n, addr, err := serverConn.ReadFromUDP(buf)
 		if err != nil {
-			logging.Warning("Unable to read from UDP socket at %v: %v", serverConn.RemoteAddr(), err)
+			lg.Warning("Unable to read from UDP socket at %v: %v", serverConn.RemoteAddr(), err)
 			<-time.After(1000 * time.Millisecond)
 			continue
 		}
@@ -128,7 +128,7 @@ func (p *GenericPacketForwarder) udpReader(serverConn *net.UDPConn) {
 		pkt.Port = addr.Port
 
 		if err != nil {
-			logging.Warning("Unable to unmarshal buffer received from %v: %v",
+			lg.Warning("Unable to unmarshal buffer received from %v: %v",
 				serverConn.RemoteAddr(), err)
 			continue
 		}
@@ -148,7 +148,7 @@ func (p *GenericPacketForwarder) getPullAckPort(eui protocol.EUI) int {
 	defer p.mutex.Unlock()
 	port, exists := p.pullAckPorts[eui.String()]
 	if !exists {
-		logging.Warning("Gateway with EUI %s haven't sent a PULL_DATA yet so we don't know the port", eui)
+		lg.Warning("Gateway with EUI %s haven't sent a PULL_DATA yet so we don't know the port", eui)
 	}
 	return port
 }
@@ -158,7 +158,7 @@ func (p *GenericPacketForwarder) udpSender(serverConn *net.UDPConn) {
 	for val := range p.udpOutput {
 		buffer, err := val.MarshalBinary()
 		if err != nil {
-			logging.Error("Unable to marshal packet forwarder data: %v", err)
+			lg.Error("Unable to marshal packet forwarder data: %v", err)
 			continue
 		}
 		if val.JSONString != "" {
@@ -166,16 +166,16 @@ func (p *GenericPacketForwarder) udpSender(serverConn *net.UDPConn) {
 		}
 		targetAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", val.Host, val.Port))
 		if err != nil {
-			logging.Warning("Unable to resolve target address for gateway (%s:%d): %v", val.Host, val.Port, err)
+			lg.Warning("Unable to resolve target address for gateway (%s:%d): %v", val.Host, val.Port, err)
 			continue
 		}
 		_, _, err = serverConn.WriteMsgUDP(buffer, nil, targetAddr)
 		if err != nil {
-			logging.Warning("Unable to write UDP message to gateway at %s: %v", targetAddr, err)
+			lg.Warning("Unable to write UDP message to gateway at %s: %v", targetAddr, err)
 			continue
 		}
 	}
-	logging.Debug("UDP output channel closed. Terminating UDP sender")
+	lg.Debug("UDP output channel closed. Terminating UDP sender")
 }
 
 // Wait for either external or internal input before sending. If there's internal
@@ -189,7 +189,7 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 		case val, ok := <-p.input:
 			// Generate a txpk message, aka PULL_RESP
 			if !ok {
-				logging.Debug("Input channel for forwarder closed. Terminating")
+				lg.Debug("Input channel for forwarder closed. Terminating")
 				// Close all channels, connections and terminate
 
 				close(p.udpInput)
@@ -206,7 +206,7 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 
 			case PullData:
 				// Send PullAck with same version and token
-				logging.Debug("PULL_DATA received from %s, sending PULL_ACK response", val.GatewayEUI)
+				lg.Debug("PULL_DATA received from %s, sending PULL_ACK response", val.GatewayEUI)
 				p.setPullAckPort(val.GatewayEUI, val.Port)
 				p.udpOutput <- GwPacket{
 					GatewayEUI:      val.GatewayEUI,
@@ -219,15 +219,15 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 				p.context.GwEventRouter.Publish(val.GatewayEUI, gwevents.NewKeepAlive())
 
 			case PushData:
-				logging.Debug("PUSH_DATA received from %s: %s", val.GatewayEUI, val.JSONString)
+				lg.Debug("PUSH_DATA received from %s: %s", val.GatewayEUI, val.JSONString)
 				if !p.context.Config.DisableGatewayChecks {
 					gw, err := p.storage.GetGateway(val.GatewayEUI)
 					if err != nil {
-						logging.Info("Unable to locate gateway with EUI %s: %v", val.GatewayEUI, err)
+						lg.Info("Unable to locate gateway with EUI %s: %v", val.GatewayEUI, err)
 						continue
 					}
 					if gw.StrictIP && gw.IP.String() != val.Host {
-						logging.Warning("IP mismatch for gateway with EUI %s: %s (should be %s)", val.GatewayEUI, gw.IP, val.Host)
+						lg.Warning("IP mismatch for gateway with EUI %s: %s (should be %s)", val.GatewayEUI, gw.IP, val.Host)
 						continue
 					}
 				}
@@ -246,7 +246,7 @@ func (p *GenericPacketForwarder) mainLoop(serverConn *net.UDPConn) {
 			case TxAck:
 				// Ignore (for now)
 			default:
-				logging.Info("Don't know how to handle input with identifier=%d from gateway", val.Identifier)
+				lg.Info("Don't know how to handle input with identifier=%d from gateway", val.Identifier)
 			}
 		}
 	}
@@ -273,7 +273,7 @@ func (p *GenericPacketForwarder) lookupFrequency(rfchain uint8, channel uint8) f
 		return 867.9
 	}
 
-	logging.Warning("Unknown channel: %d. Returning 868.1MHz", channel)
+	lg.Warning("Unknown channel: %d. Returning 868.1MHz", channel)
 	return 868.1
 
 }
@@ -284,7 +284,7 @@ func (p *GenericPacketForwarder) decodeReceivedJSON(val GwPacket) {
 
 	var err error
 	if err = json.Unmarshal([]byte(val.JSONString), &rxData); err != nil {
-		logging.Info("Unable to unmarshal JSON from %s:%d: %v (json=%s)", val.Host, val.Port, err, val.JSONString)
+		lg.Info("Unable to unmarshal JSON from %s:%d: %v (json=%s)", val.Host, val.Port, err, val.JSONString)
 		return
 	}
 
@@ -311,7 +311,7 @@ func (p *GenericPacketForwarder) decodeReceivedJSON(val GwPacket) {
 			ReceivedAt: time.Now(),
 		}
 		if gwPacket.RawMessage, err = base64.StdEncoding.DecodeString(packet.RFPackets); err != nil {
-			logging.Info("Unable to convert base64 string into bytes: %v (source=%s)", err, packet.RFPackets)
+			lg.Info("Unable to convert base64 string into bytes: %v (source=%s)", err, packet.RFPackets)
 			return
 		}
 		p.output <- gwPacket
@@ -338,7 +338,7 @@ func (p *GenericPacketForwarder) encodeAndSend(packet server.GatewayPacket) {
 
 	buffer, err := json.Marshal(outputStruct)
 	if err != nil {
-		logging.Info("Unable to marshal JSON for txpk: %v", err)
+		lg.Info("Unable to marshal JSON for txpk: %v", err)
 		return
 	}
 	p.udpOutput <- GwPacket{
@@ -356,7 +356,7 @@ func (p *GenericPacketForwarder) encodeAndSend(packet server.GatewayPacket) {
 	// Congress. This is roughly what we can expect in Europe. Norway -> Ireland
 	// is about 50 ms; further south is is easily 100ms (or more).
 	if timeToProcess.Seconds() > (packet.Deadline - assumedLatency) {
-		logging.Error("Packet to %s missed deadline of %.2f seconds with assumedLatency of %.2f (took %.2f s)",
+		lg.Error("Packet to %s missed deadline of %.2f seconds with assumedLatency of %.2f (took %.2f s)",
 			packet.Gateway.GatewayEUI, packet.Deadline, assumedLatency, timeToProcess.Seconds())
 	}
 }

@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 )
@@ -36,7 +36,7 @@ func (d *Decoder) Start() {
 			// The initial message type isn't important
 			decoded := protocol.NewPHYPayload(protocol.Proprietary)
 			if err := decoded.UnmarshalBinary(raw.RawMessage); err != nil {
-				logging.Info("Error unmarshalling payload: %v", err)
+				lg.Info("Error unmarshalling payload: %v", err)
 				return
 			}
 			context := server.FrameContext{
@@ -49,7 +49,7 @@ func (d *Decoder) Start() {
 			d.output <- msg
 		}(p)
 	}
-	logging.Debug("Input channel for Decoder closed. Terminating")
+	lg.Debug("Input channel for Decoder closed. Terminating")
 	close(d.output)
 }
 

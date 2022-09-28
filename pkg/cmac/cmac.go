@@ -23,7 +23,7 @@ import (
 	"encoding/hex"
 	"math"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 )
 
 /*
@@ -87,7 +87,7 @@ func init() {
 func AESCMAC(key []byte, buffer []byte) ([]byte, error) {
 	ciph, err := aes.NewCipher(key)
 	if err != nil {
-		logging.Error("Unable to create new AES cipher: %s", err)
+		lg.Error("Unable to create new AES cipher: %s", err)
 	}
 
 	// Step 1

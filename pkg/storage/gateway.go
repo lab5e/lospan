@@ -7,7 +7,7 @@ import (
 
 	"net"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -142,7 +142,7 @@ func (s *Storage) getGwList(rows *sql.Rows, err error) (chan model.Gateway, erro
 		for rows.Next() {
 			gw, err := s.readGateway(rows)
 			if err != nil {
-				logging.Warning("Unable to read gateway list: %v", err)
+				lg.Warning("Unable to read gateway list: %v", err)
 				continue
 			}
 			ret <- gw

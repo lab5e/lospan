@@ -42,7 +42,6 @@ type Params struct {
 	KeepGateway        bool
 	Mode               string
 	Hostname           string
-	LogLevel           int
 	NetID              uint32 // note: no parameter for this. Using the default (0)
 	MQTTLocalEndpoint  string
 	MQTTLocalPort      int
@@ -74,9 +73,6 @@ func (p *Params) Valid() error {
 	if p.DeviceMessages < 0 {
 		return fmt.Errorf("# device messages must be >= 0")
 	}
-	if p.LogLevel < 0 || p.LogLevel > 3 {
-		return fmt.Errorf("unknown log level valid values are (from low to high) 0, 1, 2 or 3")
-	}
 	return nil
 }
 
@@ -100,7 +96,6 @@ func init() {
 	flag.BoolVar(&CommandLineParameters.KeepGateway, "keep-gateway", false, "Keep gateway when shutting down, don't delete it.")
 	flag.BoolVar(&CommandLineParameters.KeepDevices, "keep-devices", false, "Keep devices when shutting down")
 	flag.StringVar(&CommandLineParameters.Mode, "mode", "batch", "Eagle One mode (interactive, batch, test)")
-	flag.IntVar(&CommandLineParameters.LogLevel, "loglevel", 1, "Log level (0: Debug, 1: Info, 2: Warning: 3: Error)")
 	flag.StringVar(&CommandLineParameters.MQTTEndpoint, "test-mqtt-endpoint", "mqtt", "MQTT broker endpoint")
 	flag.IntVar(&CommandLineParameters.MQTTPort, "test-mqtt-port", 1883, "MQTT broker port")
 	flag.StringVar(&CommandLineParameters.MQTTLocalEndpoint, "test-mqtt-local-endpoint", "localhost", "MQTT broker endpoint")

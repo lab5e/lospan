@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -77,7 +77,7 @@ func (d *FrameOutputBuffer) AddMACCommand(deviceEUI protocol.EUI, cmd protocol.M
 		newData := newFrameOutput(protocol.UnconfirmedDataDown)
 		if !newData.MACCommands.Add(cmd) {
 			// This shouldn't fail but...
-			logging.Warning("Couldn't add MAC command (0x%02x) to aggregator for device %s", cmd.ID(), deviceEUI)
+			lg.Warning("Couldn't add MAC command (0x%02x) to aggregator for device %s", cmd.ID(), deviceEUI)
 		}
 		d.frameData[deviceEUI] = newData
 		return nil
@@ -85,7 +85,7 @@ func (d *FrameOutputBuffer) AddMACCommand(deviceEUI protocol.EUI, cmd protocol.M
 
 	// Invariant: Device exists, add to existing
 	if !fd.MACCommands.Add(cmd) {
-		logging.Warning("Couldn't add MAC command (0x%02x) to aggregator for device %s", cmd.ID(), deviceEUI)
+		lg.Warning("Couldn't add MAC command (0x%02x) to aggregator for device %s", cmd.ID(), deviceEUI)
 	}
 	d.frameData[deviceEUI] = fd
 	return nil

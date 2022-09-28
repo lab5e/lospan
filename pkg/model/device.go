@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
@@ -29,7 +29,7 @@ func (d DeviceState) String() string {
 	case DisabledDevice:
 		return "Disabled"
 	default:
-		logging.Warning("Unknown device state: %d", d)
+		lg.Warning("Unknown device state: %d", d)
 		return "Disabled"
 	}
 }

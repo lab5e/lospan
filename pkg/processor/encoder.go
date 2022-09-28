@@ -18,7 +18,7 @@ package processor
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -40,32 +40,32 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 	switch packet.Payload.MHDR.MType {
 
 	case protocol.JoinRequest:
-		logging.Warning("Unsupported encoding: JoinRequest (context=%v)", packet.FrameContext)
+		lg.Warning("Unsupported encoding: JoinRequest (context=%v)", packet.FrameContext)
 
 	case protocol.UnconfirmedDataUp:
-		logging.Warning("Unsupported encoding: UnconfirmedDataUp (context=%v)", packet.FrameContext)
+		lg.Warning("Unsupported encoding: UnconfirmedDataUp (context=%v)", packet.FrameContext)
 
 	case protocol.ConfirmedDataUp:
-		logging.Warning("Unsupported encoding: ConfirmedDataUp (context=%v)", packet.FrameContext)
+		lg.Warning("Unsupported encoding: ConfirmedDataUp (context=%v)", packet.FrameContext)
 
 	case protocol.RFU:
-		logging.Warning("Unsupported encoding: RFU(context=%v)", packet.FrameContext)
+		lg.Warning("Unsupported encoding: RFU(context=%v)", packet.FrameContext)
 
 	case protocol.Proprietary:
-		logging.Warning("Unsupported encoding: Proprietary message (context=%v)", packet.FrameContext)
+		lg.Warning("Unsupported encoding: Proprietary message (context=%v)", packet.FrameContext)
 
 	case protocol.JoinAccept:
 		// Reset frame counter for both
 		packet.FrameContext.Device.FCntDn = 0
 		packet.FrameContext.Device.FCntUp = 0
 		if err := e.context.Storage.UpdateDeviceState(packet.FrameContext.Device); err != nil {
-			logging.Warning("Unable to update frame counters for device with EUI %s: %v. Ignoring JoinRequest.", packet.FrameContext.Device.DeviceEUI, err)
+			lg.Warning("Unable to update frame counters for device with EUI %s: %v. Ignoring JoinRequest.", packet.FrameContext.Device.DeviceEUI, err)
 			return
 		}
 
 		buffer, err = packet.Payload.EncodeJoinAccept(packet.FrameContext.Device.AppKey)
 		if err != nil {
-			logging.Warning("Unable to encode JoinAccept message for device with EUI %s (DevAddr=%s): %v",
+			lg.Warning("Unable to encode JoinAccept message for device with EUI %s (DevAddr=%s): %v",
 				packet.FrameContext.Device.DeviceEUI,
 				packet.FrameContext.Device.DevAddr,
 				err)
@@ -78,7 +78,7 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 		packet.Payload.MACPayload.FHDR.FCnt = packet.FrameContext.Device.FCntDn
 		buffer, err = packet.Payload.EncodeMessage(packet.FrameContext.Device.NwkSKey, packet.FrameContext.Device.AppSKey)
 		if err != nil {
-			logging.Error("Unable to encode message for device with EUI %s: %v. (DevAddr=%s)",
+			lg.Error("Unable to encode message for device with EUI %s: %v. (DevAddr=%s)",
 				packet.FrameContext.Device.DeviceEUI,
 				err,
 				packet.FrameContext.Device.DevAddr)
@@ -88,13 +88,13 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 		// Update the sent time for the message
 		sentTime := time.Now().Unix()
 		if err := e.context.Storage.UpdateDownstreamData(packet.FrameContext.Device.DeviceEUI, sentTime, 0); err != nil && err != storage.ErrNotFound {
-			logging.Warning("Unable to update downstream message for device %s: %v", packet.FrameContext.Device.DeviceEUI, err)
+			lg.Warning("Unable to update downstream message for device %s: %v", packet.FrameContext.Device.DeviceEUI, err)
 		}
 
 		// Increase the frame counter after the message is sent. New devices will get 0,1,2...
 		packet.FrameContext.Device.FCntDn++
 		if err := e.context.Storage.UpdateDeviceState(packet.FrameContext.Device); err != nil {
-			logging.Error("Unable to update frame counter for downstream message to device with EUI %s: %v",
+			lg.Error("Unable to update frame counter for downstream message to device with EUI %s: %v",
 				packet.FrameContext.Device.DeviceEUI,
 				err)
 		}
@@ -125,7 +125,7 @@ func (e *Encoder) Start() {
 		go e.processMessage(packet)
 
 	}
-	logging.Debug("Input channel for Encoder closed. Terminating")
+	lg.Debug("Input channel for Encoder closed. Terminating")
 }
 
 // NewEncoder creates a new Encoder instance.

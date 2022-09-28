@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -16,7 +16,7 @@ import (
 func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI protocol.EUI) {
 	devices, err := s.context.Storage.GetDevicesByApplicationEUI(appEUI)
 	if err != nil {
-		logging.Warning("Unable to read device list for application %s: %v.", appEUI, err)
+		lg.Warning("Unable to read device list for application %s: %v.", appEUI, err)
 		http.Error(w, "Server error", http.StatusNotFound)
 	}
 	deviceList := newDeviceList()
@@ -26,7 +26,7 @@ func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI proto
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(deviceList); err != nil {
-		logging.Warning("Unable to marshal device list for application %s: %v", appEUI, err)
+		lg.Warning("Unable to marshal device list for application %s: %v", appEUI, err)
 	}
 }
 
@@ -34,13 +34,13 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	// POST methods contains a single JSON struct in the body. Only one device instance is processed.
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
-		logging.Warning("Unable to read request body for device POST: %v", err)
+		lg.Warning("Unable to read request body for device POST: %v", err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
 		return
 	}
 	device := apiDevice{}
 	if err = json.Unmarshal(buf, &device); err != nil {
-		logging.Info("Unable to unmarshal JSON for device: %v", err)
+		lg.Info("Unable to unmarshal JSON for device: %v", err)
 		http.Error(w, "Can't grok JSON", http.StatusBadRequest)
 		return
 	}
@@ -63,7 +63,7 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	if !overrideEUI {
 		device.eui, err = s.context.KeyGenerator.NewDeviceEUI()
 		if err != nil {
-			logging.Warning("Unable to generate EUI for device: %v", err)
+			lg.Warning("Unable to generate EUI for device: %v", err)
 			http.Error(w, "Unable to generate EUI for device", http.StatusInternalServerError)
 			return
 		}
@@ -98,7 +98,7 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 
 	if !overrideAppKey {
 		if device.akey, err = protocol.NewAESKey(); err != nil {
-			logging.Warning("Unable to generate AppKey: %v", err)
+			lg.Warning("Unable to generate AppKey: %v", err)
 			http.Error(w, "Unable to generate application key", http.StatusInternalServerError)
 			return
 		}
@@ -119,14 +119,14 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	}
 	if !overrideAppSKey {
 		if device.askey, err = protocol.NewAESKey(); err != nil {
-			logging.Warning("Unable to generate AppSKey: %v", err)
+			lg.Warning("Unable to generate AppSKey: %v", err)
 			http.Error(w, "Unable to generate application session key", http.StatusInternalServerError)
 			return
 		}
 	}
 	if !overrideNwkSKey {
 		if device.nskey, err = protocol.NewAESKey(); err != nil {
-			logging.Warning("Unable to generate NwkSKey: %v", err)
+			lg.Warning("Unable to generate NwkSKey: %v", err)
 			http.Error(w, "Unable to generate network session key", http.StatusInternalServerError)
 			return
 		}
@@ -161,11 +161,11 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 			return
 		}
 		if devErr != storage.ErrAlreadyExists {
-			logging.Warning("Unable to store device with EUI %s: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to store device with EUI %s: %v", device.DeviceEUI, err)
 			http.Error(w, "Unable to store device", http.StatusInternalServerError)
 			return
 		}
-		logging.Warning("EUI (%s) for device is already in use. Trying another EUI.", deviceToSave.DeviceEUI)
+		lg.Warning("EUI (%s) for device is already in use. Trying another EUI.", deviceToSave.DeviceEUI)
 		deviceToSave.DeviceEUI, err = s.context.KeyGenerator.NewDeviceEUI()
 		if err != nil {
 			http.Error(w, "Unable to create device identifier", http.StatusInternalServerError)
@@ -175,7 +175,7 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	}
 
 	if devErr == storage.ErrAlreadyExists {
-		logging.Error("Unable to find available EUI for device after 10 attempts")
+		lg.Error("Unable to find available EUI for device after 10 attempts")
 		http.Error(w, "Unable to allocate device EUI", http.StatusInternalServerError)
 		return
 	}
@@ -183,7 +183,7 @@ func (s *Server) createDevice(w http.ResponseWriter, r *http.Request, applicatio
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newDeviceFromModel(&deviceToSave)); err != nil {
-		logging.Warning("Unable to marshal device with EUI %s: %v", deviceToSave.DeviceEUI, err)
+		lg.Warning("Unable to marshal device with EUI %s: %v", deviceToSave.DeviceEUI, err)
 	}
 }
 
@@ -260,14 +260,14 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newDeviceFromModel(device)); err != nil {
-			logging.Warning("Unable to marshal device with EUI %s: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to marshal device with EUI %s: %v", device.DeviceEUI, err)
 		}
 
 	case http.MethodPut:
 		// Read request body as map of values
 		var values map[string]interface{}
 		if err := json.NewDecoder(r.Body).Decode(&values); err != nil {
-			logging.Info("Unable to decode JSON: %v", err)
+			lg.Info("Unable to decode JSON: %v", err)
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
@@ -343,13 +343,13 @@ func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if err := s.context.Storage.UpdateDevice(*device); err != nil {
-			logging.Warning("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
 			http.Error(w, "Unable to update device", http.StatusInternalServerError)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newDeviceFromModel(device)); err != nil {
-			logging.Warning("Unable to marshal device with EUI %s to JSON: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to marshal device with EUI %s to JSON: %v", device.DeviceEUI, err)
 		}
 
 	case http.MethodDelete:
@@ -403,13 +403,13 @@ func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r
 	// Read body, decode message
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
-		logging.Warning("Unable to read request body for device %s: %v", device.DeviceEUI, err)
+		lg.Warning("Unable to read request body for device %s: %v", device.DeviceEUI, err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
 		return
 	}
 	outMessage := make(map[string]interface{})
 	if err = json.Unmarshal(buf, &outMessage); err != nil {
-		logging.Info("Unable to marshal JSON for message to device with EUI %s: %v", device.DeviceEUI, err)
+		lg.Info("Unable to marshal JSON for message to device with EUI %s: %v", device.DeviceEUI, err)
 		http.Error(w, "Can't grok JSON", http.StatusBadRequest)
 		return
 	}
@@ -449,7 +449,7 @@ func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r
 		downstreamMsg.Ack = ack
 	}
 	if err := s.context.Storage.CreateDownstreamData(device.DeviceEUI, downstreamMsg); err != nil {
-		logging.Warning("Unable to store downstream message: %v", err)
+		lg.Warning("Unable to store downstream message: %v", err)
 		http.Error(w, "unable to schedule downstream message", http.StatusInternalServerError)
 		return
 	}
@@ -457,7 +457,7 @@ func (s *Server) createDownstream(device *model.Device, w http.ResponseWriter, r
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newDownstreamMessageFromModel(downstreamMsg)); err != nil {
-		logging.Warning("Unable to marshal downstream message for device with EUI %s into JSON: %v", device.DeviceEUI, err)
+		lg.Warning("Unable to marshal downstream message for device with EUI %s into JSON: %v", device.DeviceEUI, err)
 	}
 
 }
@@ -469,7 +469,7 @@ func (s *Server) getDownstream(device *model.Device, w http.ResponseWriter, r *h
 		return
 	}
 	if err != nil {
-		logging.Warning("Unable to retrieve downstream message: %v", err)
+		lg.Warning("Unable to retrieve downstream message: %v", err)
 		http.Error(w, "Unable to retrieve downstream message", http.StatusInternalServerError)
 		return
 	}
@@ -477,13 +477,13 @@ func (s *Server) getDownstream(device *model.Device, w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(newDownstreamMessageFromModel(msg)); err != nil {
-		logging.Warning("Unable to marshal downstream message for device %s into JSON: %v", device.DeviceEUI, err)
+		lg.Warning("Unable to marshal downstream message for device %s into JSON: %v", device.DeviceEUI, err)
 	}
 }
 
 func (s *Server) deleteDownstream(device *model.Device, w http.ResponseWriter, r *http.Request) {
 	if err := s.context.Storage.DeleteDownstreamData(device.DeviceEUI); err != nil && err != storage.ErrNotFound {
-		logging.Warning("Unable to remove downstream message: %v", err)
+		lg.Warning("Unable to remove downstream message: %v", err)
 		http.Error(w, "Unable to remove downstream message", http.StatusInternalServerError)
 		return
 	}

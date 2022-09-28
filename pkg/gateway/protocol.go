@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
@@ -128,7 +128,7 @@ func (pkt *GwPacket) MarshalBinary() ([]byte, error) {
 		return data[:packetLen], nil
 
 	default:
-		logging.Warning("Unknown packet identifier %d\n", pkt.Identifier)
+		lg.Warning("Unknown packet identifier %d\n", pkt.Identifier)
 		return nil, fmt.Errorf("don't know how to encode packet identifier %d", pkt.Identifier)
 	}
 }

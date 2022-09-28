@@ -1,6 +1,13 @@
-.PHONY: cmd all vet text build  tools 
+.PHONY: cmd all vet text build  tools priv
 
-all: vet  build
+ifeq ($(GOPRIVATE),)
+GOPRIVATE := github.com/lab5e/l5log
+endif
+all: vet priv build
+
+priv:
+	go env -w GOPRIVATE=$(GOPRIVATE)
+
 
 vet:
 	go vet ./...

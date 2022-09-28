@@ -22,7 +22,35 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LospanClient interface {
-	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
+	// ListApplications lists all applications
+	ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error)
+	// GetApplication returns a single application
+	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	// CreateApplication creates a new application
+	Createpplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	// DeleteApplication removes an application.
+	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	ListDevices(ctx context.Context, in *ListDeviceRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error)
+	CreateDevice(ctx context.Context, in *Device, opts ...grpc.CallOption) (*DeleteApplicationRequest, error)
+	GetDevice(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*Device, error)
+	// UpdateDevice updates a devices
+	UpdateDevice(ctx context.Context, in *Device, opts ...grpc.CallOption) (*Device, error)
+	// DeleteDevice removes a device
+	DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*Device, error)
+	// Retrieve an application's inbox, ie upstream messages
+	Inbox(ctx context.Context, in *InboxRequest, opts ...grpc.CallOption) (*InboxResponse, error)
+	// Retrieve an applications outbox, ie downstream scheduled and delivered messages
+	Outbox(ctx context.Context, in *OutboxRequest, opts ...grpc.CallOption) (*OutboxResponse, error)
+	// SendMessage sends a message to a device (ie downstream)
+	SendMessage(ctx context.Context, in *DownstreamMessage, opts ...grpc.CallOption) (*DownstreamMessage, error)
+	// StreamMessages streams data for an application or a gateway to the client.
+	StreamMessages(ctx context.Context, in *StreamMessagesRequest, opts ...grpc.CallOption) (Lospan_StreamMessagesClient, error)
+	ListGateways(ctx context.Context, in *ListGatewaysRequest, opts ...grpc.CallOption) (*ListGatewaysResponse, error)
+	CreateGateway(ctx context.Context, in *Gateway, opts ...grpc.CallOption) (*Gateway, error)
+	GetGateway(ctx context.Context, in *GetGatewayRequest, opts ...grpc.CallOption) (*Gateway, error)
+	UpdateGateway(ctx context.Context, in *Gateway, opts ...grpc.CallOption) (*Gateway, error)
+	DeleteGateway(ctx context.Context, in *DeleteGatewayRequest, opts ...grpc.CallOption) (*Gateway, error)
+	StreamGateway(ctx context.Context, in *StreamGatewayRequest, opts ...grpc.CallOption) (Lospan_StreamGatewayClient, error)
 }
 
 type lospanClient struct {
@@ -33,28 +61,318 @@ func NewLospanClient(cc grpc.ClientConnInterface) LospanClient {
 	return &lospanClient{cc}
 }
 
-func (c *lospanClient) Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
-	out := new(HelloResponse)
-	err := c.cc.Invoke(ctx, "/lospan.Lospan/Hello", in, out, opts...)
+func (c *lospanClient) ListApplications(ctx context.Context, in *ListApplicationsRequest, opts ...grpc.CallOption) (*ListApplicationsResponse, error) {
+	out := new(ListApplicationsResponse)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/ListApplications", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
+func (c *lospanClient) GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/GetApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) Createpplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/Createpplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+	out := new(Application)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/DeleteApplication", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) ListDevices(ctx context.Context, in *ListDeviceRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error) {
+	out := new(ListDeviceResponse)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/ListDevices", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) CreateDevice(ctx context.Context, in *Device, opts ...grpc.CallOption) (*DeleteApplicationRequest, error) {
+	out := new(DeleteApplicationRequest)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/CreateDevice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) GetDevice(ctx context.Context, in *GetDeviceRequest, opts ...grpc.CallOption) (*Device, error) {
+	out := new(Device)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/GetDevice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) UpdateDevice(ctx context.Context, in *Device, opts ...grpc.CallOption) (*Device, error) {
+	out := new(Device)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/UpdateDevice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*Device, error) {
+	out := new(Device)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/DeleteDevice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) Inbox(ctx context.Context, in *InboxRequest, opts ...grpc.CallOption) (*InboxResponse, error) {
+	out := new(InboxResponse)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/Inbox", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) Outbox(ctx context.Context, in *OutboxRequest, opts ...grpc.CallOption) (*OutboxResponse, error) {
+	out := new(OutboxResponse)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/Outbox", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) SendMessage(ctx context.Context, in *DownstreamMessage, opts ...grpc.CallOption) (*DownstreamMessage, error) {
+	out := new(DownstreamMessage)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/SendMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) StreamMessages(ctx context.Context, in *StreamMessagesRequest, opts ...grpc.CallOption) (Lospan_StreamMessagesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Lospan_ServiceDesc.Streams[0], "/lospan.Lospan/StreamMessages", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &lospanStreamMessagesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Lospan_StreamMessagesClient interface {
+	Recv() (*UpstreamMessage, error)
+	grpc.ClientStream
+}
+
+type lospanStreamMessagesClient struct {
+	grpc.ClientStream
+}
+
+func (x *lospanStreamMessagesClient) Recv() (*UpstreamMessage, error) {
+	m := new(UpstreamMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *lospanClient) ListGateways(ctx context.Context, in *ListGatewaysRequest, opts ...grpc.CallOption) (*ListGatewaysResponse, error) {
+	out := new(ListGatewaysResponse)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/ListGateways", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) CreateGateway(ctx context.Context, in *Gateway, opts ...grpc.CallOption) (*Gateway, error) {
+	out := new(Gateway)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/CreateGateway", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) GetGateway(ctx context.Context, in *GetGatewayRequest, opts ...grpc.CallOption) (*Gateway, error) {
+	out := new(Gateway)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/GetGateway", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) UpdateGateway(ctx context.Context, in *Gateway, opts ...grpc.CallOption) (*Gateway, error) {
+	out := new(Gateway)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/UpdateGateway", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) DeleteGateway(ctx context.Context, in *DeleteGatewayRequest, opts ...grpc.CallOption) (*Gateway, error) {
+	out := new(Gateway)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/DeleteGateway", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lospanClient) StreamGateway(ctx context.Context, in *StreamGatewayRequest, opts ...grpc.CallOption) (Lospan_StreamGatewayClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Lospan_ServiceDesc.Streams[1], "/lospan.Lospan/StreamGateway", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &lospanStreamGatewayClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Lospan_StreamGatewayClient interface {
+	Recv() (*GatewayMessage, error)
+	grpc.ClientStream
+}
+
+type lospanStreamGatewayClient struct {
+	grpc.ClientStream
+}
+
+func (x *lospanStreamGatewayClient) Recv() (*GatewayMessage, error) {
+	m := new(GatewayMessage)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // LospanServer is the server API for Lospan service.
 // All implementations should embed UnimplementedLospanServer
 // for forward compatibility
 type LospanServer interface {
-	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
+	// ListApplications lists all applications
+	ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error)
+	// GetApplication returns a single application
+	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
+	// CreateApplication creates a new application
+	Createpplication(context.Context, *CreateApplicationRequest) (*Application, error)
+	// DeleteApplication removes an application.
+	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
+	ListDevices(context.Context, *ListDeviceRequest) (*ListDeviceResponse, error)
+	CreateDevice(context.Context, *Device) (*DeleteApplicationRequest, error)
+	GetDevice(context.Context, *GetDeviceRequest) (*Device, error)
+	// UpdateDevice updates a devices
+	UpdateDevice(context.Context, *Device) (*Device, error)
+	// DeleteDevice removes a device
+	DeleteDevice(context.Context, *DeleteDeviceRequest) (*Device, error)
+	// Retrieve an application's inbox, ie upstream messages
+	Inbox(context.Context, *InboxRequest) (*InboxResponse, error)
+	// Retrieve an applications outbox, ie downstream scheduled and delivered messages
+	Outbox(context.Context, *OutboxRequest) (*OutboxResponse, error)
+	// SendMessage sends a message to a device (ie downstream)
+	SendMessage(context.Context, *DownstreamMessage) (*DownstreamMessage, error)
+	// StreamMessages streams data for an application or a gateway to the client.
+	StreamMessages(*StreamMessagesRequest, Lospan_StreamMessagesServer) error
+	ListGateways(context.Context, *ListGatewaysRequest) (*ListGatewaysResponse, error)
+	CreateGateway(context.Context, *Gateway) (*Gateway, error)
+	GetGateway(context.Context, *GetGatewayRequest) (*Gateway, error)
+	UpdateGateway(context.Context, *Gateway) (*Gateway, error)
+	DeleteGateway(context.Context, *DeleteGatewayRequest) (*Gateway, error)
+	StreamGateway(*StreamGatewayRequest, Lospan_StreamGatewayServer) error
 }
 
 // UnimplementedLospanServer should be embedded to have forward compatible implementations.
 type UnimplementedLospanServer struct {
 }
 
-func (UnimplementedLospanServer) Hello(context.Context, *HelloRequest) (*HelloResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
+func (UnimplementedLospanServer) ListApplications(context.Context, *ListApplicationsRequest) (*ListApplicationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListApplications not implemented")
+}
+func (UnimplementedLospanServer) GetApplication(context.Context, *GetApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
+}
+func (UnimplementedLospanServer) Createpplication(context.Context, *CreateApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Createpplication not implemented")
+}
+func (UnimplementedLospanServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
+}
+func (UnimplementedLospanServer) ListDevices(context.Context, *ListDeviceRequest) (*ListDeviceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDevices not implemented")
+}
+func (UnimplementedLospanServer) CreateDevice(context.Context, *Device) (*DeleteApplicationRequest, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDevice not implemented")
+}
+func (UnimplementedLospanServer) GetDevice(context.Context, *GetDeviceRequest) (*Device, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDevice not implemented")
+}
+func (UnimplementedLospanServer) UpdateDevice(context.Context, *Device) (*Device, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDevice not implemented")
+}
+func (UnimplementedLospanServer) DeleteDevice(context.Context, *DeleteDeviceRequest) (*Device, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDevice not implemented")
+}
+func (UnimplementedLospanServer) Inbox(context.Context, *InboxRequest) (*InboxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Inbox not implemented")
+}
+func (UnimplementedLospanServer) Outbox(context.Context, *OutboxRequest) (*OutboxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Outbox not implemented")
+}
+func (UnimplementedLospanServer) SendMessage(context.Context, *DownstreamMessage) (*DownstreamMessage, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedLospanServer) StreamMessages(*StreamMessagesRequest, Lospan_StreamMessagesServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamMessages not implemented")
+}
+func (UnimplementedLospanServer) ListGateways(context.Context, *ListGatewaysRequest) (*ListGatewaysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGateways not implemented")
+}
+func (UnimplementedLospanServer) CreateGateway(context.Context, *Gateway) (*Gateway, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGateway not implemented")
+}
+func (UnimplementedLospanServer) GetGateway(context.Context, *GetGatewayRequest) (*Gateway, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGateway not implemented")
+}
+func (UnimplementedLospanServer) UpdateGateway(context.Context, *Gateway) (*Gateway, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateGateway not implemented")
+}
+func (UnimplementedLospanServer) DeleteGateway(context.Context, *DeleteGatewayRequest) (*Gateway, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGateway not implemented")
+}
+func (UnimplementedLospanServer) StreamGateway(*StreamGatewayRequest, Lospan_StreamGatewayServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamGateway not implemented")
 }
 
 // UnsafeLospanServer may be embedded to opt out of forward compatibility for this service.
@@ -68,22 +386,352 @@ func RegisterLospanServer(s grpc.ServiceRegistrar, srv LospanServer) {
 	s.RegisterService(&Lospan_ServiceDesc, srv)
 }
 
-func _Lospan_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
+func _Lospan_ListApplications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListApplicationsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LospanServer).Hello(ctx, in)
+		return srv.(LospanServer).ListApplications(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/lospan.Lospan/Hello",
+		FullMethod: "/lospan.Lospan/ListApplications",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LospanServer).Hello(ctx, req.(*HelloRequest))
+		return srv.(LospanServer).ListApplications(ctx, req.(*ListApplicationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_GetApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).GetApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/GetApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).GetApplication(ctx, req.(*GetApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_Createpplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).Createpplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/Createpplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).Createpplication(ctx, req.(*CreateApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_DeleteApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteApplicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).DeleteApplication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/DeleteApplication",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).DeleteApplication(ctx, req.(*DeleteApplicationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_ListDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).ListDevices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/ListDevices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).ListDevices(ctx, req.(*ListDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_CreateDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Device)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).CreateDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/CreateDevice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).CreateDevice(ctx, req.(*Device))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_GetDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).GetDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/GetDevice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).GetDevice(ctx, req.(*GetDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_UpdateDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Device)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).UpdateDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/UpdateDevice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).UpdateDevice(ctx, req.(*Device))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_DeleteDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).DeleteDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/DeleteDevice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).DeleteDevice(ctx, req.(*DeleteDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_Inbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InboxRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).Inbox(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/Inbox",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).Inbox(ctx, req.(*InboxRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_Outbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OutboxRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).Outbox(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/Outbox",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).Outbox(ctx, req.(*OutboxRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownstreamMessage)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).SendMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/SendMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).SendMessage(ctx, req.(*DownstreamMessage))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_StreamMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamMessagesRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(LospanServer).StreamMessages(m, &lospanStreamMessagesServer{stream})
+}
+
+type Lospan_StreamMessagesServer interface {
+	Send(*UpstreamMessage) error
+	grpc.ServerStream
+}
+
+type lospanStreamMessagesServer struct {
+	grpc.ServerStream
+}
+
+func (x *lospanStreamMessagesServer) Send(m *UpstreamMessage) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Lospan_ListGateways_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGatewaysRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).ListGateways(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/ListGateways",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).ListGateways(ctx, req.(*ListGatewaysRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_CreateGateway_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Gateway)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).CreateGateway(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/CreateGateway",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).CreateGateway(ctx, req.(*Gateway))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_GetGateway_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGatewayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).GetGateway(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/GetGateway",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).GetGateway(ctx, req.(*GetGatewayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_UpdateGateway_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Gateway)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).UpdateGateway(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/UpdateGateway",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).UpdateGateway(ctx, req.(*Gateway))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_DeleteGateway_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGatewayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LospanServer).DeleteGateway(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/lospan.Lospan/DeleteGateway",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LospanServer).DeleteGateway(ctx, req.(*DeleteGatewayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Lospan_StreamGateway_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamGatewayRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(LospanServer).StreamGateway(m, &lospanStreamGatewayServer{stream})
+}
+
+type Lospan_StreamGatewayServer interface {
+	Send(*GatewayMessage) error
+	grpc.ServerStream
+}
+
+type lospanStreamGatewayServer struct {
+	grpc.ServerStream
+}
+
+func (x *lospanStreamGatewayServer) Send(m *GatewayMessage) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // Lospan_ServiceDesc is the grpc.ServiceDesc for Lospan service.
@@ -94,10 +742,85 @@ var Lospan_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*LospanServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Hello",
-			Handler:    _Lospan_Hello_Handler,
+			MethodName: "ListApplications",
+			Handler:    _Lospan_ListApplications_Handler,
+		},
+		{
+			MethodName: "GetApplication",
+			Handler:    _Lospan_GetApplication_Handler,
+		},
+		{
+			MethodName: "Createpplication",
+			Handler:    _Lospan_Createpplication_Handler,
+		},
+		{
+			MethodName: "DeleteApplication",
+			Handler:    _Lospan_DeleteApplication_Handler,
+		},
+		{
+			MethodName: "ListDevices",
+			Handler:    _Lospan_ListDevices_Handler,
+		},
+		{
+			MethodName: "CreateDevice",
+			Handler:    _Lospan_CreateDevice_Handler,
+		},
+		{
+			MethodName: "GetDevice",
+			Handler:    _Lospan_GetDevice_Handler,
+		},
+		{
+			MethodName: "UpdateDevice",
+			Handler:    _Lospan_UpdateDevice_Handler,
+		},
+		{
+			MethodName: "DeleteDevice",
+			Handler:    _Lospan_DeleteDevice_Handler,
+		},
+		{
+			MethodName: "Inbox",
+			Handler:    _Lospan_Inbox_Handler,
+		},
+		{
+			MethodName: "Outbox",
+			Handler:    _Lospan_Outbox_Handler,
+		},
+		{
+			MethodName: "SendMessage",
+			Handler:    _Lospan_SendMessage_Handler,
+		},
+		{
+			MethodName: "ListGateways",
+			Handler:    _Lospan_ListGateways_Handler,
+		},
+		{
+			MethodName: "CreateGateway",
+			Handler:    _Lospan_CreateGateway_Handler,
+		},
+		{
+			MethodName: "GetGateway",
+			Handler:    _Lospan_GetGateway_Handler,
+		},
+		{
+			MethodName: "UpdateGateway",
+			Handler:    _Lospan_UpdateGateway_Handler,
+		},
+		{
+			MethodName: "DeleteGateway",
+			Handler:    _Lospan_DeleteGateway_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StreamMessages",
+			Handler:       _Lospan_StreamMessages_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamGateway",
+			Handler:       _Lospan_StreamGateway_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "lospan/lospan.proto",
 }

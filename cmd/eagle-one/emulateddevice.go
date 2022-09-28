@@ -26,7 +26,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
@@ -85,7 +85,7 @@ func (d *EmulatedDevice) Join(maxAttempts int) error {
 			select {
 			case joinResponse := <-d.incomingMessages:
 				if d.validJoinResponse(joinResponse, lastNonce) {
-					logging.Info("Device %s has joined", d.keys.DevEUI)
+					lg.Info("Device %s has joined", d.keys.DevEUI)
 					// Success - got message
 					return nil
 				}
@@ -96,7 +96,7 @@ func (d *EmulatedDevice) Join(maxAttempts int) error {
 			waitTime = time.Since(startTime)
 		}
 		attempt++
-		logging.Info("Device %s have used %d of %d join attempts", d.keys.DevEUI, attempt, maxAttempts)
+		lg.Info("Device %s have used %d of %d join attempts", d.keys.DevEUI, attempt, maxAttempts)
 		if attempt >= maxAttempts {
 			return errors.New("no JoinAccept received from server")
 		}
@@ -112,10 +112,10 @@ func (d *EmulatedDevice) sendJoinRequest() uint16 {
 	p.JoinRequestPayload.DevNonce = lastNonce
 	joinRequestBuf, err := p.EncodeJoinRequest(d.keys.AppKey)
 	if err != nil {
-		logging.Warning("Unable to encode JoinRequest for device %s: %v", d.keys.DevEUI, err)
+		lg.Warning("Unable to encode JoinRequest for device %s: %v", d.keys.DevEUI, err)
 		return lastNonce
 	}
-	logging.Info("Device %s sending JoinRequest", d.keys.DevEUI)
+	lg.Info("Device %s sending JoinRequest", d.keys.DevEUI)
 	d.outgoingMessages <- base64.StdEncoding.EncodeToString(joinRequestBuf)
 	return lastNonce
 }
@@ -127,7 +127,7 @@ func (d *EmulatedDevice) validJoinResponse(msg GWMessage, lastNonce uint16) bool
 
 		if err := msg.PHYPayload.DecodeJoinAccept(d.keys.AppKey, msg.Buffer); err != nil {
 			if err != protocol.ErrInvalidMIC {
-				logging.Warning("Couldn't decode the JoinAccept message: %v", err)
+				lg.Warning("Couldn't decode the JoinAccept message: %v", err)
 			}
 			return false
 		}
@@ -139,7 +139,7 @@ func (d *EmulatedDevice) validJoinResponse(msg GWMessage, lastNonce uint16) bool
 		d.FrameCounterUp = 0
 		return true
 	}
-	logging.Info("Device %s didn't get a JoinAccept but %s", d.keys.DevEUI, msg.PHYPayload.MHDR.MType)
+	lg.Info("Device %s didn't get a JoinAccept but %s", d.keys.DevEUI, msg.PHYPayload.MHDR.MType)
 	return false
 }
 
@@ -200,7 +200,7 @@ func (d *EmulatedDevice) SendMessageWithPayload(mtype protocol.MType, payload []
 	select {
 	case response := <-d.incomingMessages:
 		if len(response.PHYPayload.MACPayload.FRMPayload) > 0 {
-			logging.Info("Received message for device %s", d.keys.DevEUI)
+			lg.Info("Received message for device %s", d.keys.DevEUI)
 			// Decrypt the message
 
 			plaintext := decryptPayload(

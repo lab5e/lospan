@@ -6,7 +6,7 @@ import (
 
 	"encoding/base64"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -200,7 +200,7 @@ func (s *Storage) doQuery(stmt *sql.Stmt, eui string, limit int) (chan model.Dev
 		for rows.Next() {
 			ret, err := s.readData(rows)
 			if err != nil {
-				logging.Warning("Unable to decode data for device with EUI %s: %v", eui, err)
+				lg.Warning("Unable to decode data for device with EUI %s: %v", eui, err)
 				continue
 			}
 			outputChan <- ret

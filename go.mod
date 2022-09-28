@@ -3,13 +3,13 @@ module github.com/lab5e/lospan
 go 1.19
 
 require (
-	github.com/ExploratoryEngineering/logging v0.0.0-20181106085733-dcb8702a004e
 	github.com/ExploratoryEngineering/pubsub v1.0.2
 	github.com/ExploratoryEngineering/rest v1.0.1
 	github.com/bufbuild/buf v1.8.0
 	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/lab5e/l5log v0.0.11
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mgechev/revive v1.2.3
 	github.com/stretchr/testify v1.8.0
@@ -62,7 +62,6 @@ require (
 	github.com/moby/buildkit v0.10.3 // indirect
 	github.com/moby/term v0.0.0-20220808134915-39b0c02b01ae // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect

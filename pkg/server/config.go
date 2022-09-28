@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
@@ -18,17 +19,15 @@ type Configuration struct {
 	MA                   string // String representation of MA
 	DBConnectionString   string
 	PrintSchema          bool
-	Syslog               bool
 	DisableGatewayChecks bool
 	UseSecureCookie      bool
-	LogLevel             uint
-	PlainLog             bool // Fancy stderr logs with emojis and colors
 	MemoryDB             bool
 	OnlyLoopback         bool // use only loopback adapter - for testing
 	DebugPort            int  // Debug port - 0 for random, default 8081
 	DBMaxConnections     int
 	DBIdleConnections    int
 	DBConnLifetime       time.Duration
+	Log                  lg.LogParameters
 }
 
 // This is the default configuration
@@ -53,7 +52,6 @@ func NewDefaultConfig() *Configuration {
 		MA:                DefaultMA,
 		HTTPServerPort:    DefaultHTTPPort,
 		NetworkID:         DefaultNetworkID,
-		LogLevel:          DefaultLogLevel,
 		DebugPort:         DefaultDebugPort,
 		DBMaxConnections:  DefaultMaxConns,
 		DBConnLifetime:    DefaultConnLifetime,

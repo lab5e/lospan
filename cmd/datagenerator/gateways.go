@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -20,7 +20,7 @@ func generateGateways(count int, datastore *storage.Storage) []model.Gateway {
 		newGW.IP = randomIP()
 		newGW.StrictIP = rand.Int()%2 == 0
 		if err := datastore.CreateGateway(newGW); err != nil {
-			logging.Error("Unable to store gateway: %v", err)
+			lg.Error("Unable to store gateway: %v", err)
 		} else {
 			gws = append(gws, newGW)
 		}

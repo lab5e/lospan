@@ -24,7 +24,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	cgw "github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -72,44 +72,44 @@ func (g *SyntheticForwarder) sendPullData() {
 
 	buf, err := packet.MarshalBinary()
 	if err != nil {
-		logging.Warning("Unable to marshal PULL_DATA: %v", err)
+		lg.Warning("Unable to marshal PULL_DATA: %v", err)
 		return
 	}
 	if _, err := g.downstreamConn.Write(buf); err != nil {
-		logging.Warning("Error writing PULL_DATA packet : %v", err)
+		lg.Warning("Error writing PULL_DATA packet : %v", err)
 	}
 }
 
 func (g *SyntheticForwarder) initUDP() bool {
 	upServerAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", g.host, g.port))
 	if err != nil {
-		logging.Error("Error resolving target address for Congress (%s:%d): %v", g.host, g.port, err)
+		lg.Error("Error resolving target address for Congress (%s:%d): %v", g.host, g.port, err)
 		return false
 	}
 	upLocalAddr, err := net.ResolveUDPAddr("udp", ":0")
 	if err != nil {
-		logging.Error("Error resolving ':0' %v", err)
+		lg.Error("Error resolving ':0' %v", err)
 		return false
 	}
 	g.upstreamConn, err = net.DialUDP("udp", upLocalAddr, upServerAddr)
 	if err != nil {
-		logging.Error("DialUDP error: %v", err)
+		lg.Error("DialUDP error: %v", err)
 		return false
 	}
 
 	downServerAddr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", g.host, g.port))
 	if err != nil {
-		logging.Error("Error resolving downstream UDP address: %v", err)
+		lg.Error("Error resolving downstream UDP address: %v", err)
 		return false
 	}
 	downLocalAddr, err := net.ResolveUDPAddr("udp", ":0")
 	if err != nil {
-		logging.Error("Error resolving downstream :0 %v", err)
+		lg.Error("Error resolving downstream :0 %v", err)
 		return false
 	}
 	g.downstreamConn, err = net.DialUDP("udp", downLocalAddr, downServerAddr)
 	if err != nil {
-		logging.Error("Error opening downstream UDP: %v", err)
+		lg.Error("Error opening downstream UDP: %v", err)
 		return false
 	}
 	// 1. Send a PULL_DATA to Congress, in order to communicate Gateway gatewayEUI + destination for
@@ -149,7 +149,7 @@ func (g *SyntheticForwarder) forwarder(shutdownChannel chan bool) {
 
 			data, err := json.Marshal(rxData)
 			if err != nil {
-				logging.Warning("Unable to marshal JSON data: %v", err)
+				lg.Warning("Unable to marshal JSON data: %v", err)
 				continue
 			}
 
@@ -163,11 +163,11 @@ func (g *SyntheticForwarder) forwarder(shutdownChannel chan bool) {
 
 			buf, err := packet.MarshalBinary()
 			if err != nil {
-				logging.Warning("Unable to marshal PUSH_DATA: %v", err)
+				lg.Warning("Unable to marshal PUSH_DATA: %v", err)
 				continue
 			}
 			if _, err := g.upstreamConn.Write(buf); err != nil {
-				logging.Warning("Error writing PUSH_DATA packet : %v", err)
+				lg.Warning("Error writing PUSH_DATA packet : %v", err)
 				continue
 			}
 
@@ -192,7 +192,7 @@ func (g *SyntheticForwarder) receiver(shutdown chan bool) {
 			select {
 			case g.outputChannel <- p:
 			case <-time.After(100 * time.Millisecond):
-				logging.Warning("Output channel is full! Boo! (waited 100ms to send message)")
+				lg.Warning("Output channel is full! Boo! (waited 100ms to send message)")
 			}
 		}
 	}
@@ -202,13 +202,13 @@ func (g *SyntheticForwarder) udpReader() {
 	for {
 		n, _, err := g.downstreamConn.ReadFromUDP(buf)
 		if err != nil {
-			logging.Warning("Unable to read UDP: %v", err)
+			lg.Warning("Unable to read UDP: %v", err)
 			continue
 		}
 
 		gwpk := cgw.GwPacket{}
 		if err := gwpk.UnmarshalBinary(buf[0:n]); err != nil {
-			logging.Warning("Unable to unmarshal gwpkt: %v", err)
+			lg.Warning("Unable to unmarshal gwpkt: %v", err)
 			continue
 		}
 		if gwpk.Identifier != cgw.PullResp {
@@ -216,12 +216,12 @@ func (g *SyntheticForwarder) udpReader() {
 		}
 		txpk := cgw.TXData{}
 		if err := json.Unmarshal([]byte(gwpk.JSONString), &txpk); err != nil {
-			logging.Warning("Unable to unmarshal received JSON: %v", err)
+			lg.Warning("Unable to unmarshal received JSON: %v", err)
 			continue
 		}
 		bytes, err := base64.StdEncoding.DecodeString(txpk.Data.Data)
 		if err != nil {
-			logging.Warning("Unable to decode hex string: %v", err)
+			lg.Warning("Unable to decode hex string: %v", err)
 			continue
 		}
 

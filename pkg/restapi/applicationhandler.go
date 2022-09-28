@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -17,13 +17,13 @@ func (s *Server) readAppFromRequest(w http.ResponseWriter, r *http.Request) (api
 	app := apiApplication{}
 
 	if err != nil {
-		logging.Warning("Unable to read request body from %s: %v", r.RemoteAddr, err)
+		lg.Warning("Unable to read request body from %s: %v", r.RemoteAddr, err)
 		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
 		return app, err
 	}
 
 	if err := json.Unmarshal(buf, &app); err != nil {
-		logging.Info("Unable to unmarshal JSON: %v, (%s)", err, string(buf))
+		lg.Info("Unable to unmarshal JSON: %v, (%s)", err, string(buf))
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return app, err
 	}
@@ -47,7 +47,7 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 	}
 	if !overrideEUI {
 		if application.eui, err = s.context.KeyGenerator.NewAppEUI(); err != nil {
-			logging.Warning("Unable to generate application EUI: %v", err)
+			lg.Warning("Unable to generate application EUI: %v", err)
 			http.Error(w, "Unable to create application EUI", http.StatusInternalServerError)
 			return
 		}
@@ -76,12 +76,12 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 		}
 		if appErr != storage.ErrAlreadyExists {
 			// Some other error - fail with 500
-			logging.Warning("Unable to store application: %s", err)
+			lg.Warning("Unable to store application: %s", err)
 			http.Error(w, "Unable to store application", http.StatusInternalServerError)
 			return
 		}
 
-		logging.Warning("EUI (%s) for application is already in use. Trying another EUI.", app.AppEUI)
+		lg.Warning("EUI (%s) for application is already in use. Trying another EUI.", app.AppEUI)
 		app.AppEUI, err = s.context.KeyGenerator.NewAppEUI()
 		if err != nil {
 			http.Error(w, "Unable to generate application identifier", http.StatusInternalServerError)
@@ -90,7 +90,7 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 		attempts++
 	}
 	if appErr == storage.ErrAlreadyExists {
-		logging.Error("Unable to create find available EUI even after 10 attempts. Returning error to client")
+		lg.Error("Unable to create find available EUI even after 10 attempts. Returning error to client")
 		http.Error(w, "Unable to store application", http.StatusInternalServerError)
 		return
 	}
@@ -103,7 +103,7 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(application); err != nil {
-		logging.Warning("Unable to marshal application object: %v", err)
+		lg.Warning("Unable to marshal application object: %v", err)
 	}
 }
 
@@ -112,7 +112,7 @@ func (s *Server) applicationList(w http.ResponseWriter, r *http.Request) {
 	// GET returns a JSON array with applications.
 	applications, err := s.context.Storage.ListApplications()
 	if err != nil {
-		logging.Warning("Unable to read application list: %v", err)
+		lg.Warning("Unable to read application list: %v", err)
 		http.Error(w, "Unable to load applications", http.StatusInternalServerError)
 		return
 	}
@@ -124,7 +124,7 @@ func (s *Server) applicationList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(appList); err != nil {
-		logging.Warning("Unable to marshal application object: %v", err)
+		lg.Warning("Unable to marshal application object: %v", err)
 	}
 }
 
@@ -171,7 +171,7 @@ func (s *Server) applicationInfoHandler(w http.ResponseWriter, r *http.Request) 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newAppFromModel(*application)); err != nil {
-			logging.Warning("Unable to marshal application with EUI %s into JSON: %v", application.AppEUI, err)
+			lg.Warning("Unable to marshal application with EUI %s into JSON: %v", application.AppEUI, err)
 		}
 
 	case http.MethodDelete:
@@ -185,7 +185,7 @@ func (s *Server) applicationInfoHandler(w http.ResponseWriter, r *http.Request) 
 		case storage.ErrDeleteConstraint:
 			http.Error(w, "Application can't be deleted", http.StatusConflict)
 		default:
-			logging.Warning("Unable to delete application: %v", err)
+			lg.Warning("Unable to delete application: %v", err)
 			http.Error(w, "Unable to delete application", http.StatusInternalServerError)
 		}
 		return

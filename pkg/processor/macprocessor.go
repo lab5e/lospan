@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 )
@@ -32,31 +32,31 @@ func processMACCommand(cmd protocol.MACCommand) {
 	switch cmd.ID() {
 	case protocol.LinkCheckReq:
 		// Initiated by the end device
-		logging.Warning("LinkCheckReq support not implemented")
+		lg.Warning("LinkCheckReq support not implemented")
 	case protocol.LinkADRAns:
-		logging.Warning("LinkADRAns support not implemented")
+		lg.Warning("LinkADRAns support not implemented")
 	case protocol.DutyCycleAns:
-		logging.Warning("DutyCycleAns support not implemented")
+		lg.Warning("DutyCycleAns support not implemented")
 	case protocol.RXParamSetupAns:
-		logging.Warning("RXParamSetupAns support not implemented")
+		lg.Warning("RXParamSetupAns support not implemented")
 	case protocol.DevStatusAns:
-		logging.Warning("DevStatusAns support not implemented")
+		lg.Warning("DevStatusAns support not implemented")
 	case protocol.NewChannelAns:
-		logging.Warning("NewChannelAns support not implemented")
+		lg.Warning("NewChannelAns support not implemented")
 	case protocol.RXTimingSetupAns:
-		logging.Warning("RXTimingSetupAns support not implemented")
+		lg.Warning("RXTimingSetupAns support not implemented")
 	case protocol.PingSlotInfoReq:
 		// Initiated by the end device
-		logging.Warning("PingSlotInfoReq support not implemented")
+		lg.Warning("PingSlotInfoReq support not implemented")
 	case protocol.BeaconTimingReq:
 		// Initiated by the end device
-		logging.Warning("BeaconTimingReq support not implemented")
+		lg.Warning("BeaconTimingReq support not implemented")
 	case protocol.PingSlotFreqAns:
-		logging.Warning("PingSlotFreqAns support not implemented")
+		lg.Warning("PingSlotFreqAns support not implemented")
 	case protocol.BeaconFreqAns:
-		logging.Warning("BeaconFreqAns support not implemented")
+		lg.Warning("BeaconFreqAns support not implemented")
 	default:
-		logging.Warning("Unknown MAC command: %d", cmd.ID())
+		lg.Warning("Unknown MAC command: %d", cmd.ID())
 	}
 }
 
@@ -74,7 +74,7 @@ func (m *MACProcessor) Start() {
 			m.notifier <- val
 		}(v)
 	}
-	logging.Debug("Input channel for MAC processor closed. Terminating")
+	lg.Debug("Input channel for MAC processor closed. Terminating")
 	close(m.notifier)
 }
 

@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	memoryConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3}
-	syslogConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true, LogLevel: 3, Syslog: true}
-	invalidConfig = &server.Configuration{MemoryDB: false, DBConnectionString: "", OnlyLoopback: true, LogLevel: 9}
+	memoryConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true}
+	syslogConfig  = &server.Configuration{MA: "00-00-00", MemoryDB: true, OnlyLoopback: true}
+	invalidConfig = &server.Configuration{MemoryDB: false, DBConnectionString: "", OnlyLoopback: true}
 )
 
 func testWithConfig(t *testing.T, config *server.Configuration) {

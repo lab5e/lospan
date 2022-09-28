@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/frequency"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -28,19 +28,19 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 
 	device, err := d.context.Storage.GetDeviceByEUI(joinRequest.DevEUI)
 	if err != nil {
-		logging.Info("Unknown device attempting JoinRequest: %s", joinRequest.DevEUI)
+		lg.Info("Unknown device attempting JoinRequest: %s", joinRequest.DevEUI)
 		return false
 	}
 
 	if device.AppEUI != joinRequest.AppEUI {
-		logging.Warning("Mismatch between stored device's AppEUI and the AppEUI sent in the JoinRequest message. Stored AppEUI = %s, JoinRequest AppEUI = %s", device.AppEUI, joinRequest.AppEUI)
+		lg.Warning("Mismatch between stored device's AppEUI and the AppEUI sent in the JoinRequest message. Stored AppEUI = %s, JoinRequest AppEUI = %s", device.AppEUI, joinRequest.AppEUI)
 		return false
 	}
 
 	// Check if DevNonce have been used by the device in an earlier request.
 	// If so the request should be ignored. [6.2.4].
 	if device.HasDevNonce(joinRequest.DevNonce) {
-		logging.Warning("Device %s has already used nonce 0x%04x. Ignoring it.",
+		lg.Warning("Device %s has already used nonce 0x%04x. Ignoring it.",
 			joinRequest.DevEUI, joinRequest.DevNonce)
 		return false
 	}
@@ -48,7 +48,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	// Retrieve the application
 	app, err := d.context.Storage.GetApplicationByEUI(joinRequest.AppEUI)
 	if err != nil {
-		logging.Warning("Unable to retrieve application with EUI %s. Ignoring JoinRequest from device with EUI %s",
+		lg.Warning("Unable to retrieve application with EUI %s. Ignoring JoinRequest from device with EUI %s",
 			joinRequest.AppEUI, joinRequest.DevEUI)
 		return false
 	}
@@ -61,25 +61,25 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 
 	// Update the device with new keys and DevNonce
 	if err := d.context.Storage.AddDevNonce(device, joinRequest.DevNonce); err != nil {
-		logging.Warning("Unable to update DevNonce on device with EUI: %s: %v",
+		lg.Warning("Unable to update DevNonce on device with EUI: %s: %v",
 			device.DeviceEUI, err)
 	}
 
 	// Generate app nonce, generate keys, store keys
 	appNonce, err := app.GenerateAppNonce()
 	if err != nil {
-		logging.Warning("Unable to generate app nonce: %v (devEUI: %s, appEUI: %s). Ignoring JoinRequest",
+		lg.Warning("Unable to generate app nonce: %v (devEUI: %s, appEUI: %s). Ignoring JoinRequest",
 			err, joinRequest.DevEUI, joinRequest.AppEUI)
 		return false
 	}
 	nwkSKey, err := protocol.NwkSKeyFromNonces(device.AppKey, appNonce, uint32(d.context.Config.NetworkID), joinRequest.DevNonce)
 	if err != nil {
-		logging.Error("Unable to generate NwkSKey for device with EUI %s: %v", device.DeviceEUI, err)
+		lg.Error("Unable to generate NwkSKey for device with EUI %s: %v", device.DeviceEUI, err)
 		return false
 	}
 	appSKey, err := protocol.AppSKeyFromNonces(device.AppKey, appNonce, uint32(d.context.Config.NetworkID), joinRequest.DevNonce)
 	if err != nil {
-		logging.Error("Unable to generate AppSKey for device with EUI %s: %v", device.DeviceEUI, err)
+		lg.Error("Unable to generate AppSKey for device with EUI %s: %v", device.DeviceEUI, err)
 		return false
 	}
 	device.NwkSKey = nwkSKey
@@ -87,7 +87,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	device.FCntDn = 0
 	device.FCntUp = 0
 	if err := d.context.Storage.UpdateDevice(device); err != nil {
-		logging.Error("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
+		lg.Error("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
 		return false
 	}
 
@@ -104,7 +104,7 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 
 	d.context.FrameOutput.SetJoinAcceptPayload(device.DeviceEUI, joinAccept)
 
-	logging.Debug("JoinAccept sent to %s. DevAddr=%s", device.DeviceEUI, joinAccept.DevAddr)
+	lg.Debug("JoinAccept sent to %s. DevAddr=%s", device.DeviceEUI, joinAccept.DevAddr)
 
 	// The incoming message doesn't have a DevAddr set but schedule an empty
 	// message for it. TODO (stalehd): this is butt ugly. Needs redesign.

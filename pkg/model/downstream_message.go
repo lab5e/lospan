@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
@@ -56,7 +56,7 @@ func (d *DownstreamMessage) State() DownstreamMessageState {
 func (d *DownstreamMessage) Payload() []byte {
 	ret, err := hex.DecodeString(d.Data)
 	if err != nil {
-		logging.Warning("Unable to decode data to be sent to device %s (data=%s). Ignoring it.", d.DeviceEUI, d.Data)
+		lg.Warning("Unable to decode data to be sent to device %s (data=%s). Ignoring it.", d.DeviceEUI, d.Data)
 		return []byte{}
 	}
 	return ret

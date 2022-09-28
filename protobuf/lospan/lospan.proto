@@ -4,43 +4,55 @@ package lospan;
 
 option go_package = "./lospan";
 
+import "lospan/entities.proto";
+import "lospan/messages.proto";
+
 service Lospan {
     // ListApplications lists all applications 
     rpc ListApplications(ListApplicationsRequest) returns (ListApplicationsResponse);
 
-    rpc RetrieveApplication(GetApplicationRequest) returns (RetrieveApplicationResponse);
+    // GetApplication returns a single application
+    rpc GetApplication(GetApplicationRequest) returns (Application);
 
-    rpc Createpplication(CreateApplicationRequest) returns (CreateApplicationResponse);
+    // CreateApplication creates a new application
+    rpc Createpplication(CreateApplicationRequest) returns (Application);
 
-    rpc UpdateApplication(UpdateApplicationRequest) returns (UpdateApplicationResponse);
-
-    rpc DeleteApplication(DeleteApplicationRequest) returns (DeleteApplicationResponse);
+    // DeleteApplication removes an application. 
+    rpc DeleteApplication(DeleteApplicationRequest) returns (Application);
 
     rpc ListDevices(ListDeviceRequest) returns (ListDeviceResponse);
 
-    rpc CreateDevice(CreateDeviceRequest) returns (CreateDeviceResponse);
+    rpc CreateDevice(Device) returns (DeleteApplicationRequest);
 
-    rpc RetrieveDevice(RetrieveDeviceRequest) returns (RetrieveDeviceResponse);
+    rpc GetDevice(GetDeviceRequest) returns (Device);
 
     // UpdateDevice updates a devices
-    rpc UpdateDevice(UpdateDeviceRequest) returns (UpdateDeviceResponse);
+    rpc UpdateDevice(Device) returns (Device);
 
     // DeleteDevice removes a device
-    rpc DeleteDevice(DeleteDeviceRequest) returns (DeleteDeviceResponse);
+    rpc DeleteDevice(DeleteDeviceRequest) returns (Device);
 
-    // SendMessage sends a message to a device
-    rpc SendMessage(SendRequest) returns (SendResponse);
+    // Retrieve an application's inbox, ie upstream messages
+    rpc Inbox(InboxRequest) returns (InboxResponse);
 
-    // StreamData streams data for an application or a gateway to the client.
-    rpc StreamData(StreamDataRequest) returns (stream StreamDataResponse);
+    // Retrieve an applications outbox, ie downstream scheduled and delivered messages
+    rpc Outbox(OutboxRequest) returns (OutboxResponse);
+
+    // SendMessage sends a message to a device (ie downstream)
+    rpc SendMessage(DownstreamMessage) returns (DownstreamMessage);
+
+    // StreamMessages streams data for an application or a gateway to the client.
+    rpc StreamMessages(StreamMessagesRequest) returns (stream UpstreamMessage);
 
     rpc ListGateways(ListGatewaysRequest) returns (ListGatewaysResponse);
 
-    rpc CreateGateway(CreateGatewayRequest) returns (CreateGatewayResponse);
+    rpc CreateGateway(Gateway) returns (Gateway);
 
-    rpc RetrieveGateway(RetrieveGatewayRequest) returns (RetrieveGatewayResponse);
+    rpc GetGateway(GetGatewayRequest) returns (Gateway);
 
-    rpc UpdateGateway(UpdateGatewayRequest) returns (UpdateGatewayResponse);
+    rpc UpdateGateway(Gateway) returns (Gateway);
 
-    rpc DeleteGateway(DeleteGatewayRequest) returns (DeleteGatewayResponse);
+    rpc DeleteGateway(DeleteGatewayRequest) returns (Gateway);
+
+    rpc StreamGateway(StreamGatewayRequest) returns (stream GatewayMessage);
 };

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package lospan;
+
+option go_package = "./lospan";
+
+// Application is a logical construct on top of devices. Devices in the same application share the same
+// application key
+message Application {
+    string eui = 1;
+};
+
+// Device is the ... device that connects to the gateway
+message Device {
+    string eui = 1;
+    string application_eui = 2;
+};
+
+// UpstreamMessage is a message from one of the devices
+message UpstreamMessage{
+
+};
+
+// DownstreamMessage is a message that should be or is sent to one of the devices
+message DownstreamMessage{
+
+};
+
+// Gateway is a LoRaWAN gateway/concentrator. This 
+message Gateway {
+
+};
+
+// GatewayMessage is a monitoring message to and from the gateway. This reflects the LoRaWAN gateway UDP
+// protocol which again is more or less a 1:1 representation of the radio traffic with acks on top.
+message GatewayMessage{
+
+};

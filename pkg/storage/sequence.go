@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 )
 
 type keyStatements struct {
@@ -77,7 +77,7 @@ func (s *Storage) AllocateKeys(identifier string, interval uint64, initial uint6
 
 	err = tx.Commit()
 	if err != nil {
-		logging.Error("Unable to commit sequence with identifier %s (interval: %d, initial: %d): %v",
+		lg.Error("Unable to commit sequence with identifier %s (interval: %d, initial: %d): %v",
 			identifier, interval, initial, err)
 	}
 	start = uint64(counter)

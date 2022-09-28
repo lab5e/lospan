@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
 	"github.com/ExploratoryEngineering/rest"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/utils"
 )
@@ -58,10 +58,10 @@ func NewServer(loopbackOnly bool, scontext *server.Context, config *server.Confi
 
 // Start launches the server. The server won't check if it has been started twice
 func (h *Server) Start() error {
-	logging.Info("HTTP server listening on port %d", h.port)
+	lg.Info("HTTP server listening on port %d", h.port)
 	go func() {
 		if err := h.srv.ListenAndServe(); err != http.ErrServerClosed {
-			logging.Error("ListenAndServe returned error: %v", err)
+			lg.Error("ListenAndServe returned error: %v", err)
 		}
 		h.completed <- true
 	}()

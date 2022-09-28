@@ -18,7 +18,7 @@ package protocol
 import (
 	"sort"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 )
 
 // MACCommandSet is a collection of MAC commands. The command sets have an
@@ -46,11 +46,11 @@ func NewMACCommandSet(message MType, maxLength int) MACCommandSet {
 // Add adds a new MAC command to the set
 func (m *MACCommandSet) Add(cmd MACCommand) bool {
 	if m.EncodedLength()+cmd.Length() > m.maxLength {
-		logging.Error("Unable to add command to set. Current length is %d and the new length would be %d (%d is max)", m.EncodedLength(), m.EncodedLength()+cmd.Length(), m.maxLength)
+		lg.Error("Unable to add command to set. Current length is %d and the new length would be %d (%d is max)", m.EncodedLength(), m.EncodedLength()+cmd.Length(), m.maxLength)
 		return false
 	}
 	if cmd.Uplink() != m.message.Uplink() {
-		logging.Error("The command %T isn't the right type. Expected Uplink flag to be %v, not %v", cmd, m.message.Uplink(), cmd.Uplink())
+		lg.Error("The command %T isn't the right type. Expected Uplink flag to be %v, not %v", cmd, m.message.Uplink(), cmd.Uplink())
 		return false
 	}
 	m.commands[cmd.ID()] = cmd

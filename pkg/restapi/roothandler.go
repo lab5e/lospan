@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 )
 
 // StatusHandler shows the status of the server
@@ -30,6 +30,6 @@ func (s *Server) rootHandler(
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(appDeviceTemplates()); err != nil {
-		logging.Warning("Unable to marshal root object: %v", err)
+		lg.Warning("Unable to marshal root object: %v", err)
 	}
 }

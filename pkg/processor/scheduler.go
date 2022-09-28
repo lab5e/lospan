@@ -18,7 +18,7 @@ package processor
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -62,7 +62,7 @@ func (s *Scheduler) buildMessageToSend(device model.Device, frameContext server.
 
 	payload, err := s.context.FrameOutput.GetPHYPayloadForDevice(&device, &frameContext)
 	if err != nil {
-		logging.Debug("No data for device %s to send: %v", device.DeviceEUI, err)
+		lg.Debug("No data for device %s to send: %v", device.DeviceEUI, err)
 	}
 	return server.LoRaMessage{
 		Payload:      payload,
@@ -103,7 +103,7 @@ func (s *Scheduler) Start() {
 			// but other parts of the pipeline will have to more extensive
 			// duplicate/invalid data checks.
 			if s.scheduled[device.DeviceEUI] {
-				logging.Info("Found duplicate message from device with EUI %s", device.DeviceEUI)
+				lg.Info("Found duplicate message from device with EUI %s", device.DeviceEUI)
 				continue
 			}
 

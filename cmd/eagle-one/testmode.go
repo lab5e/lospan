@@ -23,7 +23,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/telenordigital/lassie-go"
 
@@ -48,7 +48,7 @@ func (t *TestMode) Prepare(congress *lassie.Client, app lassie.Application, gw l
 	t.Errors = make([]string, 0)
 	t.Application = app
 	t.Gateway = gw
-	logging.Info("Creating devices")
+	lg.Info("Creating devices")
 	t.APIDevices = make([]lassie.Device, 0)
 	// Make devices
 	for i := 0; i < numTestDevices; i++ {
@@ -69,18 +69,18 @@ func (t *TestMode) Prepare(congress *lassie.Client, app lassie.Application, gw l
 
 // Cleanup removes the created resources
 func (t *TestMode) Cleanup(congress *lassie.Client, app lassie.Application, gw lassie.Gateway) {
-	logging.Info("Removing devices")
+	lg.Info("Removing devices")
 	for _, d := range t.APIDevices {
 		if err := congress.DeleteDevice(t.Application.EUI, d.EUI); err != nil {
 			t.Errors = append(t.Errors, err.Error())
-			logging.Warning("Unable to delete device with EUI %s", d.EUI)
+			lg.Warning("Unable to delete device with EUI %s", d.EUI)
 			// TODO: Register as error
 		}
 	}
 }
 
 func (t *TestMode) reportError(err error) {
-	logging.Error("Error: %v", err)
+	lg.Error("Error: %v", err)
 	t.Errors = append(t.Errors, err.Error())
 }
 
@@ -91,7 +91,7 @@ func (t *TestMode) createDevices(gatewayChannel chan string, publisher *EventRou
 	for _, device := range t.APIDevices {
 		keys, err := NewDeviceKeys(t.Application.EUI, device)
 		if err != nil {
-			logging.Warning("couldn't create device keys: %v", err)
+			lg.Warning("couldn't create device keys: %v", err)
 			continue
 		}
 		newDevice := NewEmulatedDevice(t.Config, keys, gatewayChannel, publisher)
@@ -117,7 +117,7 @@ func (t *TestMode) sendDownstreamMessages(payload string) (sentMessages int32) {
 			t.reportError(fmt.Errorf("couldn't schedule message for device %s: %v", device.EUI, err))
 		} else {
 			sentMessages++
-			logging.Info("Scheduled downstream message for device %s", device.EUI)
+			lg.Info("Scheduled downstream message for device %s", device.EUI)
 		}
 	}
 	return
@@ -152,7 +152,7 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 	// by the devices should be forwarded on this.
 	go func() {
 		if err := t.Client.ApplicationStream(t.Application.EUI, func(data lassie.DeviceData) {
-			logging.Info("Websocket: DevAddr %s sent %v", data.DeviceAddress, data.HexData)
+			lg.Info("Websocket: DevAddr %s sent %v", data.DeviceAddress, data.HexData)
 			atomic.AddInt32(&websocketReceived, 1)
 		}); err != nil {
 			t.reportError(fmt.Errorf("data stream error: %v", err))
@@ -187,7 +187,7 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 			t.reportError(token.Error())
 			return
 		}
-		logging.Info("Connected to MQTT broker. Subscribing to messages")
+		lg.Info("Connected to MQTT broker. Subscribing to messages")
 		client.Subscribe("EagleOne", 0, func(client mqtt.Client, msg mqtt.Message) {
 			var dataMsg lassie.DeviceData
 			if err := json.Unmarshal(msg.Payload(), &dataMsg); err != nil {
@@ -196,7 +196,7 @@ func (t *TestMode) Run(gatewayChannel chan string, publisher *EventRouter, app l
 			}
 			atomic.AddInt32(&mqttMessageCount, 1)
 			// Check payload here.
-			logging.Info("MQTT:Received message from device %s with payload %s", dataMsg.DeviceEUI, dataMsg.HexData)
+			lg.Info("MQTT:Received message from device %s with payload %s", dataMsg.DeviceEUI, dataMsg.HexData)
 		})
 		wg.Wait()
 		defer client.Disconnect(0)

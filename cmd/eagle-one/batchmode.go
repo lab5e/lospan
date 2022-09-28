@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/telenordigital/lassie-go"
 )
 
@@ -54,15 +54,15 @@ func (b *BatchMode) Prepare(congress *lassie.Client, app lassie.Application, gw 
 		}
 		b.devices = append(b.devices, dev)
 	}
-	logging.Info("# devices: %d", b.Config.DeviceCount)
-	logging.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)
+	lg.Info("# devices: %d", b.Config.DeviceCount)
+	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)
 	return nil
 }
 
 // Cleanup resources after use. Remove devices if required.
 func (b *BatchMode) Cleanup(congress *lassie.Client, app lassie.Application, gw lassie.Gateway) {
 	if !b.Config.KeepDevices {
-		logging.Info("Removing %d devices", len(b.devices))
+		lg.Info("Removing %d devices", len(b.devices))
 		for _, d := range b.devices {
 			congress.DeleteDevice(app.EUI, d.EUI)
 		}
@@ -75,7 +75,7 @@ const joinAttempts = 5
 func (b *BatchMode) launchDevice(device lassie.Device, wg *sync.WaitGroup) {
 	keys, err := NewDeviceKeys(b.Application.EUI, device)
 	if err != nil {
-		logging.Warning("Got error converting lassie data into proper types: %v", err)
+		lg.Warning("Got error converting lassie data into proper types: %v", err)
 	}
 
 	generator := NewMessageGenerator(b.Config)
@@ -89,21 +89,21 @@ func (b *BatchMode) launchDevice(device lassie.Device, wg *sync.WaitGroup) {
 	// Join if needed
 	if device.Type == "OTAA" {
 		if err := remoteDevice.Join(joinAttempts); err != nil {
-			logging.Warning("Device %s couldn't join after %d attempts", device.EUI, joinAttempts)
+			lg.Warning("Device %s couldn't join after %d attempts", device.EUI, joinAttempts)
 			return
 		}
 	}
 
-	logging.Debug("Device %s is now ready to send messages", device.EUI)
+	lg.Debug("Device %s is now ready to send messages", device.EUI)
 	for i := 0; i < b.Config.DeviceMessages; i++ {
 		if err := remoteDevice.SendMessageWithGenerator(generator); err != nil {
-			logging.Warning("Device %s got error sending message #%d", device.EUI, i)
+			lg.Warning("Device %s got error sending message #%d", device.EUI, i)
 		}
 		randomOffset := rand.Intn(b.Config.TransmissionDelay/10) - (b.Config.TransmissionDelay / 5)
-		logging.Debug("Device %s has sent message %d of %d", device.EUI, i, b.Config.DeviceMessages)
+		lg.Debug("Device %s has sent message %d of %d", device.EUI, i, b.Config.DeviceMessages)
 		time.Sleep(time.Duration(b.Config.TransmissionDelay+randomOffset) * time.Millisecond)
 	}
-	logging.Info("Device %s has completed", device.EUI)
+	lg.Info("Device %s has completed", device.EUI)
 }
 
 // Run the device emulation
@@ -118,7 +118,7 @@ func (b *BatchMode) Run(outgoingMessages chan string, publisher *EventRouter, ap
 	for _, dev := range b.devices {
 		go b.launchDevice(dev, completeWg)
 	}
-	logging.Info("....waiting for %d devices to complete", len(b.devices))
+	lg.Info("....waiting for %d devices to complete", len(b.devices))
 	completeWg.Wait()
 }
 

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -120,7 +120,7 @@ func (d *keyDispatcher) dispatch() {
 				var err error
 				d.keySequence, err = d.keyStorage.AllocateKeys(d.identifier, d.interval, 1)
 				if err != nil {
-					logging.Warning("Unable to allocate keys for sequence (attempt %d) %s: %v",
+					lg.Warning("Unable to allocate keys for sequence (attempt %d) %s: %v",
 						retries, d.identifier, err)
 					// Sleep for random time between retries. The upper bound is a function of
 					// the number of retries.

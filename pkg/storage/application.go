@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -119,7 +119,7 @@ func (s *Storage) ListApplications() (chan model.Application, error) {
 		for rows.Next() {
 			app, err := s.readApplication(rows)
 			if err != nil {
-				logging.Warning("Unable to read application in list, skipping: %v", err)
+				lg.Warning("Unable to read application in list, skipping: %v", err)
 				continue
 			}
 			outputChan <- app

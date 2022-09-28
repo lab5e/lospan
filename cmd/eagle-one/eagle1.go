@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	lassie "github.com/telenordigital/lassie-go"
 )
@@ -81,8 +81,8 @@ func (e *Eagle1) Setup() error {
 			return fmt.Errorf("cannot retrieve a gateway with the EUI %s: %v", e.Config.GatewayEUI, err)
 		}
 	}
-	logging.Info("Gateway EUI: %s", e.Gateway.EUI)
-	logging.Info("Application EUI: %s", e.Application.EUI)
+	lg.Info("Gateway EUI: %s", e.Gateway.EUI)
+	lg.Info("Application EUI: %s", e.Application.EUI)
 
 	return nil
 }
@@ -91,11 +91,11 @@ func (e *Eagle1) Setup() error {
 func (e *Eagle1) Teardown() {
 	e.shutdown <- true
 	if !e.Config.KeepApplication {
-		logging.Info("Removing application %s", e.Application.EUI)
+		lg.Info("Removing application %s", e.Application.EUI)
 		e.Congress.DeleteApplication(e.Application.EUI)
 	}
 	if !e.Config.KeepGateway {
-		logging.Info("Removing gateway %s", e.Gateway.EUI)
+		lg.Info("Removing gateway %s", e.Gateway.EUI)
 		e.Congress.DeleteGateway(e.Gateway.EUI)
 	}
 
@@ -115,7 +115,7 @@ func (e *Eagle1) decodingLoop() {
 	for msg := range e.forwarder.OutputChannel() {
 		p := protocol.NewPHYPayload(protocol.Proprietary)
 		if err := p.UnmarshalBinary(msg); err != nil {
-			logging.Warning("Unable to unmarshal message from gateway: %v", err)
+			lg.Warning("Unable to unmarshal message from gateway: %v", err)
 			continue
 		}
 		e.Publisher.Publish(p.MACPayload.FHDR.DevAddr, p, msg)
@@ -130,7 +130,7 @@ func (e *Eagle1) StartForwarder() {
 		e.Gateway.EUI, e.Config.Hostname,
 		e.Config.UDPPort)
 
-	logging.Info("Launching synthetic forwarder")
+	lg.Info("Launching synthetic forwarder")
 	go e.forwarder.Start()
 	go e.decodingLoop()
 }

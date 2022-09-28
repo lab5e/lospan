@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
@@ -183,7 +183,7 @@ func (s *Storage) retrieveNonces(device *model.Device) error {
 	for rows.Next() {
 		var nonce int
 		if err := rows.Scan(&nonce); err != nil {
-			logging.Warning("Unable to read DevNonce for device with EUI %s: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to read DevNonce for device with EUI %s: %v", device.DeviceEUI, err)
 			continue
 		}
 		device.DevNonceHistory = append(device.DevNonceHistory, uint16(nonce))
@@ -259,7 +259,7 @@ func (s *Storage) getDeviceList(rows *sql.Rows, err error) (chan model.Device, e
 		for rows.Next() {
 			device, err := s.readDevice(rows)
 			if err != nil {
-				logging.Warning("unable to read device: %v; skipping it", err)
+				lg.Warning("unable to read device: %v; skipping it", err)
 				continue
 			}
 			outputChan <- device

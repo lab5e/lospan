@@ -16,7 +16,7 @@ package processor
 //limitations under the License.
 //
 import (
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/server"
 )
 
@@ -53,19 +53,19 @@ func (p *Pipeline) Start() {
 func NewPipeline(context *server.Context, forwarder GwForwarder) *Pipeline {
 	ret := Pipeline{}
 
-	logging.Debug("Creating decoder...")
+	lg.Debug("Creating decoder...")
 	ret.Decoder = NewDecoder(context, forwarder.Output())
 
-	logging.Debug("Creating decrypter...")
+	lg.Debug("Creating decrypter...")
 	ret.Decrypter = NewDecrypter(context, ret.Decoder.Output())
 
-	logging.Debug("Creating MAC processor...")
+	lg.Debug("Creating MAC processor...")
 	ret.MACProcessor = NewMACProcessor(context, ret.Decrypter.Output())
 
-	logging.Debug("Creating scheduler...")
+	lg.Debug("Creating scheduler...")
 	ret.Scheduler = NewScheduler(context, ret.MACProcessor.CommandNotifier())
 
-	logging.Debug("Creating encoder...")
+	lg.Debug("Creating encoder...")
 	ret.Encoder = NewEncoder(context, ret.Scheduler.Output(), forwarder.Input())
 
 	return &ret

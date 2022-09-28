@@ -3,7 +3,7 @@ package processor
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -30,7 +30,7 @@ func (d *Decrypter) validFrameCounter(device *model.Device, decoded server.LoRaM
 		// Ignore frame counters that are less than the stored value. Bigger ones
 		// means that we've lost one or more message from the device.
 		if device.FCntUp > decoded.Payload.MACPayload.FHDR.FCnt {
-			logging.Info("Frame counter check failed for device %s. Expected %d but got %d. Ignoring message.",
+			lg.Info("Frame counter check failed for device %s. Expected %d but got %d. Ignoring message.",
 				device.DeviceEUI, device.FCntUp, decoded.Payload.MACPayload.FHDR.FCnt)
 			return false
 		}
@@ -39,7 +39,7 @@ func (d *Decrypter) validFrameCounter(device *model.Device, decoded server.LoRaM
 	// Issue debug warning if there's a mismatch between expected and actual frame counter
 	// but process the message. This warning will be issued for all mismatchs.
 	if device.FCntUp != decoded.Payload.MACPayload.FHDR.FCnt {
-		logging.Debug("Frame counter will be adjusted. Expected %d but got %d for device with EUI %s",
+		lg.Debug("Frame counter will be adjusted. Expected %d but got %d for device with EUI %s",
 			device.FCntUp, decoded.Payload.MACPayload.FHDR.FCnt, device.DeviceEUI)
 	}
 	return true
@@ -65,7 +65,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 	if decoded.Payload.MACPayload.FHDR.FCnt >= device.FCntUp {
 		device.FCntUp = decoded.Payload.MACPayload.FHDR.FCnt + 1
 		if err := d.context.Storage.UpdateDeviceState(*device); err != nil {
-			logging.Warning("Unable to update frame counters for device with EUI %s: %v", device.DeviceEUI, err)
+			lg.Warning("Unable to update frame counters for device with EUI %s: %v", device.DeviceEUI, err)
 		}
 	}
 	decoded.Payload.Decrypt(device.NwkSKey, device.AppSKey)
@@ -83,13 +83,13 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 	}
 
 	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, deviceData); err != nil {
-		logging.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
+		lg.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
 		return
 	}
 
 	application, err := d.context.Storage.GetApplicationByEUI(device.AppEUI)
 	if err != nil {
-		logging.Warning("Unable to retrieve application with EUI %s: %v", device.AppEUI, err)
+		lg.Warning("Unable to retrieve application with EUI %s: %v", device.AppEUI, err)
 		return
 	}
 
@@ -115,17 +115,17 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		if decoded.Payload.MACPayload.FHDR.FCtrl.ACK && msg.State() == model.SentState && msg.Ack {
 			msg.AckTime = time.Now().Unix()
 			if err := d.context.Storage.UpdateDownstreamData(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
-				logging.Warning("Unable to update downstream message: %v", err)
+				lg.Warning("Unable to update downstream message: %v", err)
 			}
 		}
 		if !msg.IsComplete() {
-			logging.Debug("Setting downstream message payload (%v) for device %s", msg.Payload(), device.DeviceEUI)
+			lg.Debug("Setting downstream message payload (%v) for device %s", msg.Payload(), device.DeviceEUI)
 			d.context.FrameOutput.SetPayload(device.DeviceEUI, msg.Payload(), msg.Port, msg.Ack)
 		}
 	}
 
 	if err != nil && err != storage.ErrNotFound {
-		logging.Warning("Unable to retrieve downstream message: %v", err)
+		lg.Warning("Unable to retrieve downstream message: %v", err)
 	}
 
 	d.macOutput <- decoded
@@ -140,10 +140,10 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 }
 
 func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
-	logging.Debug("Verifying message from device with DevAddr %s", decoded.Payload.MACPayload.FHDR.DevAddr)
+	lg.Debug("Verifying message from device with DevAddr %s", decoded.Payload.MACPayload.FHDR.DevAddr)
 	deviceChan, err := d.context.Storage.GetDeviceByDevAddr(decoded.Payload.MACPayload.FHDR.DevAddr)
 	if err != nil {
-		logging.Warning("Unable to retrieve device from storage. Network ID: %x, Network address: %x. Error: %v",
+		lg.Warning("Unable to retrieve device from storage. Network ID: %x, Network address: %x. Error: %v",
 			decoded.Payload.MACPayload.FHDR.DevAddr.NwkID,
 			decoded.Payload.MACPayload.FHDR.DevAddr.NwkAddr, err)
 		return
@@ -162,10 +162,10 @@ func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 	checked := 0
 	for dev := range deviceChan {
 		checked++
-		logging.Debug("Testing MIC for device %s", dev.DeviceEUI)
+		lg.Debug("Testing MIC for device %s", dev.DeviceEUI)
 		mic, err := decoded.Payload.CalculateMIC(dev.NwkSKey, rawMessage[0:len(rawMessage)-4])
 		if err != nil {
-			logging.Info("Unable to calculate MIC for payload: %v (payload=%v) ", err, decoded.Payload)
+			lg.Info("Unable to calculate MIC for payload: %v (payload=%v) ", err, decoded.Payload)
 			continue
 		}
 		if mic == decoded.Payload.MIC {
@@ -173,7 +173,7 @@ func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 		}
 	}
 	if len(matchingDevices) == 0 && checked > 0 {
-		logging.Info("MIC validation failed for device with DevAddr: %s", decoded.Payload.MACPayload.FHDR.DevAddr)
+		lg.Info("MIC validation failed for device with DevAddr: %s", decoded.Payload.MACPayload.FHDR.DevAddr)
 		return
 	}
 
@@ -188,13 +188,13 @@ func (d *Decrypter) verifyAndDecryptMessage(decoded server.LoRaMessage) {
 // BUG(stalehd): Doesn't do what it says -- decrypt
 func (d *Decrypter) Start() {
 	if d.context.Storage == nil {
-		logging.Error("No storage. Unable to proceed.")
+		lg.Error("No storage. Unable to proceed.")
 		return
 	}
 	for m := range d.input {
 		go func(decoded server.LoRaMessage) {
 			if decoded.FrameContext.GatewayContext.RawMessage == nil {
-				logging.Error("Missing raw message representation. Unable to proceed.")
+				lg.Error("Missing raw message representation. Unable to proceed.")
 				return
 			}
 			if decoded.Payload.MHDR.MType == protocol.JoinRequest {
@@ -208,7 +208,7 @@ func (d *Decrypter) Start() {
 		}(m)
 	}
 
-	logging.Debug("Input channel for Decrypter closed. Terminating")
+	lg.Debug("Input channel for Decrypter closed. Terminating")
 	close(d.macOutput)
 }
 

@@ -20,7 +20,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 )
 
 func TestDecodeJoinAccept(t *testing.T) {
@@ -283,7 +283,7 @@ func TestEncryptResponseMessage(t *testing.T) {
 	// Since the MIC is calculated across the entire message, including encrypted payload, we can
 	// assume that the message is ok
 	if payload.MIC != 0x5345CB54 {
-		logging.Debug("MIC is: %x", payload.MIC)
+		lg.Debug("MIC is: %x", payload.MIC)
 		t.Error("Failed encrypting message. Expected 0x5345CB54. Payload.MIC:", payload.MIC)
 	}
 }

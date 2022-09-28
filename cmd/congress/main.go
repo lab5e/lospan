@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -20,11 +20,8 @@ func init() {
 	flag.StringVar(&config.MA, "ma", server.DefaultMA, "MA to use when generating new EUIs")
 	flag.StringVar(&config.DBConnectionString, "connectionstring", "", "Database connection string")
 	flag.BoolVar(&config.PrintSchema, "printschema", false, "Print schema definition")
-	flag.BoolVar(&config.Syslog, "syslog", false, "Send logs to syslog")
 	flag.BoolVar(&config.DisableGatewayChecks, "disablegwcheck", false, "Disable ALL gateway checks")
 	flag.BoolVar(&config.UseSecureCookie, "securecookie", false, "Set the secure flag for the auth cookie")
-	flag.UintVar(&config.LogLevel, "loglevel", server.DefaultLogLevel, "Log level to use (0 = debug, 1 = info, 2 = warning, 3 = error)")
-	flag.BoolVar(&config.PlainLog, "plainlog", false, "Use plain-text stderr logs")
 	flag.BoolVar(&config.MemoryDB, "memorydb", true, "Use in-memory database for storage (for testing)")
 	flag.IntVar(&config.DBMaxConnections, "db-max-connections", server.DefaultMaxConns, "Maximum DB connections")
 	flag.IntVar(&config.DBIdleConnections, "db-max-idle-connections", server.DefaultIdleConns, "Maximum idle DB connections")
@@ -37,7 +34,7 @@ func main() {
 		fmt.Print(storage.DBSchema)
 		return
 	}
-	logging.SetLogLevel(config.LogLevel)
+	lg.InitLogs("congress", config.Log)
 	congress, err := NewServer(config)
 	if err != nil {
 		return
@@ -46,20 +43,20 @@ func main() {
 	terminator := make(chan bool)
 
 	if err := congress.Start(); err != nil {
-		logging.Error("Congress did not start: %v", err)
+		lg.Error("Congress did not start: %v", err)
 		return
 	}
 	defer func() {
-		logging.Info("Congress is shutting down...")
+		lg.Info("Congress is shutting down...")
 		congress.Shutdown()
-		logging.Info("Congress has shut down")
+		lg.Info("Congress has shut down")
 	}()
 
 	sigch := make(chan os.Signal, 2)
 	signal.Notify(sigch, os.Interrupt, os.Kill)
 	go func() {
 		sig := <-sigch
-		logging.Debug("Caught signal '%v'", sig)
+		lg.Debug("Caught signal '%v'", sig)
 		terminator <- true
 	}()
 

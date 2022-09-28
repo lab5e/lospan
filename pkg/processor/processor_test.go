@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/ExploratoryEngineering/pubsub"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
 
-	"github.com/ExploratoryEngineering/logging"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -55,7 +55,7 @@ func NewStorageTestContext() *storage.Storage {
 	store := storage.NewMemoryStorage()
 
 	if err := store.CreateApplication(application); err != nil {
-		logging.Error("Could not add application to storage: %v", err)
+		lg.Error("Could not add application to storage: %v", err)
 	}
 
 	store.CreateDevice(device, application.AppEUI)

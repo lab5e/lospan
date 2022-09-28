@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ExploratoryEngineering/logging"
+	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -15,7 +15,7 @@ import (
 func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
 	gateways, err := s.context.Storage.GetGatewayList()
 	if err != nil {
-		logging.Warning("Unable to get list of gateways: %v", err)
+		lg.Warning("Unable to get list of gateways: %v", err)
 		http.Error(w, "Unable to read list of gateways", http.StatusInternalServerError)
 		return
 	}
@@ -28,21 +28,21 @@ func (s *Server) gatewayList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(gatewayList); err != nil {
-		logging.Warning("Unable to marshal gateway list: %v", err)
+		lg.Warning("Unable to marshal gateway list: %v", err)
 	}
 }
 
 func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
 	buf, err := io.ReadAll(r.Body)
 	if err != nil {
-		logging.Info("Unable to read request body: %v", err)
+		lg.Info("Unable to read request body: %v", err)
 		http.Error(w, "Unable to read request", http.StatusInternalServerError)
 		return
 	}
 
 	gateway := apiGateway{}
 	if err := json.Unmarshal(buf, &gateway); err != nil {
-		logging.Info("Unable to unmarshal JSON: %v", err)
+		lg.Info("Unable to unmarshal JSON: %v", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -78,7 +78,7 @@ func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "A gateway with that EUI alread exists", http.StatusConflict)
 			return
 		}
-		logging.Warning("Unable to store gateway with EUI %s: %v", gateway.GatewayEUI, err)
+		lg.Warning("Unable to store gateway with EUI %s: %v", gateway.GatewayEUI, err)
 		http.Error(w, "Unable to store gateway", http.StatusInternalServerError)
 		return
 	}
@@ -86,7 +86,7 @@ func (s *Server) createGateway(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(newGatewayFromModel(modelGw)); err != nil {
-		logging.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGw.GatewayEUI, err)
+		lg.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGw.GatewayEUI, err)
 	}
 }
 
@@ -106,14 +106,14 @@ func (s *Server) gatewayListHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 	eui, err := euiFromPathParameter(r, "geui")
 	if err != nil {
-		logging.Debug("Unable to convert EUI from string: %v", err)
+		lg.Debug("Unable to convert EUI from string: %v", err)
 		http.Error(w, "Invalid EUI", http.StatusBadRequest)
 		return
 	}
 
 	modelGateway, err := s.context.Storage.GetGateway(eui)
 	if err != nil {
-		logging.Info("Unable to look up gateway with EUI %s: %v", eui, err)
+		lg.Info("Unable to look up gateway with EUI %s: %v", eui, err)
 		http.Error(w, "Gateway not found", http.StatusNotFound)
 		return
 	}
@@ -124,7 +124,7 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newGatewayFromModel(modelGateway)); err != nil {
-			logging.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGateway.GatewayEUI, err)
+			lg.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGateway.GatewayEUI, err)
 		}
 		return
 
@@ -159,19 +159,19 @@ func (s *Server) gatewayInfoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := s.context.Storage.UpdateGateway(modelGateway); err != nil {
-			logging.Warning("Unable to update gateway: %v", err)
+			lg.Warning("Unable to update gateway: %v", err)
 			http.Error(w, "Unable to update gateway", http.StatusInternalServerError)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(newGatewayFromModel(modelGateway)); err != nil {
-			logging.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGateway.GatewayEUI, err)
+			lg.Warning("Unable to marshal gateway with EUI %s into JSON: %v", modelGateway.GatewayEUI, err)
 		}
 
 	case http.MethodDelete:
 		if err := s.context.Storage.DeleteGateway(eui); err != nil {
-			logging.Warning("Unable to delete gateway: %v", err)
+			lg.Warning("Unable to delete gateway: %v", err)
 			http.Error(w, "Unable to remove gateway", http.StatusInternalServerError)
 			return
 		}

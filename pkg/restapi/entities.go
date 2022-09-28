@@ -30,37 +30,11 @@ type apiApplication struct {
 	eui            protocol.EUI
 }
 
-// ApplicationList is the list of applications presented by the REST API
-type applicationList struct {
-	Applications []apiApplication  `json:"applications"`
-	Templates    map[string]string `json:"templates"`
-}
-
-// NewApplicationList creates a new application list
-func newApplicationList() applicationList {
-	return applicationList{
-		Applications: make([]apiApplication, 0),
-		Templates:    appDeviceTemplates(),
-	}
-}
-
-// NewAppFromModel creates a new application from a model.Application instance
-func newAppFromModel(app model.Application) apiApplication {
-	return apiApplication{
-		ApplicationEUI: app.AppEUI.String(),
-		eui:            app.AppEUI,
-	}
-}
-
 // ToModel converts the API application into a model.Application entity
 func (a *apiApplication) ToModel() model.Application {
 	return model.Application{
 		AppEUI: a.eui,
 	}
-}
-
-func (a *apiApplication) equals(other apiApplication) bool {
-	return a.ApplicationEUI == other.ApplicationEUI
 }
 
 // Types of devices; ABP/OTAA

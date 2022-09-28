@@ -95,8 +95,6 @@ func (h *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *Server) handler() http.HandlerFunc {
 	router := rest.NewParameterRouter()
 	router.AddRoute("/", h.rootHandler)
-	router.AddRoute("/applications", h.applicationListHandler)                          // get post
-	router.AddRoute("/applications/{aeui}", h.applicationInfoHandler)                   // get post patch delete
 	router.AddRoute("/applications/{aeui}/devices", h.deviceListHandler)                // get post
 	router.AddRoute("/applications/{aeui}/devices/{deui}", h.deviceInfoHandler)         // get post patch delete
 	router.AddRoute("/applications/{aeui}/devices/{deui}/message", h.deviceSendHandler) // post - will need a different structure (inbox/outbox)

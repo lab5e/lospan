@@ -47,6 +47,9 @@ type KeyGenerator struct {
 // backend is down. The returned EUI will always be a valid EUI but if the error
 // field is set it won't be unique.
 func (k *KeyGenerator) NewAppEUI() (protocol.EUI, error) {
+	if k.appEUIdispatcher.acquire == nil {
+		panic("Key dispatcher is not initialized")
+	}
 	k.appEUIdispatcher.acquire <- true
 	newID := <-k.appEUIdispatcher.response
 	var err error
@@ -60,6 +63,9 @@ func (k *KeyGenerator) NewAppEUI() (protocol.EUI, error) {
 // backend is down. The returned EUI will always be a valid EUI but if the error
 // field is set it won't be unique.
 func (k *KeyGenerator) NewDeviceEUI() (protocol.EUI, error) {
+	if k.deviceEUIdispatcher.acquire == nil {
+		panic("Key dispatcher is not initialized")
+	}
 	k.deviceEUIdispatcher.acquire <- true
 	newID := <-k.deviceEUIdispatcher.response
 	var err error

@@ -15,7 +15,7 @@ service Lospan {
     rpc GetApplication(GetApplicationRequest) returns (Application);
 
     // CreateApplication creates a new application
-    rpc Createpplication(CreateApplicationRequest) returns (Application);
+    rpc CreateApplication(CreateApplicationRequest) returns (Application);
 
     // DeleteApplication removes an application. 
     rpc DeleteApplication(DeleteApplicationRequest) returns (Application);

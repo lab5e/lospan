@@ -27,7 +27,7 @@ type LospanClient interface {
 	// GetApplication returns a single application
 	GetApplication(ctx context.Context, in *GetApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	// CreateApplication creates a new application
-	Createpplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
+	CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	// DeleteApplication removes an application.
 	DeleteApplication(ctx context.Context, in *DeleteApplicationRequest, opts ...grpc.CallOption) (*Application, error)
 	ListDevices(ctx context.Context, in *ListDeviceRequest, opts ...grpc.CallOption) (*ListDeviceResponse, error)
@@ -79,9 +79,9 @@ func (c *lospanClient) GetApplication(ctx context.Context, in *GetApplicationReq
 	return out, nil
 }
 
-func (c *lospanClient) Createpplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
+func (c *lospanClient) CreateApplication(ctx context.Context, in *CreateApplicationRequest, opts ...grpc.CallOption) (*Application, error) {
 	out := new(Application)
-	err := c.cc.Invoke(ctx, "/lospan.Lospan/Createpplication", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/lospan.Lospan/CreateApplication", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ type LospanServer interface {
 	// GetApplication returns a single application
 	GetApplication(context.Context, *GetApplicationRequest) (*Application, error)
 	// CreateApplication creates a new application
-	Createpplication(context.Context, *CreateApplicationRequest) (*Application, error)
+	CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error)
 	// DeleteApplication removes an application.
 	DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error)
 	ListDevices(context.Context, *ListDeviceRequest) (*ListDeviceResponse, error)
@@ -323,8 +323,8 @@ func (UnimplementedLospanServer) ListApplications(context.Context, *ListApplicat
 func (UnimplementedLospanServer) GetApplication(context.Context, *GetApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetApplication not implemented")
 }
-func (UnimplementedLospanServer) Createpplication(context.Context, *CreateApplicationRequest) (*Application, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Createpplication not implemented")
+func (UnimplementedLospanServer) CreateApplication(context.Context, *CreateApplicationRequest) (*Application, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateApplication not implemented")
 }
 func (UnimplementedLospanServer) DeleteApplication(context.Context, *DeleteApplicationRequest) (*Application, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteApplication not implemented")
@@ -422,20 +422,20 @@ func _Lospan_GetApplication_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Lospan_Createpplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Lospan_CreateApplication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateApplicationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LospanServer).Createpplication(ctx, in)
+		return srv.(LospanServer).CreateApplication(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/lospan.Lospan/Createpplication",
+		FullMethod: "/lospan.Lospan/CreateApplication",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LospanServer).Createpplication(ctx, req.(*CreateApplicationRequest))
+		return srv.(LospanServer).CreateApplication(ctx, req.(*CreateApplicationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -750,8 +750,8 @@ var Lospan_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Lospan_GetApplication_Handler,
 		},
 		{
-			MethodName: "Createpplication",
-			Handler:    _Lospan_Createpplication_Handler,
+			MethodName: "CreateApplication",
+			Handler:    _Lospan_CreateApplication_Handler,
 		},
 		{
 			MethodName: "DeleteApplication",

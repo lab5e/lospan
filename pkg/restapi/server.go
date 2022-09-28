@@ -98,8 +98,6 @@ func (h *Server) handler() http.HandlerFunc {
 	router.AddRoute("/applications/{aeui}/devices", h.deviceListHandler)                // get post
 	router.AddRoute("/applications/{aeui}/devices/{deui}", h.deviceInfoHandler)         // get post patch delete
 	router.AddRoute("/applications/{aeui}/devices/{deui}/message", h.deviceSendHandler) // post - will need a different structure (inbox/outbox)
-	router.AddRoute("/gateways", h.gatewayListHandler)                                  // get post
-	router.AddRoute("/gateways/{geui}", h.gatewayInfoHandler)                           // get post patch delete
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		router.GetHandler(r.RequestURI).ServeHTTP(w, r)

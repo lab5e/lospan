@@ -1,7 +1,6 @@
 package restapi
 
 import (
-	"net"
 	"strings"
 	"time"
 
@@ -120,60 +119,6 @@ func newDeviceList() deviceList {
 	return deviceList{
 		Devices:   make([]apiDevice, 0),
 		Templates: appDeviceTemplates(),
-	}
-}
-
-// apiGateway is used to convert to and from JSON
-type apiGateway struct {
-	GatewayEUI string  `json:"gatewayEUI"`
-	IP         string  `json:"ip"`
-	StrictIP   bool    `json:"strictIP"`
-	Latitude   float32 `json:"latitude"`
-	Longitude  float32 `json:"longitude"`
-	Altitude   float32 `json:"altitude"`
-	eui        protocol.EUI
-	ipaddr     net.IP
-}
-
-// ToModel converts an APIGateway instance to a model.Gateway
-func (g *apiGateway) ToModel() model.Gateway {
-	eui, _ := protocol.EUIFromString(g.GatewayEUI)
-	return model.Gateway{
-		GatewayEUI: eui,
-		IP:         net.ParseIP(g.IP),
-		StrictIP:   g.StrictIP,
-		Latitude:   g.Latitude,
-		Longitude:  g.Longitude,
-		Altitude:   g.Altitude,
-	}
-}
-
-// NewGatewayFromModel creates a new APIGateway instance from a model.Gateway instance
-func newGatewayFromModel(gateway model.Gateway) apiGateway {
-	return apiGateway{
-		GatewayEUI: gateway.GatewayEUI.String(),
-		IP:         gateway.IP.String(),
-		StrictIP:   gateway.StrictIP,
-		Latitude:   gateway.Latitude,
-		Longitude:  gateway.Longitude,
-		Altitude:   gateway.Altitude,
-	}
-}
-
-// GatewayList is the list of gateways
-type gatewayList struct {
-	Gateways  []apiGateway      `json:"gateways"`
-	Templates map[string]string `json:"templates"`
-}
-
-// NewGatewayList returns an unpopulated list of gateways
-func newGatewayList() gatewayList {
-	return gatewayList{
-		Gateways: make([]apiGateway, 0),
-		Templates: map[string]string{
-			"gateway-list": "/gateways",
-			"gateway-info": "/gateways/{geui}",
-		},
 	}
 }
 

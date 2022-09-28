@@ -48,7 +48,7 @@ func TestApplicationRoutes(t *testing.T) {
 
 	// Create a new application
 	app := storeApplication(t,
-		apiApplication{Tags: map[string]string{"name": "Value"}},
+		apiApplication{},
 		h.loopbackURL()+"/applications",
 		http.StatusCreated)
 
@@ -86,7 +86,7 @@ func TestApplicationRoutes(t *testing.T) {
 	}
 
 	otherApp := storeApplication(t,
-		apiApplication{Tags: make(map[string]string)},
+		apiApplication{},
 		h.loopbackURL()+"/applications",
 		http.StatusCreated)
 

@@ -95,11 +95,6 @@ func (s *Server) createApplication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the tags property if it isn't already set
-	if application.Tags == nil {
-		application.Tags = make(map[string]string)
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(application); err != nil {

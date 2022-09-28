@@ -155,18 +155,6 @@ func TestGatewayListEndpoint(t *testing.T) {
 
 	genericEndpointTest(t, rootURL, invalidGets, invalidPosts, invalidMethods)
 
-	// Retrieve the list of all gateways
-	resp, err := http.Get(rootURL + "/public")
-	if err != nil {
-		t.Fatal("Unable to retrieve list of all public gateways")
-	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("Expected 200 OK but got %d %s when querying all gateways", resp.StatusCode, resp.Status)
-	}
-	var list apiPublicGatewayList
-	if err := json.NewDecoder(resp.Body).Decode(&list); err != nil {
-		t.Fatalf("Unable to unmarshal response: %v", err)
-	}
 }
 
 func TestGatewayInfoEndpoint(t *testing.T) {

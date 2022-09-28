@@ -2,7 +2,6 @@ package restapi
 
 import (
 	"net"
-	"reflect"
 	"strings"
 	"time"
 
@@ -29,7 +28,6 @@ func appDeviceTemplates() map[string]string {
 type apiApplication struct {
 	ApplicationEUI string `json:"applicationEUI"`
 	eui            protocol.EUI
-	Tags           map[string]string `json:"tags"`
 }
 
 // ApplicationList is the list of applications presented by the REST API
@@ -62,8 +60,7 @@ func (a *apiApplication) ToModel() model.Application {
 }
 
 func (a *apiApplication) equals(other apiApplication) bool {
-	return a.ApplicationEUI == other.ApplicationEUI &&
-		reflect.DeepEqual(a.Tags, other.Tags)
+	return a.ApplicationEUI == other.ApplicationEUI
 }
 
 // Types of devices; ABP/OTAA
@@ -89,7 +86,6 @@ type apiDevice struct {
 	akey           protocol.AESKey
 	askey          protocol.AESKey
 	nskey          protocol.AESKey
-	Tags           map[string]string `json:"tags"`
 }
 
 // NewDeviceFromModel creates an APIDevice instance from a model.Device instance.
@@ -155,13 +151,12 @@ func newDeviceList() deviceList {
 
 // apiGateway is used to convert to and from JSON
 type apiGateway struct {
-	GatewayEUI string            `json:"gatewayEUI"`
-	IP         string            `json:"ip"`
-	StrictIP   bool              `json:"strictIP"`
-	Latitude   float32           `json:"latitude"`
-	Longitude  float32           `json:"longitude"`
-	Altitude   float32           `json:"altitude"`
-	Tags       map[string]string `json:"tags"`
+	GatewayEUI string  `json:"gatewayEUI"`
+	IP         string  `json:"ip"`
+	StrictIP   bool    `json:"strictIP"`
+	Latitude   float32 `json:"latitude"`
+	Longitude  float32 `json:"longitude"`
+	Altitude   float32 `json:"altitude"`
 	eui        protocol.EUI
 	ipaddr     net.IP
 }
@@ -206,17 +201,6 @@ func newGatewayList() gatewayList {
 			"gateway-info": "/gateways/{geui}",
 		},
 	}
-}
-
-type apiPublicGateway struct {
-	EUI       string  `json:"gatewayEui"`
-	Latitude  float32 `json:"latitude"`
-	Longitude float32 `json:"longitude"`
-	Altitude  float32 `json:"altitude"`
-}
-
-type apiPublicGatewayList struct {
-	Gateways []apiPublicGateway `json:"gateways"`
 }
 
 // ToUnixMillis converts a nanosecond timestamp into a millisecond timestamp.

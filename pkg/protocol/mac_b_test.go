@@ -1,27 +1,12 @@
 package protocol
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import "testing"
 
 func TestPingSlotInfoReq(t *testing.T) {
 	m := MACPingSlotInfoReq{macBase{PingSlotInfoReq, false}, 0x05, 0x04}
 	macCommandStandardTests(&m, PingSlotInfoReq, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -48,7 +33,7 @@ func TestPingSlotInfoAns(t *testing.T) {
 	m := MACPingSlotInfoAns{macBase{PingSlotInfoAns, false}}
 	macCommandStandardTests(&m, PingSlotInfoAns, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -70,7 +55,7 @@ func TestBeaconFreqReq(t *testing.T) {
 	m := MACBeaconFreqReq{macBase{BeaconFreqReq, false}, 0x0A0B0C}
 	macCommandStandardTests(&m, BeaconFreqReq, t)
 
-	buffer := make([]byte, 4)
+	buffer := make([]byte, 5)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -98,7 +83,7 @@ func TestBeaconFreqAns(t *testing.T) {
 	m := MACBeaconFreqAns{macBase{BeaconFreqAns, false}}
 	macCommandStandardTests(&m, BeaconFreqAns, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -121,7 +106,7 @@ func TestPingSlotChannelReq(t *testing.T) {
 	m := MACPingSlotChannelReq{macBase{PingSlotChannelReq, false}, 0x010203, 0x4, 0x5}
 	macCommandStandardTests(&m, PingSlotChannelReq, t)
 
-	buffer := make([]byte, 5)
+	buffer := make([]byte, 12)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -148,7 +133,7 @@ func TestPingSlotFreqAns(t *testing.T) {
 	m := MACPingSlotFreqAns{macBase{PingSlotFreqAns, false}, true, false}
 	macCommandStandardTests(&m, PingSlotFreqAns, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -175,7 +160,7 @@ func TestBeaconTimingReq(t *testing.T) {
 	m := MACBeaconTimingReq{macBase{BeaconTimingReq, false}}
 	macCommandStandardTests(&m, BeaconTimingReq, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -197,7 +182,7 @@ func TestBeaconTimingAns(t *testing.T) {
 	m := MACBeaconTimingAns{macBase{BeaconTimingAns, false}, 1, 2}
 	macCommandStandardTests(&m, BeaconTimingAns, t)
 
-	buffer := make([]byte, 4)
+	buffer := make([]byte, 5)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {

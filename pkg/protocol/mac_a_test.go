@@ -1,20 +1,5 @@
 package protocol
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import "testing"
 
 // Tests for the class A MAC commands
@@ -50,7 +35,7 @@ func TestLinkCheckReq(t *testing.T) {
 	m := MACLinkCheckReq{macBase{LinkCheckReq, true}}
 	macCommandStandardTests(&m, LinkCheckReq, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -73,7 +58,7 @@ func TestLinkCheckAns(t *testing.T) {
 	m := MACLinkCheckAns{macBase{LinkCheckAns, true}, 12, 16}
 	macCommandStandardTests(&m, LinkCheckAns, t)
 
-	buffer := make([]byte, 3)
+	buffer := make([]byte, 4)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -99,7 +84,7 @@ func TestLinkADRReq(t *testing.T) {
 	m := MACLinkADRReq{macBase{LinkADRReq, true}, 0x01, 0x02, 0x0304, 0x05}
 	macCommandStandardTests(&m, LinkADRReq, t)
 
-	buffer := make([]byte, 5)
+	buffer := make([]byte, 6)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -124,7 +109,7 @@ func TestLinkADRAns(t *testing.T) {
 	m := MACLinkADRAns{macBase{LinkADRAns, true}, true, true, true}
 	macCommandStandardTests(&m, LinkADRAns, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -150,7 +135,7 @@ func TestDutyCycleReq(t *testing.T) {
 	m := MACDutyCycleReq{macBase{DutyCycleReq, false}, 0xED}
 	macCommandStandardTests(&m, DutyCycleReq, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -177,7 +162,7 @@ func TestDutyCycleAns(t *testing.T) {
 	m := MACDutyCycleAns{macBase{DutyCycleAns, false}}
 	macCommandStandardTests(&m, DutyCycleAns, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -201,7 +186,7 @@ func TestRXParamSetupReq(t *testing.T) {
 	m := MACRXParamSetupReq{macBase{RXParamSetupReq, true}, 0x1, 0x2, 0xCDEF01}
 	macCommandStandardTests(&m, RXParamSetupReq, t)
 
-	buffer := make([]byte, 5)
+	buffer := make([]byte, 6)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -228,7 +213,7 @@ func TestRXParamSetupAns(t *testing.T) {
 	m := MACRXParamSetupAns{macBase{RXParamSetupAns, false}, true, false, true}
 	macCommandStandardTests(&m, RXParamSetupAns, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -255,7 +240,7 @@ func TestDevStatusReq(t *testing.T) {
 	m := MACDevStatusReq{macBase{DevStatusReq, false}}
 	macCommandStandardTests(&m, DevStatusReq, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -278,7 +263,7 @@ func TestDevStatusAns(t *testing.T) {
 	m := MACDevStatusAns{macBase{DevStatusAns, true}, 0xA, 0xB}
 	macCommandStandardTests(&m, DevStatusAns, t)
 
-	buffer := make([]byte, 3)
+	buffer := make([]byte, 4)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -304,7 +289,7 @@ func TestNewChannelReq(t *testing.T) {
 	m := MACNewChannelReq{macBase{NewChannelReq, false}, 0x01, 0x020304, 0x05, 0x06}
 	macCommandStandardTests(&m, NewChannelReq, t)
 
-	buffer := make([]byte, 6)
+	buffer := make([]byte, 7)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -331,7 +316,7 @@ func TestNewChannelAns(t *testing.T) {
 	m := MACNewChannelAns{macBase{NewChannelAns, false}, true, false}
 	macCommandStandardTests(&m, NewChannelAns, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -358,7 +343,7 @@ func TestRXTimingSetupReq(t *testing.T) {
 	m := MACRXTimingSetupReq{macBase{RXTimingSetupReq, false}, 8}
 	macCommandStandardTests(&m, RXTimingSetupReq, t)
 
-	buffer := make([]byte, 2)
+	buffer := make([]byte, 3)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {
@@ -385,7 +370,7 @@ func TestRXTimingSetupAns(t *testing.T) {
 	m := MACRXTimingSetupAns{macBase{RXTimingSetupAns, true}}
 	macCommandStandardTests(&m, RXTimingSetupAns, t)
 
-	buffer := make([]byte, 1)
+	buffer := make([]byte, 2)
 	pos := 0
 	err := m.encode(buffer, &pos)
 	if err != nil {

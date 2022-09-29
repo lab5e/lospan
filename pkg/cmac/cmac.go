@@ -106,7 +106,7 @@ func AESCMAC(key []byte, buffer []byte) ([]byte, error) {
 	}
 
 	// Step 4
-	mLast := make([]byte, constBSize)
+	var mLast []byte
 	if flag {
 		mn := buffer[(n-1)*constBSize:]
 		mLast = xor(mn, k1)
@@ -120,7 +120,7 @@ func AESCMAC(key []byte, buffer []byte) ([]byte, error) {
 	x := append([]byte{}, constZero...)
 
 	// Step 6
-	y := make([]byte, constBSize)
+	var y []byte
 	pos := 0
 	for i := 1; i < n; i++ {
 		mi := buffer[pos:(pos + constBSize)]

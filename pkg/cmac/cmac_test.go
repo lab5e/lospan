@@ -110,25 +110,6 @@ func TestCMAC(t *testing.T) {
 		"dfa66747 de9ae630 30ca3261 1497c827")
 }
 
-func testVector(keyStr string, msgStr string, cmacStr string, t *testing.T) {
-	key, err := hex.DecodeString(keyStr)
-	msg, err := hex.DecodeString(msgStr)
-	cmac, err := hex.DecodeString(cmacStr)
-
-	t.Logf("Testing key=%s, msg=%s, output=%s\n", keyStr, msgStr, cmacStr)
-	c, err := AESCMAC(key, msg)
-	if err != nil {
-		t.Fatalf("Did not expect error: %s", err)
-	}
-	t.Logf("Got     key=%s, msg=%s,   cmac=%s\n", keyStr, msgStr, hex.EncodeToString(c))
-	for i := range cmac {
-		if cmac[i] != c[i] {
-			t.Fatalf("Byte at index %d (0x%02x) does not match expected output (0x%02x)", i, c[i], cmac[i])
-			return
-		}
-	}
-}
-
 // Do benchmarking; random key, 129 byte message.
 func BenchmarkCMAC(b *testing.B) {
 	key := make([]byte, 16)

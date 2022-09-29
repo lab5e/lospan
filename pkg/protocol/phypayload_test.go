@@ -426,7 +426,7 @@ func comparePHYPayload(p1 *PHYPayload, p2 *PHYPayload, t *testing.T) {
 		t.Fatalf("Marshaled and unmarshaled DevAddr doesn't match: %v != %v", p1.MACPayload.FHDR.DevAddr, p2.MACPayload.FHDR.DevAddr)
 	}
 
-	if p1.MACPayload.FHDR.FCnt != p1.MACPayload.FHDR.FCnt {
+	if p1.MACPayload.FHDR.FCnt != p2.MACPayload.FHDR.FCnt {
 		t.Fatalf("Marshaled and unmarshaled FCnt doesn't match: %v != %v", p1.MACPayload.FHDR.FCnt, p1.MACPayload.FHDR.FCnt)
 	}
 
@@ -440,7 +440,7 @@ func comparePHYPayload(p1 *PHYPayload, p2 *PHYPayload, t *testing.T) {
 
 	compareMACCommands("FHDR", &p1.MACPayload.FHDR.FOpts, &p2.MACPayload.FHDR.FOpts, t)
 
-	if p1.MACPayload.FPort != p1.MACPayload.FPort {
+	if p1.MACPayload.FPort != p2.MACPayload.FPort {
 		t.Fatalf("FPort aren't the same: %v != %v", p1.MACPayload.FPort, p2.MACPayload.FPort)
 	}
 

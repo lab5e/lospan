@@ -64,8 +64,7 @@ func (f *FHDR) encode(buffer []byte, count *int) error {
 	if len(buffer) < (*count + 5) {
 		return ErrBufferTruncated
 	}
-	var devaddr uint32
-	devaddr = uint32(f.DevAddr.NwkID)<<25 | uint32(f.DevAddr.NwkAddr&0x1FFFFFF)
+	devaddr := uint32(f.DevAddr.NwkID)<<25 | uint32(f.DevAddr.NwkAddr&0x1FFFFFF)
 
 	binary.LittleEndian.PutUint32(buffer[*count:], devaddr)
 

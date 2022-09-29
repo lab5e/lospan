@@ -73,9 +73,7 @@ func NewMA(prefix []byte) (MA, error) {
 	default:
 		return MA{}, ErrInvalidParameterFormat
 	}
-	for i := range prefix {
-		ret.Prefix[i] = prefix[i]
-	}
+	copy(ret.Prefix[:], prefix[:])
 	return ret, nil
 }
 

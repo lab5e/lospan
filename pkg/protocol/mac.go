@@ -103,10 +103,7 @@ func (m *macBase) Uplink() bool {
 // Check needed buffer size vs actual size. Returns true if the position
 // is inside the buffer and the buffer is big enough to hold all of the required data.
 func isValidBuffer(buffer []byte, pos *int, cmd MACCommand) bool {
-	if len(buffer) < *pos+cmd.Length() {
-		return false
-	}
-	return true
+	return len(buffer) > *pos+cmd.Length()
 }
 
 // This is the default implementation for empty payloads; only the CID is encoded.

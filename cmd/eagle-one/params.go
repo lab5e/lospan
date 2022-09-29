@@ -1,20 +1,5 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"errors"
 	"flag"
@@ -95,13 +80,6 @@ func init() {
 	flag.BoolVar(&CommandLineParameters.KeepApplication, "keep-application", false, "Keep application when shutting down, don't remove it")
 	flag.BoolVar(&CommandLineParameters.KeepGateway, "keep-gateway", false, "Keep gateway when shutting down, don't delete it.")
 	flag.BoolVar(&CommandLineParameters.KeepDevices, "keep-devices", false, "Keep devices when shutting down")
-	flag.StringVar(&CommandLineParameters.Mode, "mode", "batch", "Eagle One mode (interactive, batch, test)")
-	flag.StringVar(&CommandLineParameters.MQTTEndpoint, "test-mqtt-endpoint", "mqtt", "MQTT broker endpoint")
-	flag.IntVar(&CommandLineParameters.MQTTPort, "test-mqtt-port", 1883, "MQTT broker port")
-	flag.StringVar(&CommandLineParameters.MQTTLocalEndpoint, "test-mqtt-local-endpoint", "localhost", "MQTT broker endpoint")
-	flag.IntVar(&CommandLineParameters.MQTTLocalPort, "test-mqtt-local-port", 1883, "MQTT broker port")
-	flag.StringVar(&CommandLineParameters.MQTTUsername, "test-mqtt-username", "test1", "MQTT broker username")
-	flag.StringVar(&CommandLineParameters.MQTTPassword, "test-mqtt-password", "test1", "MQTT broker password")
-	flag.BoolVar(&CommandLineParameters.MQTTTLS, "test-mqtt-tls", false, "MQTT broker TLS flag")
+
 	flag.Parse()
 }

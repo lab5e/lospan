@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/lab5e/l5log/pkg/lg"
-	"github.com/telenordigital/lassie-go"
+	"github.com/lab5e/lospan/pkg/pb/lospan"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -15,36 +16,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	var mode E1Mode
-	switch CommandLineParameters.Mode {
-	case "batch":
-		mode = &BatchMode{Config: CommandLineParameters}
-	case "interactive":
-		mode = &InteractiveMode{Config: CommandLineParameters}
-	case "test":
-		mode = &TestMode{Config: CommandLineParameters}
-	default:
-		lg.Error("Unknown mode: " + CommandLineParameters.Mode)
-		os.Exit(1)
-	}
+	mode := &BatchMode{Config: CommandLineParameters}
 
-	congress, err := lassie.New()
+	conn, err := grpc.Dial("127.0.0.1:4711", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		lg.Error("Couldn't create the Congress API client: %v", err)
-		os.Exit(1)
+		panic(err.Error())
 	}
-	u, err := url.Parse(congress.Address())
-	if err != nil {
-		lg.Error("Invalid Congress URL: %v", err)
-		os.Exit(1)
-	}
-	CommandLineParameters.Hostname = u.Hostname()
+	client := lospan.NewLospanClient(conn)
 
-	lg.Info("Congress UDP: %s:%d", u.Hostname(), CommandLineParameters.UDPPort)
-	lg.Info("Using Congress API at: %s", congress.Address())
+	CommandLineParameters.Hostname = "127.0.0.1"
+	lg.Info("gRPC API UDP: %s:%d", CommandLineParameters.Hostname, CommandLineParameters.UDPPort)
 
 	e1 := Eagle1{
-		Congress:       congress,
+		Client:         client,
 		Config:         CommandLineParameters,
 		Publisher:      NewEventRouter(2),
 		GatewayChannel: make(chan string, 2),

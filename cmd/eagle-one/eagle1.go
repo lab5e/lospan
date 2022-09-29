@@ -1,37 +1,24 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
+	"context"
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/pb/lospan"
 	"github.com/lab5e/lospan/pkg/protocol"
-	lassie "github.com/telenordigital/lassie-go"
 )
 
 // Eagle1 is the main testing tool. It will manage all of the infrastructure
 // with the application,  gateway and packet forwarding. Message routing is done
 // through the event router. It will publish events based on the device address.
 type Eagle1 struct {
-	Congress       *lassie.Client
+	Client         lospan.LospanClient
 	Config         Params
-	Application    lassie.Application
-	Gateway        lassie.Gateway
+	Application    *lospan.Application
+	Gateway        *lospan.Gateway
 	Publisher      *EventRouter
 	GatewayChannel chan string
 	forwarder      *SyntheticForwarder
@@ -47,42 +34,45 @@ func (e *Eagle1) newRandomEUI() string {
 
 // Setup runs the setup procedures
 func (e *Eagle1) Setup() error {
+	ctx, done := context.WithTimeout(context.Background(), time.Minute)
+	defer done()
 	var err error
 	if e.Config.AppEUI == "" {
-		newApp := lassie.Application{
-			Tags: make(map[string]string),
-		}
-		newApp.Tags["name"] = "Eagle One Test Application"
-		if e.Application, err = e.Congress.CreateApplication(newApp); err != nil {
+		if e.Application, err = e.Client.CreateApplication(ctx, &lospan.CreateApplicationRequest{}); err != nil {
 			return fmt.Errorf("unable to create application in Congress: %v", err)
 		}
 	} else {
 		e.Config.KeepApplication = true
-		if e.Application, err = e.Congress.Application(e.Config.AppEUI); err != nil {
+		if e.Application, err = e.Client.GetApplication(ctx, &lospan.GetApplicationRequest{Eui: e.Config.AppEUI}); err != nil {
 			return fmt.Errorf("couldn't read application %s: %v", e.Config.AppEUI, err)
 		}
 	}
 
 	if e.Config.GatewayEUI == "" {
-		newGw := lassie.Gateway{
-			EUI:       e.newRandomEUI(),
-			IP:        "127.0.0.1",
-			StrictIP:  false,
-			Latitude:  50.3672,
-			Longitude: 6.932,
-			Altitude:  476.0,
+		strict := false
+		lat := float32(50.3672)
+		lon := float32(6.932)
+		alt := float32(476.0)
+		ip := "127.0.0.1"
+		newGw := &lospan.Gateway{
+			Eui:       e.newRandomEUI(),
+			Ip:        &ip,
+			StrictIp:  &strict,
+			Latitude:  &lat,
+			Longitude: &lon,
+			Altitude:  &alt,
 		}
-		if e.Gateway, err = e.Congress.CreateGateway(newGw); err != nil {
+		if e.Gateway, err = e.Client.CreateGateway(ctx, newGw); err != nil {
 			return fmt.Errorf("unable to create gateway in Congress: %v", err)
 		}
 	} else {
 		e.Config.KeepGateway = true
-		if e.Gateway, err = e.Congress.Gateway(e.Config.GatewayEUI); err != nil {
+		if e.Gateway, err = e.Client.GetGateway(ctx, &lospan.GetGatewayRequest{Eui: e.Config.GatewayEUI}); err != nil {
 			return fmt.Errorf("cannot retrieve a gateway with the EUI %s: %v", e.Config.GatewayEUI, err)
 		}
 	}
-	lg.Info("Gateway EUI: %s", e.Gateway.EUI)
-	lg.Info("Application EUI: %s", e.Application.EUI)
+	lg.Info("Gateway EUI: %s", e.Gateway.GetEui())
+	lg.Info("Application EUI: %s", e.Application.GetEui())
 
 	return nil
 }
@@ -90,21 +80,23 @@ func (e *Eagle1) Setup() error {
 // Teardown does a controlled terardown and removes application and gateway if needed.
 func (e *Eagle1) Teardown() {
 	e.shutdown <- true
+	ctx, done := context.WithTimeout(context.Background(), time.Minute)
+	defer done()
 	if !e.Config.KeepApplication {
-		lg.Info("Removing application %s", e.Application.EUI)
-		e.Congress.DeleteApplication(e.Application.EUI)
+		lg.Info("Removing application %s", e.Application.GetEui())
+		e.Client.DeleteApplication(ctx, &lospan.DeleteApplicationRequest{Eui: e.Application.GetEui()})
 	}
 	if !e.Config.KeepGateway {
-		lg.Info("Removing gateway %s", e.Gateway.EUI)
-		e.Congress.DeleteGateway(e.Gateway.EUI)
+		lg.Info("Removing gateway %s", e.Gateway.GetEui())
+		e.Client.DeleteGateway(ctx, &lospan.DeleteGatewayRequest{Eui: e.Gateway.GetEui()})
 	}
 
 }
 
 // Run runs through the mode (batch/interactive)
 func (e *Eagle1) Run(mode E1Mode) error {
-	defer mode.Cleanup(e.Congress, e.Application, e.Gateway)
-	if err := mode.Prepare(e.Congress, e.Application, e.Gateway); err != nil {
+	defer mode.Cleanup(e.Client, e.Application, e.Gateway)
+	if err := mode.Prepare(e.Client, e.Application, e.Gateway); err != nil {
 		return err
 	}
 	mode.Run(e.GatewayChannel, e.Publisher, e.Application, e.Gateway)
@@ -127,7 +119,7 @@ func (e *Eagle1) StartForwarder() {
 	e.shutdown = make(chan bool)
 	e.forwarder = NewSyntheticForwarder(
 		e.GatewayChannel, e.shutdown,
-		e.Gateway.EUI, e.Config.Hostname,
+		e.Gateway.GetEui(), e.Config.Hostname,
 		e.Config.UDPPort)
 
 	lg.Info("Launching synthetic forwarder")

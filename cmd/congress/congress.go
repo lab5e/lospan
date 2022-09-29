@@ -8,7 +8,6 @@ import (
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/processor"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/restapi"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
@@ -20,7 +19,6 @@ type Server struct {
 	context    *server.Context
 	forwarder  processor.GwForwarder
 	pipeline   *processor.Pipeline
-	restapi    *restapi.Server
 	terminator chan bool
 }
 
@@ -80,11 +78,6 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	lg.Info("Launching generic packet forwarder on port %d...", config.GatewayPort)
 	c.forwarder = gateway.NewGenericPacketForwarder(c.config.GatewayPort, datastore, c.context)
 	c.pipeline = processor.NewPipeline(c.context, c.forwarder)
-	c.restapi, err = restapi.NewServer(config.OnlyLoopback, c.context, c.config)
-	if err != nil {
-		lg.Error("Unable to create REST API endpoint: %v", err)
-		return nil, err
-	}
 
 	return c, nil
 }
@@ -96,20 +89,12 @@ func (c *Server) Start() error {
 	lg.Debug("Starting forwarder")
 	go c.forwarder.Start()
 
-	lg.Debug("Launching http server")
-	if err := c.restapi.Start(); err != nil {
-		lg.Error("Unable to start REST API endpoint: %v", err)
-		return err
-	}
-	lg.Info("Server is ready and serving HTTP on port %d", c.config.HTTPServerPort)
-
 	return nil
 }
 
 // Shutdown stops the Congress server.
 func (c *Server) Shutdown() error {
 	c.forwarder.Stop()
-	c.restapi.Shutdown()
 	c.context.Storage.Close()
 
 	return nil

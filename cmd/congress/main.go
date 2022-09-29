@@ -18,7 +18,7 @@ func init() {
 	flag.IntVar(&config.HTTPServerPort, "http", server.DefaultHTTPPort, "HTTP port to listen on")
 	flag.UintVar(&config.NetworkID, "netid", server.DefaultNetworkID, "The Network ID to use")
 	flag.StringVar(&config.MA, "ma", server.DefaultMA, "MA to use when generating new EUIs")
-	flag.StringVar(&config.DBConnectionString, "connectionstring", "", "Database connection string")
+	flag.StringVar(&config.DBConnectionString, "connectionstring", ":memory:", "Database connection string")
 	flag.BoolVar(&config.PrintSchema, "printschema", false, "Print schema definition")
 	flag.BoolVar(&config.DisableGatewayChecks, "disablegwcheck", false, "Disable ALL gateway checks")
 	flag.BoolVar(&config.UseSecureCookie, "securecookie", false, "Set the secure flag for the auth cookie")
@@ -50,7 +50,7 @@ func main() {
 	}()
 
 	sigch := make(chan os.Signal, 2)
-	signal.Notify(sigch, os.Interrupt, os.Kill)
+	signal.Notify(sigch)
 	go func() {
 		sig := <-sigch
 		lg.Debug("Caught signal '%v'", sig)

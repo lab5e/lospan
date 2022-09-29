@@ -3,17 +3,14 @@ module github.com/lab5e/lospan
 go 1.19
 
 require (
-	github.com/ExploratoryEngineering/rest v1.0.1
 	github.com/alecthomas/kong v0.6.1
 	github.com/bufbuild/buf v1.8.0
-	github.com/eclipse/paho.mqtt.golang v1.4.1
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/lab5e/l5log v0.0.11
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mgechev/revive v1.2.3
 	github.com/stretchr/testify v1.8.0
-	github.com/telenordigital/lassie-go v0.0.0-20180108164540-faedfc6c8016
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
 	google.golang.org/grpc v1.48.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
@@ -46,7 +43,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jdxcode/netrc v0.0.0-20210204082910-926c7f70242a // indirect

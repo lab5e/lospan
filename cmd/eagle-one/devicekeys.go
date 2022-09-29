@@ -16,8 +16,10 @@ package main
 //limitations under the License.
 //
 import (
+	"encoding/hex"
+
+	"github.com/lab5e/lospan/pkg/pb/lospan"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/telenordigital/lassie-go"
 )
 
 // DeviceKeys stores the keys, EUIs and DevAddr in Congress-friendly formats
@@ -31,25 +33,23 @@ type DeviceKeys struct {
 }
 
 // NewDeviceKeys creates a new device key type from a Lassie Device
-func NewDeviceKeys(appEUI string, device lassie.Device) (DeviceKeys, error) {
+func NewDeviceKeys(device *lospan.Device) (DeviceKeys, error) {
 	d := DeviceKeys{}
 	var err error
-	if d.AppEUI, err = protocol.EUIFromString(appEUI); err != nil {
+	if d.AppEUI, err = protocol.EUIFromString(device.GetApplicationEui()); err != nil {
 		return d, err
 	}
-	if d.DevEUI, err = protocol.EUIFromString(device.EUI); err != nil {
+	if d.DevEUI, err = protocol.EUIFromString(device.GetEui()); err != nil {
 		return d, err
 	}
-	if d.AppKey, err = protocol.AESKeyFromString(device.ApplicationKey); err != nil {
+	if d.AppKey, err = protocol.AESKeyFromString(hex.EncodeToString(device.AppKey)); err != nil {
 		return d, err
 	}
-	if d.DevAddr, err = protocol.DevAddrFromString(device.DeviceAddress); err != nil {
+	d.DevAddr = protocol.DevAddrFromUint32(device.GetDevAddr())
+	if d.NwkSKey, err = protocol.AESKeyFromString(hex.EncodeToString(device.NetworkSessionKey)); err != nil {
 		return d, err
 	}
-	if d.NwkSKey, err = protocol.AESKeyFromString(device.NetworkSessionKey); err != nil {
-		return d, err
-	}
-	if d.AppSKey, err = protocol.AESKeyFromString(device.ApplicationSessionKey); err != nil {
+	if d.AppSKey, err = protocol.AESKeyFromString(hex.EncodeToString(device.AppSessionKey)); err != nil {
 		return d, err
 	}
 	return d, nil

@@ -1,54 +1,42 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
 	"github.com/lab5e/l5log/pkg/lg"
-	"github.com/telenordigital/lassie-go"
+	"github.com/lab5e/lospan/pkg/pb/lospan"
 )
 
 // BatchMode processing. Create
 type BatchMode struct {
 	Config           Params
-	Application      lassie.Application
-	devices          []lassie.Device
+	Application      *lospan.Application
+	devices          []*lospan.Device
 	OutgoingMessages chan string
 	Publisher        *EventRouter
 }
 
 // Prepare prepares the processing
-func (b *BatchMode) Prepare(congress *lassie.Client, app lassie.Application, gw lassie.Gateway) error {
-	b.devices = make([]lassie.Device, 0)
+func (b *BatchMode) Prepare(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) error {
+	b.devices = make([]*lospan.Device, 0)
 
 	randomizer := NewRandomizer(50)
 
+	ctx, done := context.WithTimeout(context.Background(), time.Minute*2)
+	defer done()
 	for i := 0; i < int(b.Config.DeviceCount); i++ {
-		t := "OTAA"
+		t := lospan.DeviceState_OTAA
 		randomizer.Maybe(func() {
-			t = "ABP"
+			t = lospan.DeviceState_ABP
 		})
-		newDevice := lassie.Device{
-			Type: t,
+		newDevice := &lospan.Device{
+			State: &t,
 		}
-		dev, err := congress.CreateDevice(app.EUI, newDevice)
+		dev, err := client.CreateDevice(ctx, newDevice)
 		if err != nil {
 			return fmt.Errorf("unable to create device in Congress: %v", err)
 		}
@@ -60,11 +48,15 @@ func (b *BatchMode) Prepare(congress *lassie.Client, app lassie.Application, gw 
 }
 
 // Cleanup resources after use. Remove devices if required.
-func (b *BatchMode) Cleanup(congress *lassie.Client, app lassie.Application, gw lassie.Gateway) {
+func (b *BatchMode) Cleanup(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) {
+	ctx, done := context.WithCancel(context.Background())
+	defer done()
 	if !b.Config.KeepDevices {
 		lg.Info("Removing %d devices", len(b.devices))
 		for _, d := range b.devices {
-			congress.DeleteDevice(app.EUI, d.EUI)
+			client.DeleteDevice(ctx, &lospan.DeleteDeviceRequest{
+				Eui: *d.Eui,
+			})
 		}
 	}
 }
@@ -72,8 +64,8 @@ func (b *BatchMode) Cleanup(congress *lassie.Client, app lassie.Application, gw 
 // The number of join attempts before giving up
 const joinAttempts = 5
 
-func (b *BatchMode) launchDevice(device lassie.Device, wg *sync.WaitGroup) {
-	keys, err := NewDeviceKeys(b.Application.EUI, device)
+func (b *BatchMode) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
+	keys, err := NewDeviceKeys(device)
 	if err != nil {
 		lg.Warning("Got error converting lassie data into proper types: %v", err)
 	}
@@ -87,27 +79,27 @@ func (b *BatchMode) launchDevice(device lassie.Device, wg *sync.WaitGroup) {
 
 	defer wg.Done()
 	// Join if needed
-	if device.Type == "OTAA" {
+	if device.GetState() == lospan.DeviceState_OTAA {
 		if err := remoteDevice.Join(joinAttempts); err != nil {
-			lg.Warning("Device %s couldn't join after %d attempts", device.EUI, joinAttempts)
+			lg.Warning("Device %s couldn't join after %d attempts", device.GetEui(), joinAttempts)
 			return
 		}
 	}
 
-	lg.Debug("Device %s is now ready to send messages", device.EUI)
+	lg.Debug("Device %s is now ready to send messages", device.GetEui())
 	for i := 0; i < b.Config.DeviceMessages; i++ {
 		if err := remoteDevice.SendMessageWithGenerator(generator); err != nil {
-			lg.Warning("Device %s got error sending message #%d", device.EUI, i)
+			lg.Warning("Device %s got error sending message #%d", device.GetEui(), i)
 		}
 		randomOffset := rand.Intn(b.Config.TransmissionDelay/10) - (b.Config.TransmissionDelay / 5)
-		lg.Debug("Device %s has sent message %d of %d", device.EUI, i, b.Config.DeviceMessages)
+		lg.Debug("Device %s has sent message %d of %d", device.GetEui(), i, b.Config.DeviceMessages)
 		time.Sleep(time.Duration(b.Config.TransmissionDelay+randomOffset) * time.Millisecond)
 	}
-	lg.Info("Device %s has completed", device.EUI)
+	lg.Info("Device %s has completed", device.GetEui())
 }
 
 // Run the device emulation
-func (b *BatchMode) Run(outgoingMessages chan string, publisher *EventRouter, app lassie.Application, gw lassie.Gateway) {
+func (b *BatchMode) Run(outgoingMessages chan string, publisher *EventRouter, app *lospan.Application, gw *lospan.Gateway) {
 	b.OutgoingMessages = outgoingMessages
 	b.Publisher = publisher
 	b.Application = app

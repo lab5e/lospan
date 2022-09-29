@@ -258,7 +258,7 @@ func TestGetDataRateEU(t *testing.T) {
 		t.Errorf("Unexpected data rate or error in lookup: %d. Error: %v", dr, err)
 	}
 
-	dr, err = b.GetDataRate("XYZZY")
+	_, err = b.GetDataRate("XYZZY")
 	if err == nil {
 		t.Error("Expected lookup of XYZZY to fail")
 	}

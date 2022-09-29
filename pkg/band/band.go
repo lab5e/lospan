@@ -135,7 +135,7 @@ type Configuration struct {
 	DownLinkFrequencies        []float32
 }
 
-//AckTimeout is the max delay limit (in seconds after the second receive window) for when then the network can send a frame with the
+// AckTimeout is the max delay limit (in seconds after the second receive window) for when then the network can send a frame with the
 // ACK bit set in response to a ConfirmedData message [18.1].
 func (c *Configuration) AckTimeout() int {
 	return rand.Intn(3) + 1

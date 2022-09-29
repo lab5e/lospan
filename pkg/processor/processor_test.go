@@ -8,6 +8,7 @@ import (
 
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
+	"github.com/lab5e/lospan/pkg/events/gwevents"
 
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -154,8 +155,8 @@ func newTestContext(t *testing.T) testContext {
 	frameOutput := server.NewFrameOutputBuffer()
 	keyGenerator, _ := server.NewEUIKeyGenerator(ret.config.RootMA(), uint32(ret.config.NetworkID), ret.datastore)
 
-	appRouter := server.NewEventRouter(5)
-	gwEventRouter := server.NewEventRouter(5)
+	appRouter := server.NewEventRouter[protocol.EUI, *server.PayloadMessage](5)
+	gwEventRouter := server.NewEventRouter[protocol.EUI, gwevents.GwEvent](5)
 	ret.context = &server.Context{
 		Storage:       ret.datastore,
 		Terminator:    make(chan bool),

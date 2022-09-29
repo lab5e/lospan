@@ -1,17 +1,17 @@
 package server
 
 import (
+	"fmt"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
-
-	"sync"
 )
 
 // Simple one-shot route test
 func TestEventRouter(t *testing.T) {
 
-	router := NewEventRouter(2)
+	router := NewEventRouter[int, string](2)
 
 	ch := router.Subscribe(0)
 
@@ -30,7 +30,7 @@ func TestEventRouter(t *testing.T) {
 // Test with multiple routes (and channels)
 func TestEventRouterMultipleRoutes(t *testing.T) {
 	const numEvents = 4
-	router := NewEventRouter(numEvents)
+	router := NewEventRouter[uint64, string](numEvents)
 	wg := sync.WaitGroup{}
 
 	const routes = 10
@@ -39,7 +39,7 @@ func TestEventRouterMultipleRoutes(t *testing.T) {
 		ids[i] = uint64(i)
 	}
 
-	chans := make([]<-chan interface{}, routes)
+	chans := make([]<-chan string, routes)
 
 	for i := 0; i < routes; i++ {
 		chans[i] = router.Subscribe(ids[i])
@@ -59,7 +59,7 @@ func TestEventRouterMultipleRoutes(t *testing.T) {
 						return
 					}
 				case <-time.After(100 * time.Millisecond):
-					t.Fatalf("Didn't receive data! Got just %d events, expected 5", received)
+					panic(fmt.Sprintf("Didn't receive data! Got just %d events, expected 5", received))
 				}
 			}
 		}()
@@ -89,9 +89,9 @@ func TestEventRouterMultipleRoutes(t *testing.T) {
 // output isn't *that* interesting; the test just ensures edge cases aren't missed.
 func TestResize(t *testing.T) {
 	const routeCount = 100
-	router := NewEventRouter(2)
+	router := NewEventRouter[uint64, string](2)
 
-	var subs []<-chan interface{}
+	var subs []<-chan string
 
 	id := uint64(12)
 	for i := 0; i < routeCount; i++ {
@@ -116,10 +116,10 @@ func TestResize(t *testing.T) {
 // ratio of miss/hit
 const ratio = 50
 
-func setupBenchmark(count int) (*EventRouter, []<-chan interface{}) {
-	e := NewEventRouter(1)
+func setupBenchmark(count int) (*EventRouter[int, int], []<-chan int) {
+	e := NewEventRouter[int, int](1)
 	rand.Seed(time.Now().UnixNano())
-	chs := make([]<-chan interface{}, count)
+	chs := make([]<-chan int, count)
 	for i := 0; i < count; i++ {
 		if rand.Intn(100) < ratio {
 			chs[i] = e.Subscribe(i)
@@ -128,7 +128,7 @@ func setupBenchmark(count int) (*EventRouter, []<-chan interface{}) {
 	return &e, chs
 }
 
-func runTest(e *EventRouter, chans []<-chan interface{}, count int) {
+func runTest(e *EventRouter[int, int], chans []<-chan int, count int) {
 
 	for i := 0; i < count; i++ {
 		idx := rand.Intn(len(chans))

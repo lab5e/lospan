@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -31,7 +32,7 @@ func setupServer(t *testing.T) serverConfig {
 		t.Fatal("Could not allocate free port: ", err)
 	}
 
-	router := server.NewEventRouter(5)
+	router := server.NewEventRouter[protocol.EUI, gwevents.GwEvent](5)
 	context := server.Context{GwEventRouter: &router, Config: &server.Configuration{}}
 	ret.forwarder = NewGenericPacketForwarder(port, gwStorage, &context)
 

@@ -4,8 +4,10 @@ import (
 	"errors"
 
 	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/processor"
+	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/restapi"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -63,8 +65,8 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	}
 	frameOutput := server.NewFrameOutputBuffer()
 
-	appRouter := server.NewEventRouter(5)
-	gwEventRouter := server.NewEventRouter(5)
+	appRouter := server.NewEventRouter[protocol.EUI, *server.PayloadMessage](5)
+	gwEventRouter := server.NewEventRouter[protocol.EUI, gwevents.GwEvent](5)
 	c.context = &server.Context{
 		Storage:       datastore,
 		Terminator:    make(chan bool),

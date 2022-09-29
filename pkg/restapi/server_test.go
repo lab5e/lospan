@@ -28,7 +28,7 @@ func createTestServer(config server.Configuration) *Server {
 
 	fob := server.NewFrameOutputBuffer()
 
-	appRouter := server.NewEventRouter(5)
+	appRouter := server.NewEventRouter[protocol.EUI, *server.PayloadMessage](5)
 	context := &server.Context{
 		Storage:      store,
 		FrameOutput:  &fob,
@@ -41,72 +41,7 @@ func createTestServer(config server.Configuration) *Server {
 	return server
 }
 
-func TestServerStartupNoAuth(t *testing.T) {
-	h := createTestServer(noAuthConfig)
-	h.Start()
-	defer h.Shutdown()
-
-	// Request the root URL
-	if res, err := http.Get(h.loopbackURL()); err != nil {
-		t.Errorf("Error GETting root resource: %v", err)
-	} else {
-		if res.StatusCode != http.StatusOK {
-			t.Errorf("Got status %d. Expected 200 OK", res.StatusCode)
-		}
-		if _, err := io.ReadAll(res.Body); err != nil {
-			t.Fatal("Could not read response body: ", err)
-		}
-		// Content isn't that important
-	}
-
-	// Request the status URL
-	if res, err := http.Get(h.loopbackURL() + "/status"); err != nil {
-		t.Errorf("Error GETting status resource: %v", err)
-	} else {
-		if res.StatusCode != http.StatusOK {
-			t.Errorf("Got status %d. Expected 200 OK", res.StatusCode)
-		}
-		if _, err := io.ReadAll(res.Body); err != nil {
-			t.Fatal("Could not read the response body: ", err)
-		}
-	}
-}
-
 // Enable authentication and ensure it starts as expected (and authenticates)
-func TestServerStartupWithAuth(t *testing.T) {
-	h := createTestServer(server.Configuration{HTTPServerPort: 0})
-	h.Start()
-	defer h.Shutdown()
-
-	res, err := http.Get(h.loopbackURL())
-	if err != nil {
-		t.Fatalf("Couldn't retrieve root resource: %v", err)
-	}
-
-	if res.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("Expected %d response for / but got %d", http.StatusUnauthorized, res.StatusCode)
-	}
-
-	res, err = http.Get(h.loopbackURL() + "/applications")
-	if err != nil {
-		t.Fatalf("Couldn't retrieve application resource: %v", err)
-	}
-
-	if res.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("Expected %d response for /applications but got %d", http.StatusUnauthorized, res.StatusCode)
-	}
-
-	body := strings.NewReader("")
-	req, _ := http.NewRequest(http.MethodGet, h.loopbackURL()+"/applications", body)
-
-	res, err = http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("Couldn't do GET request")
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("Didn't get %d with token but got %d", http.StatusOK, res.StatusCode)
-	}
-}
 
 func checkContentType(t *testing.T, url string, resp *http.Response) {
 	if resp.StatusCode >= 200 && resp.StatusCode <= 300 {

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/lab5e/lospan/pkg/band"
+	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -13,13 +14,13 @@ import (
 
 // Context is the request/response context. It is passed along with the packets in various states.
 type Context struct {
-	Storage       *storage.Storage   // The storage layer
-	Terminator    chan bool          // Terminator channel. Throw something on this to terminate the processes.
-	FrameOutput   *FrameOutputBuffer // Device aggregator instance. Common instance for processors.
-	Config        *Configuration     // Main configuration
-	KeyGenerator  *KeyGenerator      // Key generator for server
-	GwEventRouter *EventRouter       // Router for GW events
-	AppRouter     *EventRouter       // Router for app data
+	Storage       *storage.Storage                             // The storage layer
+	Terminator    chan bool                                    // Terminator channel. Throw something on this to terminate the processes.
+	FrameOutput   *FrameOutputBuffer                           // Device aggregator instance. Common instance for processors.
+	Config        *Configuration                               // Main configuration
+	KeyGenerator  *KeyGenerator                                // Key generator for server
+	GwEventRouter *EventRouter[protocol.EUI, gwevents.GwEvent] // Router for GW events
+	AppRouter     *EventRouter[protocol.EUI, *PayloadMessage]  // Router for app data
 }
 
 // RadioContext - metadata for radio stats and settings

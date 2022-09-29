@@ -48,7 +48,7 @@ func createEncryptedTestMessage() protocol.PHYPayload {
 func TestDecrypterProcessing(t *testing.T) {
 
 	s := NewStorageTestContext()
-	router := server.NewEventRouter(5)
+	router := server.NewEventRouter[protocol.EUI, *server.PayloadMessage](5)
 	context := server.Context{Storage: s, AppRouter: &router}
 
 	input := make(chan server.LoRaMessage)
@@ -59,7 +59,7 @@ func TestDecrypterProcessing(t *testing.T) {
 
 	msg := createEncryptedTestMessage()
 	devices, _ := s.GetDeviceByDevAddr(msg.MACPayload.FHDR.DevAddr)
-	var msgOutput <-chan interface{}
+	var msgOutput <-chan *server.PayloadMessage
 	for _, device := range devices {
 		t.Logf("Found device: %T: with AppEUI %s", device, device.AppEUI)
 		msgOutput = context.AppRouter.Subscribe(device.AppEUI)

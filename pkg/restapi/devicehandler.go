@@ -12,49 +12,6 @@ import (
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
-func (s *Server) deviceList(w http.ResponseWriter, r *http.Request, appEUI protocol.EUI) {
-	devices, err := s.context.Storage.GetDevicesByApplicationEUI(appEUI)
-	if err != nil {
-		lg.Warning("Unable to read device list for application %s: %v.", appEUI, err)
-		http.Error(w, "Server error", http.StatusNotFound)
-	}
-	deviceList := newDeviceList()
-	for _, device := range devices {
-		deviceList.Devices = append(deviceList.Devices, newDeviceFromModel(&device))
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(deviceList); err != nil {
-		lg.Warning("Unable to marshal device list for application %s: %v", appEUI, err)
-	}
-}
-
-// deviceListHandler presents a list of devices associated with the application
-func (s *Server) deviceListHandler(w http.ResponseWriter, r *http.Request) {
-	applicationEUI, err := euiFromPathParameter(r, "aeui")
-	if err != nil {
-		http.Error(w, "Invalid application EUI", http.StatusBadRequest)
-		return
-	}
-
-	// Retrieve application, make sure both network and application EUI is correct
-	_, err = s.context.Storage.GetApplicationByEUI(applicationEUI)
-	if err != nil {
-		http.Error(w, "Application not found", http.StatusNotFound)
-		return
-	}
-
-	switch r.Method {
-
-	case http.MethodGet:
-		s.deviceList(w, r, applicationEUI)
-
-	default:
-		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)
-		return
-	}
-}
-
 // Get and check EUIs for network, app, device. Returns false if one of the
 // EUIs are malformed
 func (s *Server) getDevice(w http.ResponseWriter, r *http.Request) (
@@ -84,33 +41,6 @@ func (s *Server) getDevice(w http.ResponseWriter, r *http.Request) (
 	}
 
 	return appEUI, &device
-}
-
-// deviceInfoHandler shows info on a particular device
-func (s *Server) deviceInfoHandler(w http.ResponseWriter, r *http.Request) {
-	_, device := s.getDevice(w, r)
-	if device == nil {
-		return
-	}
-
-	switch r.Method {
-
-	case http.MethodDelete:
-		err := s.context.Storage.DeleteDevice(device.DeviceEUI)
-		switch err {
-		case nil:
-			w.WriteHeader(http.StatusNoContent)
-
-		case storage.ErrNotFound:
-			http.Error(w, "Device not found", http.StatusNotFound)
-
-		default:
-			http.Error(w, "Unable to remove device", http.StatusInternalServerError)
-		}
-	default:
-		http.Error(w, "Method not supported", http.StatusMethodNotAllowed)
-		return
-	}
 }
 
 // Remove downstream message if exists and completed (sent and/or acked).

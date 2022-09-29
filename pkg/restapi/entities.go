@@ -61,31 +61,6 @@ type apiDevice struct {
 	nskey          protocol.AESKey
 }
 
-// NewDeviceFromModel creates an APIDevice instance from a model.Device instance.
-func newDeviceFromModel(device *model.Device) apiDevice {
-	var state = deviceTypeOTAA
-	if device.State == model.PersonalizedDevice {
-		state = deviceTypeABP
-	}
-	return apiDevice{
-		DeviceEUI:      device.DeviceEUI.String(),
-		eui:            device.DeviceEUI,
-		DevAddr:        device.DevAddr.String(),
-		da:             device.DevAddr,
-		akey:           device.AppKey,
-		AppKey:         device.AppKey.String(),
-		AppSKey:        device.AppSKey.String(),
-		askey:          device.AppSKey,
-		NwkSKey:        device.NwkSKey.String(),
-		nskey:          device.NwkSKey,
-		FCntDn:         device.FCntDn,
-		FCntUp:         device.FCntUp,
-		RelaxedCounter: device.RelaxedCounter,
-		DeviceType:     state,
-		KeyWarning:     device.KeyWarning,
-	}
-}
-
 // ToModel converts the instance into model.Device instance
 func (d *apiDevice) ToModel(appEUI protocol.EUI) model.Device {
 	var state = model.OverTheAirDevice
@@ -105,20 +80,6 @@ func (d *apiDevice) ToModel(appEUI protocol.EUI) model.Device {
 		FCntUp:         d.FCntUp,
 		RelaxedCounter: d.RelaxedCounter,
 		KeyWarning:     d.KeyWarning,
-	}
-}
-
-// DeviceList is the list of devices
-type deviceList struct {
-	Devices   []apiDevice       `json:"devices"`
-	Templates map[string]string `json:"templates"`
-}
-
-// NewDeviceList creates a new device list
-func newDeviceList() deviceList {
-	return deviceList{
-		Devices:   make([]apiDevice, 0),
-		Templates: appDeviceTemplates(),
 	}
 }
 

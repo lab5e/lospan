@@ -1,8 +1,6 @@
 package restapi
 
 import (
-	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
@@ -195,25 +193,5 @@ func testDelete(t *testing.T, testData map[string]int) {
 		if resp.StatusCode != expected {
 			t.Fatalf("Expected %d but got %d when calling DELETE on %s", expected, resp.StatusCode, url)
 		}
-	}
-}
-
-// A generic put method for resources; exercises the readers
-func genericPutRequest(t *testing.T, rootURL string, values map[string]interface{}, expected int) {
-	buf, _ := json.Marshal(values)
-	client := &http.Client{}
-	body := bytes.NewReader(buf)
-	req, err := http.NewRequest("PUT", rootURL, body)
-	if err != nil {
-		t.Fatal("Got error creating request: ", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		t.Fatal("Got error performing PUT request ", err)
-	}
-	if resp.StatusCode != expected {
-		buf, _ := io.ReadAll(resp.Body)
-		t.Fatalf("Didn't get the expected result. Expected %d but got %d (body = %s)", expected, resp.StatusCode, string(buf))
 	}
 }

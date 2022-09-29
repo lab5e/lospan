@@ -4,45 +4,37 @@ import (
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBinaryMarshal(t *testing.T) {
+	assert := require.New(t)
+
 	pkt := GwPacket{}
 	// A PUSH_DATA sentence with EUI AABBCCDD and the string 'abcdef'
 	buffer := []byte{0, 0x11, 0x22, 0, 0x11, 0xAA, 0xBB, 0xBB, 0xCC, 0xCC, 0xDD, 0xDD, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46}
 
 	err := pkt.UnmarshalBinary(buffer)
-	if err != nil {
-		t.Fatal("Error unmarshaling bytes for PUSH_DATA: ", err)
-	}
+	assert.NoError(err, "Error unmarshalling bytes for PUSH_DATA")
+
 	eui, err := protocol.EUIFromString("11-AA-BB-BB-CC-CC-DD-DD")
-	if pkt.GatewayEUI != eui {
-		t.Fatalf("EUI not what I'd expected: 0x%08X", pkt.GatewayEUI)
-	}
-	if pkt.Token != 0x1122 {
-		t.Fatalf("Token not what I'd expected: 0x%04X", pkt.Token)
-	}
-	if pkt.JSONString != "ABCDEF" {
-		t.Fatalf("String not what I'd expected: %s", pkt.JSONString)
-	}
+	assert.NoError(err)
+
+	assert.Equal(pkt.GatewayEUI, eui)
+	assert.Equal(uint16(0x1122), pkt.Token)
+	assert.Equal("ABCDEF", pkt.JSONString)
 
 	// PUSH_ACK
 	buffer = []byte{0, 0x11, 0x22, 1}
-	if pkt.UnmarshalBinary(buffer) != nil {
-		t.Fatal("Couldn't unmarshal PUSH_ACK")
-	}
+	assert.Nil(pkt.UnmarshalBinary(buffer), "PUSH_ACK")
 
 	// PULL_DATA
 	buffer = []byte{0, 0x11, 0x22, 2, 0xAA, 0xAA, 0xBB, 0xBB, 0xCC, 0xCC, 0xDD, 0xDD}
-	if pkt.UnmarshalBinary(buffer) != nil {
-		t.Fatal("Couldn't unmarshal PULL_DATA")
-	}
+	assert.Nil(pkt.UnmarshalBinary(buffer), "PULL_DATA")
 
 	// PULL_RESP
 	buffer = []byte{0, 0x11, 0x22, 3, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46}
-	if pkt.UnmarshalBinary(buffer) != nil {
-		t.Fatal("Couldn't unmarshal PULL_RESP")
-	}
+	assert.Nil(pkt.UnmarshalBinary(buffer), "PULL_RESP")
 
 	// PULL_ACK
 	buffer = []byte{0, 0x11, 0x22, 4}
@@ -52,38 +44,27 @@ func TestBinaryMarshal(t *testing.T) {
 
 	// TX_ACK
 	buffer = []byte{0, 0x11, 0x22, 5, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46}
-	if pkt.UnmarshalBinary(buffer) != nil {
-		t.Fatal("Couldn't unmarshal TX_ACK")
-	}
+	assert.Nil(pkt.UnmarshalBinary(buffer), "TX_ACK")
 
 	// Unknown type
 	buffer = []byte{0, 0x11, 0x22, 99}
-	if pkt.UnmarshalBinary(buffer) == nil {
-		t.Fatal("Shouldn't be able to unmarshal unknown types")
-	}
+	assert.NotNil(pkt.UnmarshalBinary(buffer), "Uknown type")
 
-	// TODO: Test invalid buffers
-	if pkt.UnmarshalBinary([]byte{0}) == nil {
-		t.Fatal("Shoulnd't be able to unmarshal tiny buffers")
-	}
+	assert.NotNil(pkt.UnmarshalBinary([]byte{0}), "too small buffer")
 
-	if pkt.UnmarshalBinary([]byte{0}) == nil {
-		t.Fatal("Shoulnd't be able to unmarshal tiny buffers")
-	}
+	assert.NotNil(pkt.UnmarshalBinary([]byte{1}), "tiny buffer")
 
 	buffer = []byte{0, 0x11, 0x22, 0}
-	if pkt.UnmarshalBinary(buffer) == nil {
-		t.Fatal("Shoulnd't be able to unmarshal small PUSH_DATA buffer")
-	}
+	assert.NotNil(pkt.UnmarshalBinary(buffer), "Too small PUSH_DATA")
 
 	buffer = []byte{0, 0x11, 0x22, 2}
-	if pkt.UnmarshalBinary(buffer) == nil {
-		t.Fatal("Shoulnd't be able to unmarshal small PULL_DATA buffer")
-	}
+	assert.NotNil(pkt.UnmarshalBinary(buffer), "Shoulnd't be able to unmarshal small PULL_DATA buffer")
 
 }
 
 func TestBinaryUnmarsha(t *testing.T) {
+	assert := require.New(t)
+
 	pkt := GwPacket{
 		ProtocolVersion: 0,
 		Token:           0x1234,
@@ -93,69 +74,50 @@ func TestBinaryUnmarsha(t *testing.T) {
 	}
 
 	buf, err := pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling struct: ", err)
-	}
-
-	if buf == nil {
-		t.Fatal("Marshaled buffer is nil")
-	}
+	assert.NoError(err)
+	assert.NotNil(buf)
 
 	pkt = GwPacket{
 		Identifier: PullAck,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_ACK")
-	}
+	assert.NoError(err, "Got error marshaling PULL_ACK")
 
 	pkt = GwPacket{
 		Identifier: PushAck,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_ACK")
-	}
+	assert.NoError(err, "Got error marshaling PULL_ACK")
 
 	pkt = GwPacket{
 		Identifier: PullData,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_DATA")
-	}
+	assert.NoError(err, "Got error marshaling PULL_DATA")
 
 	pkt = GwPacket{
 		Identifier: PullResp,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_RESP")
-	}
+	assert.NoError(err, "Got error marshaling PULL_RESP")
 
 	pkt = GwPacket{
 		Identifier: PullResp,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_RESP")
-	}
+	assert.NoError(err, "Got error marshaling PULL_RESP")
 
 	pkt = GwPacket{
 		Identifier: TxAck,
 	}
 	_, err = pkt.MarshalBinary()
-	if err != nil {
-		t.Fatal("Got error marshaling PULL_DATA")
-	}
+	assert.NoError(err, "Got error marshaling PULL_DATA")
 
 	pkt = GwPacket{
 		Identifier: UnknownType,
 	}
 	_, err = pkt.MarshalBinary()
-	if err == nil {
-		t.Fatal("Expected error marshaling unknown type")
-	}
+	assert.Error(err, "Expected error marshaling unknown type")
 
 }
 

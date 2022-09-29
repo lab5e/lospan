@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/lab5e/l5log/pkg/lg"
+	"fmt"
+
 	"github.com/lab5e/lospan/pkg/pb/lospan"
 )
 
@@ -27,14 +28,15 @@ func (c *listAppCmd) Run(args *params) error {
 	}
 	defer done()
 
-	lg.Info("Listing applications....")
 	res, err := client.ListApplications(ctx, &lospan.ListApplicationsRequest{})
 	if err != nil {
 		return err
 	}
-	lg.Info("%d applications found", len(res.Applications))
+	fmt.Printf("%d applications found\n", len(res.Applications))
+	fmt.Println()
+	fmt.Println("EUI")
 	for _, app := range res.Applications {
-		lg.Info("App: %+v", app)
+		fmt.Println(app.Eui)
 	}
 	return nil
 }
@@ -49,13 +51,12 @@ func (*addAppCmd) Run(args *params) error {
 	}
 	defer done()
 
-	lg.Info("Creating new application...")
 	res, err := client.CreateApplication(ctx, &lospan.CreateApplicationRequest{})
 	if err != nil {
 		return err
 	}
 
-	lg.Info("Created application with EUI %s", res.Eui)
+	fmt.Printf("Created application with EUI %s\n", res.Eui)
 	return nil
 }
 
@@ -74,7 +75,7 @@ func (*deleteAppCmd) Run(args *params) error {
 	if err != nil {
 		return err
 	}
-	lg.Info("Removed application with EUI %s", app.Eui)
+	fmt.Printf("Removed application with EUI %s\n", app.Eui)
 	return nil
 }
 
@@ -93,6 +94,6 @@ func (*getAppCmd) Run(args *params) error {
 	if err != nil {
 		return err
 	}
-	lg.Info("Application EUI=%s", app.Eui)
+	fmt.Printf("Application EUI %s\n", app.Eui)
 	return nil
 }

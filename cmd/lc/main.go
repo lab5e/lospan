@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -18,7 +19,7 @@ func main() {
 
 	kong.Bind(&config)
 	if err := kctx.Run(); err != nil {
-		lg.Error(err.Error())
+		fmt.Printf("Error: %v\n", err.Error())
 		os.Exit(2)
 	}
 

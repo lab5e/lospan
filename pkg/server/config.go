@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -23,23 +22,15 @@ type Configuration struct {
 	UseSecureCookie      bool
 	MemoryDB             bool
 	OnlyLoopback         bool // use only loopback adapter - for testing
-	DebugPort            int  // Debug port - 0 for random, default 8081
 	Log                  lg.LogParameters
 }
 
 // This is the default configuration
 const (
-	DefaultGatewayPort     = 8000
-	DefaultHTTPPort        = 8080
-	DefaultDebugPort       = 8081
-	DefaultNetworkID       = 0
-	DefaultMA              = "00-09-09"
-	DefaultConnectHost     = "connect.staging.telenordigital.com"
-	DefaultConnectClientID = "telenordigital-connectexample-web"
-	DefaultLogLevel        = 0
-	DefaultMaxConns        = 200
-	DefaultIdleConns       = 100
-	DefaultConnLifetime    = 10 * time.Minute
+	DefaultGatewayPort = 8000
+	DefaultHTTPPort    = 8080
+	DefaultNetworkID   = 0
+	DefaultMA          = "00-00-00"
 )
 
 // NewDefaultConfig returns the default configuration. Note that this configuration
@@ -49,16 +40,7 @@ func NewDefaultConfig() *Configuration {
 		MA:             DefaultMA,
 		HTTPServerPort: DefaultHTTPPort,
 		NetworkID:      DefaultNetworkID,
-		DebugPort:      DefaultDebugPort,
 	}
-}
-
-// NewMemoryNoAuthConfig returns a configuration with no authentication and
-// memory-backed storage. This is a valid configuration.
-func NewMemoryNoAuthConfig() *Configuration {
-	ret := NewDefaultConfig()
-	ret.MemoryDB = true
-	return ret
 }
 
 // RootMA returns the MA to use as the base MA for EUIs. The configuration

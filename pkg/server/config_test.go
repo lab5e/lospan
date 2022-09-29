@@ -42,7 +42,8 @@ func TestCommandLineConfigDefaults(t *testing.T) {
 }
 
 func TestValidConfiguration(t *testing.T) {
-	config := NewMemoryNoAuthConfig()
+	config := NewDefaultConfig()
+	config.MemoryDB = true
 	config.MA = "foof"
 	if err := config.Validate(); err == nil {
 		t.Fatal("Expected error from invalid MA string")

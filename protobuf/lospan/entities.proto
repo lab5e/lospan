@@ -22,7 +22,7 @@ enum DeviceState {
 // part of the LoRaWAN implementation nomenclature.
 message Device {
     optional string eui = 1; // Tecnhically required but can be skipped when creating a new
-    string application_eui = 2;
+    optional string application_eui = 2;
     optional DeviceState state = 3;
     optional uint32 dev_addr = 4;           // 7+25 bits
     optional bytes app_key = 5;             // 16 bytes/256 bits

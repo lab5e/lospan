@@ -56,7 +56,7 @@ func toAPINonces(nonces []uint16) []int32 {
 func toAPIDevice(d model.Device) *lospan.Device {
 	return &lospan.Device{
 		Eui:               newPtr(d.DeviceEUI.String()),
-		ApplicationEui:    d.AppEUI.String(),
+		ApplicationEui:    newPtr(d.AppEUI.String()),
 		State:             toAPIState(d.State),
 		DevAddr:           newPtr(d.DevAddr.ToUint32()),
 		AppKey:            d.AppKey.Key[:],

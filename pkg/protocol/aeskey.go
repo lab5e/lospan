@@ -41,6 +41,16 @@ func AESKeyFromString(keyStr string) (AESKey, error) {
 	return ret, nil
 }
 
+// Empty checks if the key is empty
+func (k *AESKey) Empty() bool {
+	for _, b := range k.Key {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func (k AESKey) String() string {
 	return hex.EncodeToString(k.Key[:])
 }

@@ -43,11 +43,11 @@ func (a *apiServer) CreateDevice(ctx context.Context, req *lospan.Device) (*losp
 			return nil, status.Error(codes.InvalidArgument, "Invalid EUI")
 		}
 	}
-	if req.ApplicationEui == "" {
+	if req.GetApplicationEui() == "" {
 		return nil, status.Error(codes.InvalidArgument, "Missing application EUI")
 	}
 	d := model.NewDevice()
-	d.AppEUI, err = protocol.EUIFromString(req.GetEui())
+	d.AppEUI, err = protocol.EUIFromString(req.GetApplicationEui())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "Invalid Application EUI")
 	}
@@ -95,15 +95,15 @@ func (a *apiServer) CreateDevice(ctx context.Context, req *lospan.Device) (*losp
 	if req.FrameCountUp != nil {
 		d.FCntUp = uint16(req.GetFrameCountUp())
 	}
-	if d.State == model.OverTheAirDevice && (len(d.AppSKey.Key) > 0 || d.DevAddr.ToUint32() != 0 || len(d.NwkSKey.Key) > 0) {
+	if d.State == model.OverTheAirDevice && (!d.AppSKey.Empty() || d.DevAddr.ToUint32() != 0 || !d.NwkSKey.Empty()) {
 		return nil, status.Error(codes.InvalidArgument, "DevAddr, AppSKey and NwkSKey can only be specified for ABP devices")
 	}
-	if d.State == model.PersonalizedDevice && len(d.AppKey.Key) > 0 {
+	if d.State == model.PersonalizedDevice && !d.AppKey.Empty() {
 		return nil, status.Error(codes.InvalidArgument, "AppKey can only be specified for OTAA devices")
 	}
 
 	if d.State == model.OverTheAirDevice {
-		if len(d.AppKey.Key) == 0 {
+		if d.AppKey.Empty() {
 			d.AppKey, err = protocol.NewAESKey()
 			if err != nil {
 				return nil, toProtoErr(err)
@@ -111,13 +111,13 @@ func (a *apiServer) CreateDevice(ctx context.Context, req *lospan.Device) (*losp
 		}
 	}
 	if d.State == model.PersonalizedDevice {
-		if len(d.AppSKey.Key) == 0 {
+		if d.AppSKey.Empty() {
 			d.AppSKey, err = protocol.NewAESKey()
 			if err != nil {
 				return nil, toProtoErr(err)
 			}
 		}
-		if len(d.NwkSKey.Key) == 0 {
+		if d.NwkSKey.Empty() {
 			d.NwkSKey, err = protocol.NewAESKey()
 			if err != nil {
 				return nil, toProtoErr(err)

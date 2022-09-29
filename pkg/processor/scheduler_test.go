@@ -45,6 +45,8 @@ func TestSchedulerChannels(t *testing.T) {
 		if ok {
 			t.Fatal("Expected output channel to be closed")
 		}
+	case <-time.After(time.Second):
+		t.Fatal("Channel not closed")
 	}
 }
 

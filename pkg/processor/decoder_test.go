@@ -37,6 +37,8 @@ func TestDecoderChannels(t *testing.T) {
 		if ok {
 			t.Fatal("Shouldn't be able to read from the channel")
 		}
+	case <-time.After(time.Second):
+		t.Fatal("Channel not closed")
 
 	}
 }

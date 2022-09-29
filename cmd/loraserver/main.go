@@ -32,7 +32,7 @@ func main() {
 		lg.Error("Error creating EUI key generator: %v", err)
 		os.Exit(1)
 	}
-	lospanSvc, err := apiserver.New(store, keyGen)
+	lospanSvc, err := apiserver.New(store, &keyGen)
 	if err != nil {
 		lg.Error("Error creatig lospan service: %v", err)
 		os.Exit(1)

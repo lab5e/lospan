@@ -50,7 +50,7 @@ func main() {
 	}()
 
 	sigch := make(chan os.Signal, 2)
-	signal.Notify(sigch)
+	signal.Notify(sigch, os.Interrupt)
 	go func() {
 		sig := <-sigch
 		lg.Debug("Caught signal '%v'", sig)

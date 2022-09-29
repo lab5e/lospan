@@ -8,12 +8,12 @@ import (
 
 type apiServer struct {
 	store  *storage.Storage
-	keyGen server.KeyGenerator
+	keyGen *server.KeyGenerator
 	lospan.UnimplementedLospanServer
 }
 
 // New creates a new API server
-func New(store *storage.Storage, keyGen server.KeyGenerator) (lospan.LospanServer, error) {
+func New(store *storage.Storage, keyGen *server.KeyGenerator) (lospan.LospanServer, error) {
 	return &apiServer{
 		store:  store,
 		keyGen: keyGen,

@@ -33,8 +33,10 @@ func (b *BatchMode) Prepare(client lospan.LospanClient, app *lospan.Application,
 		randomizer.Maybe(func() {
 			t = lospan.DeviceState_ABP
 		})
+		eui := app.GetEui()
 		newDevice := &lospan.Device{
-			State: &t,
+			ApplicationEui: &eui,
+			State:          &t,
 		}
 		dev, err := client.CreateDevice(ctx, newDevice)
 		if err != nil {

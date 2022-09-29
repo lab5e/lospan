@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
 
@@ -155,8 +154,8 @@ func newTestContext(t *testing.T) testContext {
 	frameOutput := server.NewFrameOutputBuffer()
 	keyGenerator, _ := server.NewEUIKeyGenerator(ret.config.RootMA(), uint32(ret.config.NetworkID), ret.datastore)
 
-	appRouter := pubsub.NewEventRouter(5)
-	gwEventRouter := pubsub.NewEventRouter(5)
+	appRouter := server.NewEventRouter(5)
+	gwEventRouter := server.NewEventRouter(5)
 	ret.context = &server.Context{
 		Storage:       ret.datastore,
 		Terminator:    make(chan bool),

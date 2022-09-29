@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/processor"
@@ -64,8 +63,8 @@ func NewServer(config *server.Configuration) (*Server, error) {
 	}
 	frameOutput := server.NewFrameOutputBuffer()
 
-	appRouter := pubsub.NewEventRouter(5)
-	gwEventRouter := pubsub.NewEventRouter(5)
+	appRouter := server.NewEventRouter(5)
+	gwEventRouter := server.NewEventRouter(5)
 	c.context = &server.Context{
 		Storage:       datastore,
 		Terminator:    make(chan bool),

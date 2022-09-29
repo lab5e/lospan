@@ -3,7 +3,6 @@ module github.com/lab5e/lospan
 go 1.19
 
 require (
-	github.com/ExploratoryEngineering/pubsub v1.0.2
 	github.com/ExploratoryEngineering/rest v1.0.1
 	github.com/alecthomas/kong v0.6.1
 	github.com/bufbuild/buf v1.8.0

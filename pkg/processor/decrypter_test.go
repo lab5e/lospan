@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 )
@@ -49,7 +48,7 @@ func createEncryptedTestMessage() protocol.PHYPayload {
 func TestDecrypterProcessing(t *testing.T) {
 
 	s := NewStorageTestContext()
-	router := pubsub.NewEventRouter(5)
+	router := server.NewEventRouter(5)
 	context := server.Context{Storage: s, AppRouter: &router}
 
 	input := make(chan server.LoRaMessage)

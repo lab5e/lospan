@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -29,7 +28,7 @@ func createTestServer(config server.Configuration) *Server {
 
 	fob := server.NewFrameOutputBuffer()
 
-	appRouter := pubsub.NewEventRouter(5)
+	appRouter := server.NewEventRouter(5)
 	context := &server.Context{
 		Storage:      store,
 		FrameOutput:  &fob,

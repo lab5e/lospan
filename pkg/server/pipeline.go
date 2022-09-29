@@ -1,24 +1,8 @@
 package server
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"time"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -29,13 +13,13 @@ import (
 
 // Context is the request/response context. It is passed along with the packets in various states.
 type Context struct {
-	Storage       *storage.Storage    // The storage layer
-	Terminator    chan bool           // Terminator channel. Throw something on this to terminate the processes.
-	FrameOutput   *FrameOutputBuffer  // Device aggregator instance. Common instance for processors.
-	Config        *Configuration      // Main configuration
-	KeyGenerator  *KeyGenerator       // Key generator for server
-	GwEventRouter *pubsub.EventRouter // Router for GW events
-	AppRouter     *pubsub.EventRouter // Router for app data
+	Storage       *storage.Storage   // The storage layer
+	Terminator    chan bool          // Terminator channel. Throw something on this to terminate the processes.
+	FrameOutput   *FrameOutputBuffer // Device aggregator instance. Common instance for processors.
+	Config        *Configuration     // Main configuration
+	KeyGenerator  *KeyGenerator      // Key generator for server
+	GwEventRouter *EventRouter       // Router for GW events
+	AppRouter     *EventRouter       // Router for app data
 }
 
 // RadioContext - metadata for radio stats and settings

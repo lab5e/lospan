@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ExploratoryEngineering/pubsub"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -32,7 +31,7 @@ func setupServer(t *testing.T) serverConfig {
 		t.Fatal("Could not allocate free port: ", err)
 	}
 
-	router := pubsub.NewEventRouter(5)
+	router := server.NewEventRouter(5)
 	context := server.Context{GwEventRouter: &router, Config: &server.Configuration{}}
 	ret.forwarder = NewGenericPacketForwarder(port, gwStorage, &context)
 

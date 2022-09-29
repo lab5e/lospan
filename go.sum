@@ -18,8 +18,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v1.2.0 h1:Rt8g24XnyGTyglgET/PRUNlrUeu9F5L+7FilkXfZgs0=
 github.com/BurntSushi/toml v1.2.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/ExploratoryEngineering/pubsub v1.0.2 h1:SmDYe2dPpbuJNGEYQmanyQI1mG5H/Xm6ImjL01TxMeQ=
-github.com/ExploratoryEngineering/pubsub v1.0.2/go.mod h1:MFzjBeECQdVGXv5c9trU47Ga1fheq3fLgPqqMA/hwRU=
 github.com/ExploratoryEngineering/rest v1.0.1 h1:akjog1i3KNKbBwhZ8KDxoUkImWlPOGGKFRwM/aQ3xyc=
 github.com/ExploratoryEngineering/rest v1.0.1/go.mod h1:BMIGegehBfv1aSbg5LZYexs+h1d9/jfFSsnZPJtMHU0=
 github.com/Microsoft/go-winio v0.5.2 h1:a9IhgEQBCUEk6QCdml9CiJGhAws+YwffDHEMp1VMrpA=

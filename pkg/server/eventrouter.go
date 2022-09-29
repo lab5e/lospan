@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"sync"
+	"time"
 )
 
 type route[I comparable, T any] struct {
@@ -66,7 +67,7 @@ func (e *EventRouter[I, T]) Publish(id I, event T) {
 			select {
 			case route.ch <- event:
 				// This is OK
-			default:
+			case <-time.After(10 * time.Second):
 				log.Printf("Channel client isn't keeping up with reads. Skipping the event (%v) for ID %v", event, id)
 				// Skip event
 			}

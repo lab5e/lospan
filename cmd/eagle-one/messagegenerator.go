@@ -1,20 +1,5 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	b64 "encoding/base64"
 	"fmt"
@@ -43,12 +28,11 @@ func init() {
 
 // MessageGenerator generates LoRaWAN messages of various kinds.
 type MessageGenerator struct {
-	CorruptMICError     *TheRandomizer
-	FrameCounterError   *TheRandomizer
-	CorruptPayloadError *TheRandomizer
+	CorruptMICError     *Randomizer
+	FrameCounterError   *Randomizer
+	CorruptPayloadError *Randomizer
 	MaxPayloadSize      int
 	UseNumericalPayload bool
-	TransmissionDelay   int
 	deviceTick          float64
 	function            func(float64) uint16
 }
@@ -72,14 +56,12 @@ func randomFunc() func(float64) uint16 {
 }
 
 // NewMessageGenerator generates random messages
-func NewMessageGenerator(config Params) MessageGenerator {
+func NewMessageGenerator(config EagleConfig) MessageGenerator {
 	return MessageGenerator{
 		CorruptMICError:     NewRandomizer(config.CorruptMIC),
 		FrameCounterError:   NewRandomizer(config.FrameCounterErrors),
 		CorruptPayloadError: NewRandomizer(config.CorruptedPayload),
 		MaxPayloadSize:      config.MaxPayloadSize,
-		UseNumericalPayload: config.NumericalPayload,
-		TransmissionDelay:   config.TransmissionDelay,
 		deviceTick:          0,
 		function:            randomFunc(),
 	}
@@ -112,7 +94,7 @@ func (m *MessageGenerator) buildPayload() []byte {
 
 // Generate creates a new message, encodes it and returns a base64-encoded string. The second
 // returned value indicates a valid message or not.
-func (m *MessageGenerator) Generate(keys DeviceKeys, fCnt uint16) (string, protocol.MType) {
+func (m *MessageGenerator) Generate(keys *DeviceKeys, fCnt uint16) (string, protocol.MType) {
 	mt := m.randomMessageType()
 
 	if m.CorruptPayloadError.Now() {

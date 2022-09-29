@@ -9,19 +9,27 @@ import (
 
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/pb/lospan"
+	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
-// BatchMode processing. Create
-type BatchMode struct {
-	Config           Params
+// GWMessage is the gateway message
+type GWMessage struct {
+	PHYPayload protocol.PHYPayload
+	Buffer     []byte
+}
+
+// DeviceRunner processing. Create
+type DeviceRunner struct {
+	Config           EagleConfig
 	Application      *lospan.Application
 	devices          []*lospan.Device
 	OutgoingMessages chan string
-	Publisher        *EventRouter
+	Publisher        *server.EventRouter[protocol.DevAddr, GWMessage]
 }
 
 // Prepare prepares the processing
-func (b *BatchMode) Prepare(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) error {
+func (b *DeviceRunner) Prepare(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) error {
 	b.devices = make([]*lospan.Device, 0)
 
 	randomizer := NewRandomizer(50)
@@ -43,6 +51,7 @@ func (b *BatchMode) Prepare(client lospan.LospanClient, app *lospan.Application,
 			return fmt.Errorf("unable to create device in Congress: %v", err)
 		}
 		b.devices = append(b.devices, dev)
+		lg.Info("Created device: %v", dev)
 	}
 	lg.Info("# devices: %d", b.Config.DeviceCount)
 	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)
@@ -50,23 +59,14 @@ func (b *BatchMode) Prepare(client lospan.LospanClient, app *lospan.Application,
 }
 
 // Cleanup resources after use. Remove devices if required.
-func (b *BatchMode) Cleanup(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) {
-	ctx, done := context.WithCancel(context.Background())
-	defer done()
-	if !b.Config.KeepDevices {
-		lg.Info("Removing %d devices", len(b.devices))
-		for _, d := range b.devices {
-			client.DeleteDevice(ctx, &lospan.DeleteDeviceRequest{
-				Eui: *d.Eui,
-			})
-		}
-	}
+func (b *DeviceRunner) Cleanup(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) {
+
 }
 
 // The number of join attempts before giving up
 const joinAttempts = 5
 
-func (b *BatchMode) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
+func (b *DeviceRunner) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
 	keys, err := NewDeviceKeys(device)
 	if err != nil {
 		lg.Warning("Got error converting lassie data into proper types: %v", err)
@@ -75,7 +75,7 @@ func (b *BatchMode) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
 	generator := NewMessageGenerator(b.Config)
 	remoteDevice := NewEmulatedDevice(
 		b.Config,
-		keys,
+		&keys,
 		b.OutgoingMessages,
 		b.Publisher)
 
@@ -90,18 +90,18 @@ func (b *BatchMode) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
 
 	lg.Debug("Device %s is now ready to send messages", device.GetEui())
 	for i := 0; i < b.Config.DeviceMessages; i++ {
+		randomOffset := rand.Int63n(int64(b.Config.TransmissionDelay/5)) - int64(b.Config.TransmissionDelay)/10
+		time.Sleep(b.Config.TransmissionDelay + time.Duration(randomOffset))
 		if err := remoteDevice.SendMessageWithGenerator(generator); err != nil {
 			lg.Warning("Device %s got error sending message #%d", device.GetEui(), i)
 		}
-		randomOffset := rand.Intn(b.Config.TransmissionDelay/10) - (b.Config.TransmissionDelay / 5)
 		lg.Debug("Device %s has sent message %d of %d", device.GetEui(), i, b.Config.DeviceMessages)
-		time.Sleep(time.Duration(b.Config.TransmissionDelay+randomOffset) * time.Millisecond)
 	}
 	lg.Info("Device %s has completed", device.GetEui())
 }
 
 // Run the device emulation
-func (b *BatchMode) Run(outgoingMessages chan string, publisher *EventRouter, app *lospan.Application, gw *lospan.Gateway) {
+func (b *DeviceRunner) Run(outgoingMessages chan string, publisher *server.EventRouter[protocol.DevAddr, GWMessage], app *lospan.Application, gw *lospan.Gateway) {
 	b.OutgoingMessages = outgoingMessages
 	b.Publisher = publisher
 	b.Application = app
@@ -117,6 +117,6 @@ func (b *BatchMode) Run(outgoingMessages chan string, publisher *EventRouter, ap
 }
 
 // Failed returns true if the mode has failed
-func (b *BatchMode) Failed() bool {
+func (b *DeviceRunner) Failed() bool {
 	return false
 }

@@ -86,6 +86,10 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	device.AppSKey = appSKey
 	device.FCntDn = 0
 	device.FCntUp = 0
+	if device.DevAddr.ToUint32() == 0 {
+		// Set device address if it isn't set
+		device.DevAddr = protocol.NewDevAddr()
+	}
 	if err := d.context.Storage.UpdateDevice(device); err != nil {
 		lg.Error("Unable to update device with EUI %s: %v", device.DeviceEUI, err)
 		return false

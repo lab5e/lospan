@@ -1,22 +1,5 @@
 # Eagle-One
-Congress load testing tool
-
-## Dependencies:
-* github.com/comoyo/congress/protocol
-
-## Usage:
-## Environment variables
-Two environment variables are used to run Eagle-One: 
-* `CONGRESS_API_ENDPOINT` - set this to the Congress instance you want to test, typically `http://localhost:8080`. The default is `https://api.lora.telenor.io`.
-* `CONGRESS_API_TOKEN` - set this to the API token you want to use. This can be omitted if you are running locally without authentication.
-
-To test with a local instance running at port 8080 you can launch Eagle-One like this:
-
-```sh
-CONGRESS_API_ENDPOINT=http://localhost:8080 CONGRESS_API_TOKEN=x ./Eagle-One
-```
-
-The token is ignored if authentication is turned off for Congress.
+The former Congress load testing tool now the LoRaWAN concentrator emulator.
 
 ## Parameters
 Note that the Congress configuration is retrieved from `~/.congress` or 

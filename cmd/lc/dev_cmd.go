@@ -230,7 +230,7 @@ func (*listDevCmd) Run(args *params) error {
 	table := tabwriter.NewWriter(os.Stdout, 8, 4, 2, ' ', 0)
 	table.Write([]byte("EUI\tState\tDevAddr\tFCntUp\tFCNtDn\tRelaxed\tKey warning\n"))
 	for _, dev := range devs.Devices {
-		table.Write([]byte(fmt.Sprintf("%s\t%s\t%04x\t%d\t%d\t%t\t%t\n",
+		table.Write([]byte(fmt.Sprintf("%s\t%s\t%08x\t%d\t%d\t%t\t%t\n",
 			dev.GetEui(),
 			dev.GetState().String(),
 			dev.GetDevAddr(),

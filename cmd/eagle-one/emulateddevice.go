@@ -1,20 +1,5 @@
 package main
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"crypto/aes"
 	"encoding/base64"
@@ -28,17 +13,18 @@ import (
 
 	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
+	"github.com/lab5e/lospan/pkg/server"
 )
 
 // EmulatedDevice emulates a device
 type EmulatedDevice struct {
-	keys              DeviceKeys
+	keys              *DeviceKeys
 	sentMessageCount  int    // Number of messages currently sent
 	FrameCounterUp    uint16 // Current frame counter
 	FrameCounterDown  uint16
-	duplicateMessages *TheRandomizer
-	publisher         *EventRouter
-	Config            Params
+	duplicateMessages *Randomizer
+	publisher         *server.EventRouter[protocol.DevAddr, GWMessage]
+	Config            EagleConfig
 	incomingMessages  <-chan GWMessage
 	outgoingMessages  chan string // Messages to be sent to the packet forwarder
 	nonces            []uint16
@@ -53,7 +39,7 @@ type IncomingMessage struct {
 }
 
 // NewEmulatedDevice creates a new OTAA device
-func NewEmulatedDevice(config Params, keys DeviceKeys, outgoing chan string, publisher *EventRouter) *EmulatedDevice {
+func NewEmulatedDevice(config EagleConfig, keys *DeviceKeys, outgoing chan string, publisher *server.EventRouter[protocol.DevAddr, GWMessage]) *EmulatedDevice {
 	return &EmulatedDevice{
 		keys:              keys,
 		sentMessageCount:  0,
@@ -85,7 +71,7 @@ func (d *EmulatedDevice) Join(maxAttempts int) error {
 			select {
 			case joinResponse := <-d.incomingMessages:
 				if d.validJoinResponse(joinResponse, lastNonce) {
-					lg.Info("Device %s has joined", d.keys.DevEUI)
+					lg.Info("Device %s (devaddr %s) has joined", d.keys.DevEUI, d.keys.DevAddr.String())
 					// Success - got message
 					return nil
 				}
@@ -133,10 +119,11 @@ func (d *EmulatedDevice) validJoinResponse(msg GWMessage, lastNonce uint16) bool
 		}
 		// Got it - this is the message we're waiting for
 		d.keys.DevAddr = msg.PHYPayload.JoinAcceptPayload.DevAddr
-		d.keys.AppSKey, _ = protocol.AppSKeyFromNonces(d.keys.AppKey, msg.PHYPayload.JoinAcceptPayload.AppNonce, d.Config.NetID, lastNonce)
-		d.keys.NwkSKey, _ = protocol.NwkSKeyFromNonces(d.keys.AppKey, msg.PHYPayload.JoinAcceptPayload.AppNonce, d.Config.NetID, lastNonce)
+		d.keys.AppSKey, _ = protocol.AppSKeyFromNonces(d.keys.AppKey, msg.PHYPayload.JoinAcceptPayload.AppNonce, 0, lastNonce)
+		d.keys.NwkSKey, _ = protocol.NwkSKeyFromNonces(d.keys.AppKey, msg.PHYPayload.JoinAcceptPayload.AppNonce, 0, lastNonce)
 		d.FrameCounterDown = 0
 		d.FrameCounterUp = 0
+		lg.Info("Device with DevAddr %s (%s) has joined", d.keys.DevAddr.String(), msg.PHYPayload.JoinAcceptPayload.DevAddr.String())
 		return true
 	}
 	lg.Info("Device %s didn't get a JoinAccept but %s", d.keys.DevEUI, msg.PHYPayload.MHDR.MType)

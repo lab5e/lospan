@@ -37,14 +37,19 @@ service Lospan {
     // DeleteGateway removes a gateway. When deleted the service won't accept data from it anymore.
     rpc DeleteGateway(DeleteGatewayRequest) returns (Gateway);
 
+    // ListDevices retrieves the devices for the application
     rpc ListDevices(ListDeviceRequest) returns (ListDeviceResponse);
 
-    rpc CreateDevice(Device) returns (DeleteApplicationRequest);
+    // CreateDevice creates a new device
+    rpc CreateDevice(Device) returns (Device);
 
+    // GetDevice returns a single device
     rpc GetDevice(GetDeviceRequest) returns (Device);
 
+    // UpdateDevice updates a device
     rpc UpdateDevice(Device) returns (Device);
 
+    // DeleteDevice removes a device from the application
     rpc DeleteDevice(DeleteDeviceRequest) returns (Device);
 
     rpc Inbox(InboxRequest) returns (InboxResponse);

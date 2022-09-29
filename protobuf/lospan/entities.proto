@@ -10,10 +10,29 @@ message Application {
     string eui = 1; 
 };
 
-// Device is the ... device that connects to the gateway
+// State of device
+enum DeviceState {
+    UNSPECIFIED = 0;
+    OTAA = 1;
+    ABP = 2;
+    DISABLED = 3;
+};
+
+// Device is the ... device that connects to the gateway. "Node" might be a better name since it's 
+// part of the LoRaWAN implementation nomenclature.
 message Device {
-    string eui = 1;
+    optional string eui = 1; // Tecnhically required but can be skipped when creating a new
     string application_eui = 2;
+    optional DeviceState state = 3;
+    optional uint32 dev_addr = 4;           // 7+25 bits
+    optional bytes app_key = 5;             // 16 bytes/256 bits
+    optional bytes app_session_key = 6;     // 16 bytes/256 bits
+    optional bytes network_session_key = 7; // 16 bytes/256 bits
+    optional int32 frame_count_up = 8;      // in reality uint16 
+    optional int32 frame_count_down = 9;    // in reality uint16 
+    optional bool relaxed_counter = 10;
+    optional bool key_warning = 11;         // Ignored on updates; set by service
+    repeated int32 dev_nonces = 12;         // in reality uint16 
 };
 
 // UpstreamMessage is a message from one of the devices

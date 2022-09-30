@@ -246,7 +246,7 @@ func TestProcessingPipeline(t *testing.T) {
 	downMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 200)
 	downMsg.Ack = false
 	downMsg.Data = "010203040506070809"
-	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, downMsg); err != nil {
+	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, downMsg); err != nil {
 		t.Fatalf("Unable to store downstream: %v", err)
 	}
 
@@ -267,7 +267,7 @@ func TestProcessingPipeline(t *testing.T) {
 			t.Fatalf("Did not get the expected data: %v", phy.MACPayload.FRMPayload)
 		}
 	})
-	downMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
+	downMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -289,8 +289,8 @@ func TestProcessingPipeline(t *testing.T) {
 	downMsgAck := model.NewDownstreamMessage(c.device.DeviceEUI, 100)
 	downMsgAck.Ack = true
 	downMsgAck.Data = "aabbccddeeff00112233"
-	c.datastore.DeleteDownstreamData(c.device.DeviceEUI)
-	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, downMsgAck); err != nil {
+	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI)
+	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, downMsgAck); err != nil {
 		t.Fatalf("Unable to store downstream message: %v", err)
 	}
 	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
@@ -326,7 +326,7 @@ func TestProcessingPipeline(t *testing.T) {
 	if msg := c.forwarder.grabMessage(timeToWaitForNoMessage); msg != nil {
 		t.Fatalf("Did not expect downstream message to be sent a 2nd time but got %v", msg)
 	}
-	updatedAckMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
+	updatedAckMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -346,7 +346,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedAckMsg, err = c.datastore.GetDownstreamData(c.device.DeviceEUI)
+	updatedAckMsg, err = c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -359,12 +359,12 @@ func TestProcessingPipeline(t *testing.T) {
 	// Add downstream message, shut down pipeline (in effect stopping the server),
 	// launch a new pipeline and see if the message is forwarded appropriately.
 
-	c.datastore.DeleteDownstreamData(c.device.DeviceEUI)
+	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI)
 	persistedMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 50)
 	persistedMsg.Ack = true
 	persistedMsg.Data = "beefbeefbeefbeef"
 
-	if err := c.datastore.CreateDownstreamData(c.device.DeviceEUI, persistedMsg); err != nil {
+	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, persistedMsg); err != nil {
 		t.Fatalf("Unable to store downstream message: %v", err)
 	}
 
@@ -377,7 +377,7 @@ func TestProcessingPipeline(t *testing.T) {
 	})
 	c.forwarder.Stop()
 
-	updatedMsg, err := c.datastore.GetDownstreamData(c.device.DeviceEUI)
+	updatedMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -410,7 +410,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedMsg, err = c.datastore.GetDownstreamData(c.device.DeviceEUI)
+	updatedMsg, err = c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -499,7 +499,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 	})
 
 	// Data for device 1 should contain *one* packet with payload "01010101"
-	ch, err := c.datastore.GetUpstreamDataByDeviceEUI(device1.DeviceEUI, 1)
+	ch, err := c.datastore.ListUpstreamMessages(device1.DeviceEUI, 1)
 	if err != nil {
 		t.Fatalf("Got error retrieving data for device 1: %v", err)
 	}
@@ -514,7 +514,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 		t.Fatalf("Got %d data elements, but expected 1", count)
 	}
 	// Data for deviec 2 should contain *one* packet with payload "02020202"
-	ch, err = c.datastore.GetUpstreamDataByDeviceEUI(device2.DeviceEUI, 1)
+	ch, err = c.datastore.ListUpstreamMessages(device2.DeviceEUI, 1)
 	if err != nil {
 		t.Fatalf("Got error retrieving data for device 2: %v", err)
 	}

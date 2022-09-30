@@ -82,7 +82,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		DevAddr:    device.DevAddr,
 	}
 
-	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, deviceData); err != nil {
+	if err := d.context.Storage.CreateUpstreamMessage(device.DeviceEUI, deviceData); err != nil {
 		lg.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
 		return
 	}
@@ -100,7 +100,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		d.context.FrameOutput.SetMessageAckFlag(device.DeviceEUI, true)
 	}
 
-	msg, err := d.context.Storage.GetDownstreamData(device.DeviceEUI)
+	msg, err := d.context.Storage.GetNextDownstreamMessage(device.DeviceEUI)
 	if err == nil {
 		// Update state of message -- note that this could cause some inconsistent
 		// behaviour if you create a message (with ack) and replaces it with a new

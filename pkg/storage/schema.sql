@@ -82,5 +82,7 @@ CREATE TABLE IF NOT EXISTS lora_downstream_messages (
     sent_time    INTEGER DEFAULT 0,
     ack_time     INTEGER DEFAULT 0,
 
-    CONSTRAINT lora_downstream_message_pk PRIMARY KEY (device_eui)
+    CONSTRAINT lora_downstream_message_pk PRIMARY KEY (device_eui, created_time)
 );
+
+CREATE INDEX IF NOT EXISTS lora_downstream_messages_created ON lora_downstream_messages(created_time);  

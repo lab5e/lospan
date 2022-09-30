@@ -47,24 +47,24 @@ func TestUpstreamStorage(t *testing.T) {
 	deviceData1 := model.UpstreamMessage{Timestamp: 1, Data: data1, DeviceEUI: device.DeviceEUI, Frequency: 1.0}
 	deviceData2 := model.UpstreamMessage{Timestamp: 2, Data: data2, DeviceEUI: device.DeviceEUI, Frequency: 2.0}
 
-	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, deviceData1), "Message 1 stored successfully")
+	assert.NoError(storage.CreateUpstreamMessage(device.DeviceEUI, deviceData1), "Message 1 stored successfully")
 
-	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, deviceData2), "Message 2 stored successfully")
+	assert.NoError(storage.CreateUpstreamMessage(device.DeviceEUI, deviceData2), "Message 2 stored successfully")
 
 	// Storing it a 2nd time won't work
-	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, deviceData1), "May only store message 1 once")
+	assert.Error(storage.CreateUpstreamMessage(device.DeviceEUI, deviceData1), "May only store message 1 once")
 
-	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, deviceData2), "May only store message 2 once")
+	assert.Error(storage.CreateUpstreamMessage(device.DeviceEUI, deviceData2), "May only store message 2 once")
 
 	// Test retrieval
-	data, err := storage.GetUpstreamDataByDeviceEUI(device.DeviceEUI, 2)
+	data, err := storage.ListUpstreamMessages(device.DeviceEUI, 2)
 	assert.NoError(err, "No error when retrieving data")
 
 	assert.Contains(data, deviceData1, "Message 1 returned")
 	assert.Contains(data, deviceData2, "Message 2 returned")
 
 	// Try retrieving from device with no data.
-	data, err = storage.GetUpstreamDataByDeviceEUI(makeRandomEUI(), 2)
+	data, err = storage.ListUpstreamMessages(makeRandomEUI(), 2)
 	assert.NoError(err, "No device => no error (and no data)")
 	assert.Len(data, 0)
 
@@ -98,66 +98,53 @@ func TestDownstreamStorage(t *testing.T) {
 	downstreamMsg := model.NewDownstreamMessage(testDevice.DeviceEUI, 42)
 	downstreamMsg.Ack = false
 	downstreamMsg.Data = "aabbccddeeff"
-	if err := s.CreateDownstreamData(testDevice.DeviceEUI, downstreamMsg); err != nil {
-		t.Fatal("Couldn't store downstream message: ", err)
-	}
+	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, downstreamMsg), "Should be able to store downstream message")
 
 	newDownstreamMsg := model.NewDownstreamMessage(testDevice.DeviceEUI, 43)
 	newDownstreamMsg.Ack = false
 	newDownstreamMsg.Data = "aabbccddeeff"
-	if err := s.CreateDownstreamData(testDevice.DeviceEUI, newDownstreamMsg); err == nil {
-		t.Fatal("Shouldn't be able to store another downstream message")
-	}
 
-	if err := s.DeleteDownstreamData(testDevice.DeviceEUI); err != nil {
-		t.Fatalf("Couldn't remove downstream message: %v", err)
-	}
+	assert.Error(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg),
+		"Shouldn't be able to store another downstream message")
 
-	if err := s.DeleteDownstreamData(testDevice.DeviceEUI); err != ErrNotFound {
-		t.Fatalf("Should get ErrNotFound when removing message but got: %v", err)
-	}
+	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI))
 
-	if _, err := s.GetDownstreamData(testDevice.DeviceEUI); err != ErrNotFound {
-		t.Fatalf("Expected ErrNotFound but got %v", err)
-	}
+	assert.Equal(ErrNotFound, s.DeleteDownstreamMessage(testDevice.DeviceEUI))
 
-	if err := s.CreateDownstreamData(testDevice.DeviceEUI, newDownstreamMsg); err != nil {
-		t.Fatalf("Should be able to store the new downstream message but got %v: ", err)
-	}
+	_, err = s.GetNextDownstreamMessage(testDevice.DeviceEUI)
+	assert.Equal(ErrNotFound, err)
+
+	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg))
 
 	time2 := time.Now().Unix()
-	if err := s.UpdateDownstreamData(testDevice.DeviceEUI, time2, 0); err != nil {
-		t.Fatal("Should be able to update sent time but got error: ", err)
-	}
+	assert.NoError(s.UpdateDownstreamData(testDevice.DeviceEUI, time2, 0))
 
 	newDownstreamMsg.SentTime = time2
-	stored, err := s.GetDownstreamData(testDevice.DeviceEUI)
-	if err != nil {
-		t.Fatal("Got error retrieving downstream message: ", err)
-	}
-	if stored != newDownstreamMsg {
-		t.Fatalf("Sent time isn't updated properly. Got %+v but expected %+v", stored, newDownstreamMsg)
-	}
+	stored, err := s.GetNextDownstreamMessage(testDevice.DeviceEUI)
+	assert.NoError(err)
+
+	assert.Equal(newDownstreamMsg, stored, "Sent time isn't updated properly")
 
 	time3 := time.Now().Unix()
-	if err := s.UpdateDownstreamData(testDevice.DeviceEUI, 0, time3); err != nil {
-		t.Fatal("Got error updating downstream message: ", err)
-	}
+	assert.NoError(s.UpdateDownstreamData(testDevice.DeviceEUI, 0, time3))
 
-	stored, err = s.GetDownstreamData(testDevice.DeviceEUI)
-	if err != nil {
-		t.Fatal("Got error retrieving downstream message: ", err)
-	}
-	if stored.AckTime != time3 {
-		t.Fatalf("Ack time isn't updated properly. Got %d but expected %d", stored.AckTime, time3)
-	}
+	stored, err = s.GetNextDownstreamMessage(testDevice.DeviceEUI)
+	assert.NoError(err)
 
-	if err := s.DeleteDownstreamData(testDevice.DeviceEUI); err != nil {
-		t.Fatalf("Did not expect error when deleting downstream but got %v", err)
-	}
+	assert.Equal(time3, stored.AckTime)
 
-	if err := s.UpdateDownstreamData(testDevice.DeviceEUI, 0, 0); err != ErrNotFound {
-		t.Fatalf("Expected ErrNotFound when updating nonexisting message but got %v", err)
-	}
+	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, model.DownstreamMessage{
+		DeviceEUI: testDevice.DeviceEUI,
+		Data:      "0102030405",
+		Port:      2,
+		Ack:       false,
+	}))
+	list, err := s.ListDownstreamMessages(testDevice.DeviceEUI)
+	assert.NoError(err)
+	assert.Len(list, 2)
+
+	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI))
+
+	assert.Equal(ErrNotFound, s.UpdateDownstreamData(testDevice.DeviceEUI, 0, 0))
 
 }

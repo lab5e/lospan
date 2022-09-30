@@ -17,7 +17,7 @@ type dataStatements struct {
 	createDownstream *sql.Stmt
 	deleteDownstream *sql.Stmt
 	updateDownstream *sql.Stmt
-	getDownstream    *sql.Stmt
+	listDownstream   *sql.Stmt
 }
 
 // Close closes the resources opened by the DBDataStorage instance
@@ -27,7 +27,7 @@ func (d *dataStatements) Close() {
 	d.createDownstream.Close()
 	d.deleteDownstream.Close()
 	d.updateDownstream.Close()
-	d.getDownstream.Close()
+	d.listDownstream.Close()
 }
 
 func (d *dataStatements) prepare(db *sql.DB) error {
@@ -110,7 +110,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 		return fmt.Errorf("unable to prepare downstream update statement")
 	}
 
-	if d.getDownstream, err = db.Prepare(`
+	if d.listDownstream, err = db.Prepare(`
 		SELECT
 			data,
 			port,
@@ -122,14 +122,17 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 			lora_downstream_messages
 		WHERE
 			device_eui = $1
+		ORDER BY
+			created_time
+		LIMIT 100
 	`); err != nil {
 		return fmt.Errorf("unable to prepare downstream select statement")
 	}
 	return nil
 }
 
-// CreateUpstreamData stores a new data element in the backend. The element is associated with the specified DevAddr
-func (s *Storage) CreateUpstreamData(deviceEUI protocol.EUI, data model.UpstreamMessage) error {
+// CreateUpstreamMessage stores a new data element in the backend. The element is associated with the specified DevAddr
+func (s *Storage) CreateUpstreamMessage(deviceEUI protocol.EUI, data model.UpstreamMessage) error {
 	return s.doSQLExec(s.dataStmt.createUpstream, func(st *sql.Stmt) (sql.Result, error) {
 		b64str := base64.StdEncoding.EncodeToString(data.Data)
 		return st.Exec(deviceEUI.ToInt64(),
@@ -187,13 +190,13 @@ func (s *Storage) doQuery(stmt *sql.Stmt, eui protocol.EUI, limit int) ([]model.
 	return ret, nil
 }
 
-// GetUpstreamDataByDeviceEUI retrieves all of the data stored for that DevAddr
-func (s *Storage) GetUpstreamDataByDeviceEUI(deviceEUI protocol.EUI, limit int) ([]model.UpstreamMessage, error) {
+// ListUpstreamMessages retrieves all of the data stored for that DevAddr
+func (s *Storage) ListUpstreamMessages(deviceEUI protocol.EUI, limit int) ([]model.UpstreamMessage, error) {
 	return s.doQuery(s.dataStmt.listUpstream, deviceEUI, limit)
 }
 
-// CreateDownstreamData creates new downstream data for a device
-func (s *Storage) CreateDownstreamData(deviceEUI protocol.EUI, message model.DownstreamMessage) error {
+// CreateDownstreamMessage creates new downstream data for a device
+func (s *Storage) CreateDownstreamMessage(deviceEUI protocol.EUI, message model.DownstreamMessage) error {
 	return s.doSQLExec(s.dataStmt.createDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
 			deviceEUI.String(),
@@ -206,20 +209,20 @@ func (s *Storage) CreateDownstreamData(deviceEUI protocol.EUI, message model.Dow
 	})
 }
 
-// DeleteDownstreamData deletes a downstream message
-func (s *Storage) DeleteDownstreamData(deviceEUI protocol.EUI) error {
+// DeleteDownstreamMessage deletes a downstream message
+func (s *Storage) DeleteDownstreamMessage(deviceEUI protocol.EUI) error {
 	return s.doSQLExec(s.dataStmt.deleteDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(deviceEUI.String())
 	})
 }
 
-// GetDownstreamData returns a downstream message
-func (s *Storage) GetDownstreamData(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
+// GetNextDownstreamMessage returns a downstream message
+func (s *Storage) GetNextDownstreamMessage(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
 	ret := model.NewDownstreamMessage(deviceEUI, 0)
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	rows, err := s.dataStmt.getDownstream.Query(deviceEUI.String())
+	rows, err := s.dataStmt.listDownstream.Query(deviceEUI.String())
 	if err != nil {
 		return ret, fmt.Errorf("unable to query for downstream message: %v", err)
 	}
@@ -229,6 +232,30 @@ func (s *Storage) GetDownstreamData(deviceEUI protocol.EUI) (model.DownstreamMes
 	}
 	if err := rows.Scan(&ret.Data, &ret.Port, &ret.Ack, &ret.CreatedTime, &ret.SentTime, &ret.AckTime); err != nil {
 		return ret, fmt.Errorf("unable to read fields from downstream result: %v", err)
+	}
+	return ret, nil
+}
+
+// ListDownstreamMessages lists the scheduled downstream messages for a device
+func (s *Storage) ListDownstreamMessages(deviceEUI protocol.EUI) ([]model.DownstreamMessage, error) {
+	var ret []model.DownstreamMessage
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	rows, err := s.dataStmt.listDownstream.Query(deviceEUI.String())
+	if err != nil {
+		return ret, fmt.Errorf("unable to query for downstream message: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		dm := model.DownstreamMessage{
+			DeviceEUI: deviceEUI,
+		}
+		if err := rows.Scan(&dm.Data, &dm.Port, &dm.Ack, &dm.CreatedTime, &dm.SentTime, &dm.AckTime); err != nil {
+			return ret, fmt.Errorf("unable to read fields from downstream result: %v", err)
+		}
+		ret = append(ret, dm)
 	}
 	return ret, nil
 }

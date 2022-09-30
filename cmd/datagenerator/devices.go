@@ -87,7 +87,7 @@ func generateDeviceData(device model.Device, count int, gateways []model.Gateway
 		dd.SNR = float32(rand.Intn(20))
 		dd.Timestamp = emulatedTime.UnixNano()
 		emulatedTime = emulatedTime.Add(time.Minute)
-		if err := datastore.CreateUpstreamData(device.DeviceEUI, dd); err != nil {
+		if err := datastore.CreateUpstreamMessage(device.DeviceEUI, dd); err != nil {
 			lg.Error("Unable to store device data: %v", err)
 		}
 	}
@@ -99,7 +99,7 @@ func generateDownstreamMessage(device model.Device, datastore *storage.Storage) 
 		dm := model.NewDownstreamMessage(device.DeviceEUI, uint8(1+rand.Intn(222)))
 		dm.Ack = rand.Intn(2) == 1
 		dm.Data = hex.EncodeToString(makeRandomPayload())
-		if err := datastore.CreateDownstreamData(device.DeviceEUI, dm); err != nil {
+		if err := datastore.CreateDownstreamMessage(device.DeviceEUI, dm); err != nil {
 			lg.Error("Unable to store downstream message: %v", err)
 		}
 	}

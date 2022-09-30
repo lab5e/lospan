@@ -52,8 +52,11 @@ type LospanClient interface {
 	UpdateDevice(ctx context.Context, in *Device, opts ...grpc.CallOption) (*Device, error)
 	// DeleteDevice removes a device from the application
 	DeleteDevice(ctx context.Context, in *DeleteDeviceRequest, opts ...grpc.CallOption) (*Device, error)
+	// Inbox lists the downstream messages from a device
 	Inbox(ctx context.Context, in *InboxRequest, opts ...grpc.CallOption) (*InboxResponse, error)
+	// Outbox lists the downstream messages to a device. Sent messages are purged automatically
 	Outbox(ctx context.Context, in *OutboxRequest, opts ...grpc.CallOption) (*OutboxResponse, error)
+	// SendMessage schedules a message for the device
 	SendMessage(ctx context.Context, in *DownstreamMessage, opts ...grpc.CallOption) (*DownstreamMessage, error)
 	StreamMessages(ctx context.Context, in *StreamMessagesRequest, opts ...grpc.CallOption) (Lospan_StreamMessagesClient, error)
 	StreamGateway(ctx context.Context, in *StreamGatewayRequest, opts ...grpc.CallOption) (Lospan_StreamGatewayClient, error)
@@ -318,8 +321,11 @@ type LospanServer interface {
 	UpdateDevice(context.Context, *Device) (*Device, error)
 	// DeleteDevice removes a device from the application
 	DeleteDevice(context.Context, *DeleteDeviceRequest) (*Device, error)
+	// Inbox lists the downstream messages from a device
 	Inbox(context.Context, *InboxRequest) (*InboxResponse, error)
+	// Outbox lists the downstream messages to a device. Sent messages are purged automatically
 	Outbox(context.Context, *OutboxRequest) (*OutboxResponse, error)
+	// SendMessage schedules a message for the device
 	SendMessage(context.Context, *DownstreamMessage) (*DownstreamMessage, error)
 	StreamMessages(*StreamMessagesRequest, Lospan_StreamMessagesServer) error
 	StreamGateway(*StreamGatewayRequest, Lospan_StreamGatewayServer) error

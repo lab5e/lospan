@@ -114,7 +114,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		// Since the message from t=1.2 isn't sent yet the ack will be ignored.
 		if decoded.Payload.MACPayload.FHDR.FCtrl.ACK && msg.State() == model.SentState && msg.Ack {
 			msg.AckTime = time.Now().Unix()
-			if err := d.context.Storage.UpdateDownstreamData(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
+			if err := d.context.Storage.UpdateDownstreamMessage(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
 				lg.Warning("Unable to update downstream message: %v", err)
 			}
 		}

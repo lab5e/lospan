@@ -13,7 +13,7 @@ func toAPIApplication(app model.Application) *lospan.Application {
 	}
 }
 
-func newPtr[T int | int32 | uint32 | bool | float32 | string](v T) *T {
+func newPtr[T int | int32 | uint32 | int64 | bool | float32 | string](v T) *T {
 	ret := new(T)
 	*ret = v
 	return ret

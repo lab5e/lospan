@@ -52,9 +52,15 @@ service Lospan {
     // DeleteDevice removes a device from the application
     rpc DeleteDevice(DeleteDeviceRequest) returns (Device);
 
+    // Inbox lists the downstream messages from a device
     rpc Inbox(InboxRequest) returns (InboxResponse);
+
+    // Outbox lists the downstream messages to a device. Sent messages are purged automatically
     rpc Outbox(OutboxRequest) returns (OutboxResponse);
+
+    // SendMessage schedules a message for the device
     rpc SendMessage(DownstreamMessage) returns (DownstreamMessage);
+    
     rpc StreamMessages(StreamMessagesRequest) returns (stream UpstreamMessage);
     rpc StreamGateway(StreamGatewayRequest) returns (stream GatewayMessage);
 };

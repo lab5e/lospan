@@ -117,7 +117,7 @@ func TestDownstreamStorage(t *testing.T) {
 	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg))
 
 	time2 := time.Now().Unix()
-	assert.NoError(s.UpdateDownstreamData(testDevice.DeviceEUI, time2, 0))
+	assert.NoError(s.UpdateDownstreamMessage(testDevice.DeviceEUI, time2, 0))
 
 	newDownstreamMsg.SentTime = time2
 	stored, err := s.GetNextDownstreamMessage(testDevice.DeviceEUI)
@@ -126,7 +126,7 @@ func TestDownstreamStorage(t *testing.T) {
 	assert.Equal(newDownstreamMsg, stored, "Sent time isn't updated properly")
 
 	time3 := time.Now().Unix()
-	assert.NoError(s.UpdateDownstreamData(testDevice.DeviceEUI, 0, time3))
+	assert.NoError(s.UpdateDownstreamMessage(testDevice.DeviceEUI, time2, time3))
 
 	stored, err = s.GetNextDownstreamMessage(testDevice.DeviceEUI)
 	assert.NoError(err)
@@ -145,6 +145,6 @@ func TestDownstreamStorage(t *testing.T) {
 
 	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI))
 
-	assert.Equal(ErrNotFound, s.UpdateDownstreamData(testDevice.DeviceEUI, 0, 0))
+	assert.Equal(ErrNotFound, s.UpdateDownstreamMessage(testDevice.DeviceEUI, 0, 0))
 
 }

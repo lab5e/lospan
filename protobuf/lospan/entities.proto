@@ -37,12 +37,26 @@ message Device {
 
 // UpstreamMessage is a message from one of the devices
 message UpstreamMessage{
-
+    string eui = 1;
+    int64 timestamp = 2;
+    bytes payload = 3;
+    string gateway_eui = 4;
+    int32 rssi = 5;
+    float snr = 6;
+    float frequency = 7;
+    string data_rate = 8;
+    uint32 dev_addr = 9;
 };
 
 // DownstreamMessage is a message that should be or is sent to one of the devices
 message DownstreamMessage{
-
+    string eui = 1;
+    bytes payload = 2;
+    int32 port = 3;
+    bool ack = 4;
+    optional int64 created = 5;
+    optional int64 sent = 6;
+    optional int64 ack_time = 7;
 };
 
 // Gateway is a LoRaWAN gateway/concentrator. 

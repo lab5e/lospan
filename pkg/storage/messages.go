@@ -104,7 +104,7 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 				sent_time = $1,
 				ack_time = $2
 			WHERE
-				device_eui = $3
+				device_eui = $3 
 	`
 	if d.updateDownstream, err = db.Prepare(sqlUpdateDownstream); err != nil {
 		return fmt.Errorf("unable to prepare downstream update statement")
@@ -260,8 +260,8 @@ func (s *Storage) ListDownstreamMessages(deviceEUI protocol.EUI) ([]model.Downst
 	return ret, nil
 }
 
-// UpdateDownstreamData updates a downstream message
-func (s *Storage) UpdateDownstreamData(deviceEUI protocol.EUI, sentTime int64, ackTime int64) error {
+// UpdateDownstreamMessage updates a downstream message
+func (s *Storage) UpdateDownstreamMessage(deviceEUI protocol.EUI, sentTime int64, ackTime int64) error {
 	return s.doSQLExec(s.dataStmt.updateDownstream, func(st *sql.Stmt) (sql.Result, error) {
 		return st.Exec(
 			sentTime,

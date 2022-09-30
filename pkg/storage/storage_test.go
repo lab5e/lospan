@@ -24,7 +24,7 @@ func TestStorage(t *testing.T) {
 
 	testApplicationStorage(s, t)
 	testDeviceStorage(s, t)
-	testDataStorage(s, t)
+	testUpstreamStorage(s, t)
 	testGatewayStorage(s, t)
 
 	testSimpleKeySequence(s, t)

@@ -1,17 +1,12 @@
 package storage
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/stretchr/testify/require"
 )
-
-func equalDevices(a model.Device, b model.Device) bool {
-	return reflect.DeepEqual(a, b)
-}
 
 func testDeviceStorage(storage *Storage, t *testing.T) {
 	assert := require.New(t)

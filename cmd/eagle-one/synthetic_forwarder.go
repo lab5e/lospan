@@ -209,7 +209,6 @@ func (g *SyntheticForwarder) udpReader() {
 			lg.Warning("Unable to decode hex string: %v", err)
 			continue
 		}
-
 		g.incomingMessage <- bytes
 	}
 }

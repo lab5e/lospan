@@ -32,14 +32,14 @@ type DeviceRunner struct {
 func (b *DeviceRunner) Prepare(client lospan.LospanClient, app *lospan.Application, gw *lospan.Gateway) error {
 	b.devices = make([]*lospan.Device, 0)
 
-	randomizer := NewRandomizer(50)
+	randomizer := NewRandomizer(b.Config.OTAA)
 
 	ctx, done := context.WithTimeout(context.Background(), time.Minute*2)
 	defer done()
 	for i := 0; i < int(b.Config.DeviceCount); i++ {
-		t := lospan.DeviceState_OTAA
+		t := lospan.DeviceState_ABP
 		randomizer.Maybe(func() {
-			t = lospan.DeviceState_ABP
+			t = lospan.DeviceState_OTAA
 		})
 		eui := app.GetEui()
 		newDevice := &lospan.Device{
@@ -51,7 +51,7 @@ func (b *DeviceRunner) Prepare(client lospan.LospanClient, app *lospan.Applicati
 			return fmt.Errorf("unable to create device in Congress: %v", err)
 		}
 		b.devices = append(b.devices, dev)
-		lg.Info("Created device: %v", dev)
+		lg.Info("Created device with EUI %s and DevAddr %08x", dev.GetEui(), dev.GetDevAddr())
 	}
 	lg.Info("# devices: %d", b.Config.DeviceCount)
 	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)
@@ -110,6 +110,7 @@ func (b *DeviceRunner) Run(outgoingMessages chan string, publisher *server.Event
 	completeWg := &sync.WaitGroup{}
 	completeWg.Add(len(b.devices))
 	for _, dev := range b.devices {
+		time.Sleep(4 * time.Second / time.Duration(b.Config.DeviceCount))
 		go b.launchDevice(dev, completeWg)
 	}
 	lg.Info("....waiting for %d devices to complete", len(b.devices))

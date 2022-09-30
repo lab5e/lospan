@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -16,23 +15,26 @@ import (
 
 // EagleConfig is the configuration structure
 type EagleConfig struct {
-	DeviceCount        int           `kong:"help='Number of devices to emulate',default=100"`
-	DeviceMessages     int           `kong:"help='Number of messages to send before terminating device',default=10"`
-	CorruptMIC         int           `kong:"help='Percentage of corrupt MIC messages (0-100)',default=0"`
-	CorruptedPayload   int           `kong:"help='Percentage of corrupt payload (0-100)',default=0"`
-	DuplicateMessages  int           `kong:"help='Percent of duplicated messages (0-100)',default=2"`
-	TransmissionDelay  time.Duration `kong:"help='Transmission delay between messages',default='5s'"`
-	UDPPort            int           `kong:"help='UDP port for gateway interface',default=8000"`
-	Hostname           string        `kong:"help='Hostname for gateway interface',default='127.0.0.1'"`
-	MaxPayloadSize     int           `kong:"help='Maximum payload size',default=222"`
-	FrameCounterErrors int           `kong:"help='Frame counter errors (0-100)',default=0"`
-	GRPCEndpoint       string        `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
+	DeviceCount        int              `kong:"help='Number of devices to emulate',default=100"`
+	DeviceMessages     int              `kong:"help='Number of messages to send before terminating device',default=10"`
+	OTAA               int              `kong:"help='Ratio of OTAA vs ABP devices (0-100)',default=50"`
+	CorruptMIC         int              `kong:"help='Percentage of corrupt MIC messages (0-100)',default=0"`
+	CorruptedPayload   int              `kong:"help='Percentage of corrupt payload (0-100)',default=0"`
+	DuplicateMessages  int              `kong:"help='Percent of duplicated messages (0-100)',default=2"`
+	TransmissionDelay  time.Duration    `kong:"help='Transmission delay between messages',default='5s'"`
+	UDPPort            int              `kong:"help='UDP port for gateway interface',default=8000"`
+	Hostname           string           `kong:"help='Hostname for gateway interface',default='127.0.0.1'"`
+	MaxPayloadSize     int              `kong:"help='Maximum payload size',default=222"`
+	FrameCounterErrors int              `kong:"help='Frame counter errors (0-100)',default=0"`
+	GRPCEndpoint       string           `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
+	Log                lg.LogParameters `kong:"embed,prefix='log-',help='Logging parameters'"`
 }
 
 var config EagleConfig
 
 func main() {
 	kong.Parse(&config)
+	lg.InitLogs("eagle-1", config.Log)
 
 	mode := &DeviceRunner{Config: config}
 
@@ -42,7 +44,7 @@ func main() {
 	}
 	client := lospan.NewLospanClient(conn)
 
-	router := server.NewEventRouter[protocol.DevAddr, GWMessage](2)
+	router := server.NewEventRouter[protocol.DevAddr, GWMessage](config.DeviceCount)
 	e1 := Eagle1{
 		Client:         client,
 		Config:         config,
@@ -63,8 +65,7 @@ func main() {
 	}
 
 	if mode.Failed() {
-		fmt.Println("Exiting with errors")
+		lg.Debug("Exiting with errors")
 		os.Exit(1)
 	}
-	fmt.Println("Successful stop")
 }

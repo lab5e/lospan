@@ -150,6 +150,7 @@ func (d *EmulatedDevice) SendMessageWithGenerator(generator MessageGenerator) er
 		if len(response.PHYPayload.MACPayload.FRMPayload) > 0 {
 			msg := IncomingMessage{response.PHYPayload.MHDR.MType, hex.EncodeToString(response.PHYPayload.MACPayload.FRMPayload)}
 			d.ReceivedMessages = append(d.ReceivedMessages, msg)
+			lg.Info("Device %s got a message (now have %d) %s:%s", d.keys.DevEUI, len(d.ReceivedMessages), msg.MessageType, msg.Payload)
 		}
 		if mType == protocol.ConfirmedDataUp && !response.PHYPayload.MACPayload.FHDR.FCtrl.ACK {
 			return fmt.Errorf("did get message but not an ACK after message for device %s", d.keys.DevAddr)

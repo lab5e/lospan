@@ -28,12 +28,33 @@ type EagleConfig struct {
 	FrameCounterErrors int              `kong:"help='Frame counter errors (0-100)',default=0"`
 	GRPCEndpoint       string           `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
 	Log                lg.LogParameters `kong:"embed,prefix='log-',help='Logging parameters'"`
+	Shortcut           string           `kong:"help='Config shortcuts',enum='none,forever,quick,one,hundreds',default='none'"`
 }
 
 var config EagleConfig
 
 func main() {
 	kong.Parse(&config)
+	switch config.Shortcut {
+	case "none":
+		break
+	case "forever":
+		config.DeviceCount = 10
+		config.TransmissionDelay = 60 * time.Second
+		config.DeviceMessages = 1000
+	case "quick":
+		config.DeviceCount = 10
+		config.TransmissionDelay = 10 * time.Second
+		config.DeviceMessages = 10
+	case "one":
+		config.DeviceCount = 1
+		config.TransmissionDelay = 5 * time.Second
+		config.DeviceMessages = 100
+	case "hundreds":
+		config.DeviceCount = 200
+		config.TransmissionDelay = 300 * time.Second
+		config.DeviceMessages = 10
+	}
 	lg.InitLogs("eagle-1", config.Log)
 
 	mode := &DeviceRunner{Config: config}

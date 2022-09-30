@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"net"
 	"testing"
 
@@ -9,10 +10,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// GatewayStorageTest is a generic test for gateway storage
-func testGatewayStorage(gwStorage *Storage, t *testing.T) {
+func TestGatewayStorage(t *testing.T) {
 	assert := require.New(t)
 
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	gwStorage, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer gwStorage.Close()
 	// Retrieve the empty list
 	gateways, err := gwStorage.GetGatewayList()
 	assert.NoError(err, "Should not get error when list is 0")

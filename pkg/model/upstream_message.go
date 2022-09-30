@@ -9,7 +9,6 @@ import (
 // UpstreamMessage contains a single transmission from an end-device.
 type UpstreamMessage struct {
 	DeviceEUI  protocol.EUI     // Device address used
-	AppEUI     protocol.EUI     // Application EUI
 	Timestamp  int64            // Timestamp for message. Data type might change.
 	Data       []byte           // The data the end-device sent
 	GatewayEUI protocol.EUI     // The gateway the message was received from.
@@ -24,7 +23,6 @@ type UpstreamMessage struct {
 func (d *UpstreamMessage) Equals(other UpstreamMessage) bool {
 	return bytes.Equal(d.Data, other.Data) &&
 		d.DeviceEUI.ToInt64() == other.DeviceEUI.ToInt64() &&
-		d.AppEUI.ToInt64() == other.AppEUI.ToInt64() &&
 		d.Timestamp == other.Timestamp &&
 		d.GatewayEUI.String() == other.GatewayEUI.String() &&
 		d.RSSI == other.RSSI &&

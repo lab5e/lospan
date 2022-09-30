@@ -41,14 +41,14 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 			ip,
 			strict_ip
 		FROM
-			lora_gateway`
+			lora_gateways`
 
 	if g.listStatement, err = db.Prepare(sqlSelect); err != nil {
 		return fmt.Errorf("unable to prepare list statement: %v", err)
 	}
 
 	sqlInsert := `
-		INSERT INTO lora_gateway (
+		INSERT INTO lora_gateways (
 			gateway_eui,
 			latitude,
 			longitude,
@@ -62,7 +62,7 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 
 	sqlDelete := `
 		DELETE FROM
-			lora_gateway 
+			lora_gateways 
 		WHERE
 			gateway_eui = $1`
 	if g.deleteStatement, err = db.Prepare(sqlDelete); err != nil {
@@ -78,7 +78,7 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 			gw.ip,
 			gw.strict_ip
 		FROM
-			lora_gateway gw
+			lora_gateways gw
 		WHERE
 			gw.gateway_eui = $1`
 	if g.getStatement, err = db.Prepare(sqlSelectOne); err != nil {
@@ -94,7 +94,7 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 			gw.ip,
 			gw.strict_ip
 		FROM
-			lora_gateway gw
+			lora_gateways gw
 		WHERE
 			gw.gateway_eui = $1`
 	if g.getSysStatement, err = db.Prepare(sysGetStatement); err != nil {
@@ -103,7 +103,7 @@ func (g *gatewayStatements) prepare(db *sql.DB) error {
 
 	updateStatement := `
 		UPDATE
-			lora_gateway 
+			lora_gateways 
 		SET
 			latitude = $1, longitude = $2, altitude = $3, ip = $4, strict_ip = $5
 		WHERE

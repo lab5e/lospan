@@ -82,7 +82,7 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		DevAddr:    device.DevAddr,
 	}
 
-	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData); err != nil {
+	if err := d.context.Storage.CreateUpstreamData(device.DeviceEUI, deviceData); err != nil {
 		lg.Warning("Unable to store device  with EUI: %s, error: %v", device.DeviceEUI, err)
 		return
 	}

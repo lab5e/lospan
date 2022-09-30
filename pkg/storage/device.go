@@ -38,7 +38,7 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 
 	sqlInsert := `
 		INSERT INTO
-			lora_device (
+			lora_devices (
 				eui,
 				dev_addr,
 				app_key,
@@ -80,7 +80,7 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			relaxed_counter,
 			key_warning
 		FROM
-			lora_device
+			lora_devices
 		WHERE
 			dev_addr = $1`
 	if d.devAddrStatement, err = db.Prepare(sqlSelect); err != nil {
@@ -101,7 +101,7 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			relaxed_counter,
 			key_warning
 		FROM
-			lora_device
+			lora_devices
 		WHERE
 			application_eui = $1`
 
@@ -123,7 +123,7 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			relaxed_counter,
 			key_warning
 		FROM
-			lora_device
+			lora_devices
 		WHERE
 			eui = $1`
 
@@ -131,29 +131,29 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 		return fmt.Errorf("unable to prepare eui select statement: %v", err)
 	}
 
-	nonceInsert := `INSERT INTO lora_device_nonce (device_eui, nonce) VALUES ($1, $2)`
+	nonceInsert := `INSERT INTO lora_device_nonces (device_eui, nonce) VALUES ($1, $2)`
 	if d.nonceStatement, err = db.Prepare(nonceInsert); err != nil {
 		return fmt.Errorf("unable to prepare nonce insert statement: %v", err)
 	}
 
-	nonceSelect := `SELECT nonce FROM lora_device_nonce WHERE device_eui = $1`
+	nonceSelect := `SELECT nonce FROM lora_device_nonces WHERE device_eui = $1`
 	if d.getNonceStatement, err = db.Prepare(nonceSelect); err != nil {
 		return fmt.Errorf("unable to prepare nonce select statement: %v", err)
 	}
 
-	updateState := `UPDATE lora_device SET fcnt_dn = $1, fcnt_up = $2, key_warning = $3 WHERE eui = $4`
+	updateState := `UPDATE lora_devices SET fcnt_dn = $1, fcnt_up = $2, key_warning = $3 WHERE eui = $4`
 	if d.updateStateStatement, err = db.Prepare(updateState); err != nil {
 		return fmt.Errorf("unable to prepare update state statement: %v", err)
 	}
 
-	delete := `DELETE FROM lora_device WHERE eui = $1`
+	delete := `DELETE FROM lora_devices WHERE eui = $1`
 	if d.deleteStatement, err = db.Prepare(delete); err != nil {
 		return fmt.Errorf("unable to prepare delete statement: %v", err)
 	}
 
 	update := `
 		UPDATE
-			lora_device
+			lora_devices
 		SET
 			dev_addr = $1,
 			app_key = $2,

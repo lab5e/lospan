@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"sync"
 	"testing"
 
@@ -8,8 +9,18 @@ import (
 )
 
 // SimpleKeySequence tests a simple sequence
-func testSimpleKeySequence(seq *Storage, t *testing.T) {
+func TestSimpleKeySequence(t *testing.T) {
 	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	seq, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer seq.Close()
 
 	const numKeys = 10
 	received := 0
@@ -35,7 +46,20 @@ func testSimpleKeySequence(seq *Storage, t *testing.T) {
 }
 
 // MultipleSequences tests two sequences in parallel
-func testMultipleSequences(seq *Storage, t *testing.T) {
+func TestMultipleSequences(t *testing.T) {
+
+	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	seq, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer seq.Close()
+
 	const num1 = 10
 	const num2 = 25
 	some, err := seq.AllocateKeys("something", num1, 1)
@@ -71,7 +95,18 @@ func testMultipleSequences(seq *Storage, t *testing.T) {
 
 // ConcurrentSequences tests concurrent retrieval from sequences. Each number
 // should be bigger than the old
-func testConcurrentSequences(seq *Storage, t *testing.T) {
+func TestConcurrentSequences(t *testing.T) {
+	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	seq, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer seq.Close()
 
 	const interval = 100
 

@@ -21,9 +21,9 @@ func (k *keyStatements) Close() {
 }
 
 func (k *keyStatements) prepare(db *sql.DB) error {
-	sqlSelect := `SELECT counter FROM lora_sequence WHERE identifier = $1`
-	sqlUpdate := `UPDATE lora_sequence SET counter = $1 WHERE identifier = $2`
-	sqlInsert := `INSERT INTO lora_sequence (identifier, counter) VALUES ($1, $2)`
+	sqlSelect := `SELECT counter FROM lora_sequences WHERE identifier = $1`
+	sqlUpdate := `UPDATE lora_sequences SET counter = $1 WHERE identifier = $2`
+	sqlInsert := `INSERT INTO lora_sequences (identifier, counter) VALUES ($1, $2)`
 	var err error
 	if k.selectStatement, err = db.Prepare(sqlSelect); err != nil {
 		return fmt.Errorf("unable to prepare select statement: %v", err)

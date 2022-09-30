@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -9,13 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testUpstreamStorage(storage *Storage, t *testing.T) {
+func TestUpstreamStorage(t *testing.T) {
+	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	storage, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer storage.Close()
 
 	app := model.Application{
 		AppEUI: makeRandomEUI(),
 	}
-
-	assert := require.New(t)
 
 	assert.NoError(storage.CreateApplication(app))
 
@@ -34,17 +44,17 @@ func testUpstreamStorage(storage *Storage, t *testing.T) {
 	data1 := makeRandomData()
 	data2 := makeRandomData()
 
-	deviceData1 := model.UpstreamMessage{Timestamp: 1, Data: data1, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 1.0}
-	deviceData2 := model.UpstreamMessage{Timestamp: 2, Data: data2, DeviceEUI: device.DeviceEUI, AppEUI: device.AppEUI, Frequency: 2.0}
+	deviceData1 := model.UpstreamMessage{Timestamp: 1, Data: data1, DeviceEUI: device.DeviceEUI, Frequency: 1.0}
+	deviceData2 := model.UpstreamMessage{Timestamp: 2, Data: data2, DeviceEUI: device.DeviceEUI, Frequency: 2.0}
 
-	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData1), "Message 1 stored successfully")
+	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, deviceData1), "Message 1 stored successfully")
 
-	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData2), "Message 2 stored successfully")
+	assert.NoError(storage.CreateUpstreamData(device.DeviceEUI, deviceData2), "Message 2 stored successfully")
 
 	// Storing it a 2nd time won't work
-	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData1), "May only store message 1 once")
+	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, deviceData1), "May only store message 1 once")
 
-	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, device.AppEUI, deviceData2), "May only store message 2 once")
+	assert.Error(storage.CreateUpstreamData(device.DeviceEUI, deviceData2), "May only store message 2 once")
 
 	// Test retrieval
 	data, err := storage.GetUpstreamDataByDeviceEUI(device.DeviceEUI, 2)
@@ -58,13 +68,21 @@ func testUpstreamStorage(storage *Storage, t *testing.T) {
 	assert.NoError(err, "No device => no error (and no data)")
 	assert.Len(data, 0)
 
-	// Read application device data. Should be the same as the device data.
-	appData, err := storage.GetDownstreamDataByApplicationEUI(app.AppEUI, 10)
-	assert.NoError(err)
-	assert.Len(appData, 2)
 }
 
-func testDownstreamStorage(s *Storage, t *testing.T) {
+func TestDownstreamStorage(t *testing.T) {
+	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	s, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer s.Close()
+
 	application := model.NewApplication()
 	application.AppEUI = makeRandomEUI()
 	s.CreateApplication(application)

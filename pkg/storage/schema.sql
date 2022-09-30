@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS lora_application (
+CREATE TABLE IF NOT EXISTS lora_applications (
     eui         BIGINT    NOT NULL,
 
     CONSTRAINT lora_application_pk PRIMARY KEY (eui)
 );
 
 
-CREATE TABLE IF NOT EXISTS lora_device (
+CREATE TABLE IF NOT EXISTS lora_devices (
     eui             BIGINT  NOT NULL,
     dev_addr        CHAR(8)   NOT NULL,
     app_key         CHAR(32)  NOT NULL,
@@ -21,12 +21,12 @@ CREATE TABLE IF NOT EXISTS lora_device (
     CONSTRAINT lora_device_pk PRIMARY KEY (eui)
 );
 
-CREATE INDEX IF NOT EXISTS lora_device_application_eui ON lora_device(application_eui);
-CREATE INDEX IF NOT EXISTS lora_device_dev_addr ON lora_device(dev_addr);
-CREATE INDEX IF NOT EXISTS lora_device_state ON lora_device(state);
+CREATE INDEX IF NOT EXISTS lora_device_application_eui ON lora_devices(application_eui);
+CREATE INDEX IF NOT EXISTS lora_device_dev_addr ON lora_devices(dev_addr);
+CREATE INDEX IF NOT EXISTS lora_device_state ON lora_devices(state);
 
 
-CREATE TABLE IF NOT EXISTS lora_device_nonce (
+CREATE TABLE IF NOT EXISTS lora_device_nonces (
     device_eui BIGINT NOT NULL REFERENCES lora_device (eui) ON DELETE CASCADE,
     nonce      INT    NOT NULL,
 
@@ -34,9 +34,8 @@ CREATE TABLE IF NOT EXISTS lora_device_nonce (
 );
 
 
-CREATE TABLE IF NOT EXISTS lora_device_data (
+CREATE TABLE IF NOT EXISTS lora_upstream_messages (
     device_eui      BIGINT        NOT NULL REFERENCES lora_device (eui) ON DELETE CASCADE, 
-    application_eui BIGINT        NOT NULL,
     data            VARCHAR(512)  NOT NULL, 
     time_stamp      BIGINT        NOT NULL, 
     gateway_eui     BIGINT        NOT NULL, 
@@ -49,20 +48,20 @@ CREATE TABLE IF NOT EXISTS lora_device_data (
     CONSTRAINT lora_device_data_pk PRIMARY KEY(device_eui, time_stamp)
 );
 
-CREATE INDEX IF NOT EXISTS lora_device_data_device_eui ON lora_device_data(device_eui);
+CREATE INDEX IF NOT EXISTS lora_device_data_device_eui ON lora_upstream_messages(device_eui);
 
 
-CREATE TABLE IF NOT EXISTS lora_sequence (
+CREATE TABLE IF NOT EXISTS lora_sequences (
     identifier VARCHAR(128) NOT NULL, 
     counter    BIGINT       NOT NULL, 
 
     CONSTRAINT lora_sequence_pk PRIMARY KEY (identifier)
 );
 
-CREATE INDEX IF NOT EXISTS lora_sequence_identifier ON lora_sequence(identifier);
+CREATE INDEX IF NOT EXISTS lora_sequence_identifier ON lora_sequences(identifier);
 
 
-CREATE TABLE IF NOT EXISTS lora_gateway (
+CREATE TABLE IF NOT EXISTS lora_gateways (
     gateway_eui BIGINT     NOT NULL,
     latitude    NUMERIC(12,8) NULL,
     longitude   NUMERIC(12,8) NULL,
@@ -74,7 +73,7 @@ CREATE TABLE IF NOT EXISTS lora_gateway (
 );
 
 
-CREATE TABLE IF NOT EXISTS lora_downstream_message (
+CREATE TABLE IF NOT EXISTS lora_downstream_messages (
     device_eui   BIGINT NOT NULL REFERENCES lora_device(eui) ON DELETE CASCADE,
     data         VARCHAR(256) NOT NULL,
     port         INTEGER NOT NULL,

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/lab5e/lospan/pkg/model"
@@ -8,8 +9,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testDeviceStorage(storage *Storage, t *testing.T) {
+func TestDeviceStorage(t *testing.T) {
 	assert := require.New(t)
+
+	connectionString := ":memory:"
+	db, err := sql.Open(driverName, connectionString)
+	assert.Nil(err, "No error opening database")
+	assert.Nil(createSchema(db), "Error creating db in %s", connectionString)
+	db.Close()
+
+	storage, err := CreateStorage(connectionString)
+	assert.Nil(err, "Did not expect error: %v", err)
+	defer storage.Close()
 
 	app1 := model.Application{
 		AppEUI: makeRandomEUI(),

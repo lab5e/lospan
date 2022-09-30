@@ -30,7 +30,7 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 	var err error
 	sqlInsert := `
 		INSERT INTO
-			lora_application (eui)
+			lora_applications (eui)
 		VALUES ($1)`
 	if a.putStatement, err = db.Prepare(sqlInsert); err != nil {
 		return fmt.Errorf("unable to prepare insert statement: %v", err)
@@ -40,7 +40,7 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 		SELECT
 			a.eui
 		FROM
-			lora_application a
+			lora_applications a
 		WHERE
 			a.eui = $1`
 	if a.getStatement, err = db.Prepare(sqlSelect); err != nil {
@@ -51,7 +51,7 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 		SELECT
 			a.eui
 		FROM
-			lora_application a`
+			lora_applications a`
 
 	if a.listStatement, err = db.Prepare(sqlList); err != nil {
 		return fmt.Errorf("app:unable to prepare list statement: %v", err)
@@ -59,7 +59,7 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 
 	sqlDelete := `
 		DELETE
-		FROM lora_application 
+		FROM lora_applications
 		WHERE eui = $1`
 	if a.deleteStatement, err = db.Prepare(sqlDelete); err != nil {
 		return fmt.Errorf("app:unable to prepare delete statement: %v", err)
@@ -69,7 +69,7 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 		SELECT
 			a.eui
 		FROM
-			lora_application a
+			lora_applications a
 		WHERE
 			a.eui = $1`
 	if a.systemGetStatement, err = db.Prepare(sqlSystemGet); err != nil {

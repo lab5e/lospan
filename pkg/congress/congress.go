@@ -1,4 +1,4 @@
-package main
+package congress
 
 import (
 	"errors"
@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Server is the main Congress server process. It will launch several
+// LoRaServer is the main Congress server process. It will launch several
 // endpoints and a processing pipeline.
-type Server struct {
+type LoRaServer struct {
 	config     *server.Parameters
 	context    *server.Context
 	forwarder  processor.GwForwarder
@@ -28,7 +28,7 @@ type Server struct {
 	terminator chan bool
 }
 
-func (c *Server) checkConfig() error {
+func (c *LoRaServer) checkConfig() error {
 	if err := c.config.Validate(); err != nil {
 		lg.Error("Invalid configuration: %v Exiting", err)
 		return errors.New("invalid configuration")
@@ -38,8 +38,8 @@ func (c *Server) checkConfig() error {
 
 // NewServer creates a new server with the given configuration. The configuration
 // is checked before the server is created, logging is initialized
-func NewServer(config *server.Parameters) (*Server, error) {
-	c := &Server{config: config, terminator: make(chan bool)}
+func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
+	c := &LoRaServer{config: config, terminator: make(chan bool)}
 
 	if err := c.checkConfig(); err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func NewServer(config *server.Parameters) (*Server, error) {
 	c.pipeline = processor.NewPipeline(c.context, c.forwarder)
 
 	go func() {
-		listener, err := net.Listen("tcp", ":4711")
+		listener, err := net.Listen("tcp", config.GRPCEndpoint)
 		if err != nil {
 			lg.Error("Error creating listener: %v", err)
 			os.Exit(1)
@@ -103,7 +103,7 @@ func NewServer(config *server.Parameters) (*Server, error) {
 }
 
 // Start Starts the congress server
-func (c *Server) Start() error {
+func (c *LoRaServer) Start() error {
 	lg.Debug("Starting pipeline")
 	c.pipeline.Start()
 	lg.Debug("Starting forwarder")
@@ -113,7 +113,7 @@ func (c *Server) Start() error {
 }
 
 // Shutdown stops the Congress server.
-func (c *Server) Shutdown() error {
+func (c *LoRaServer) Shutdown() error {
 	c.forwarder.Stop()
 	c.context.Storage.Close()
 

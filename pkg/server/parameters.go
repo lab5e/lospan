@@ -11,6 +11,7 @@ import (
 
 // Parameters holds the configuration for the system
 type Parameters struct {
+	GRPCEndpoint         string `kong:"help='gRPC endpoint for API',default=':5150'"`
 	GatewayPort          int    `kong:"help='Port for gateway interface',default='8000'"`
 	NetworkID            uint   `kong:"help='Network ID for server',default='0'"`
 	MA                   string `kong:"help='MA for key generator',default='00-00-00'"`

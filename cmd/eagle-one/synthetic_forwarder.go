@@ -9,8 +9,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/lab5e/l5log/pkg/lg"
 	cgw "github.com/lab5e/lospan/pkg/gateway"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 

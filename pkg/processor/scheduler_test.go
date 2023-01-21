@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -106,7 +105,6 @@ func newFrameContext(counter uint32) server.FrameContext {
 }
 
 func TestMultiMessages(t *testing.T) {
-	lg.SetLogLevel(lg.DebugLevel)
 	input := make(chan server.LoRaMessage)
 
 	scheduler := NewScheduler(&context, input)

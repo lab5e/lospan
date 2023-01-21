@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/band"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/keys"
+	"github.com/lab5e/lospan/pkg/lg"
 
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"

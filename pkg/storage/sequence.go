@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/lg"
 )
 
 type keyStatements struct {

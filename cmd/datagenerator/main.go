@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 
-	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/keys"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/storage"
@@ -36,7 +36,6 @@ const noncesPerDevice = 30
 const gatewaysPerUser = 2
 
 func main() {
-	lg.SetLogLevel(lg.InfoLevel)
 	lg.Info("This is the data generator tool")
 	//datastore := memstore.CreateMemoryStorage(0, 0)
 	datastore, err := storage.CreateStorage(params.ConnectionString)

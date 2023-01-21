@@ -3,7 +3,7 @@ package processor
 import (
 	"time"
 
-	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"

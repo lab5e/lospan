@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/pb/lospan"
 	"github.com/lab5e/lospan/pkg/protocol"
 	"github.com/lab5e/lospan/pkg/server"
@@ -15,20 +15,19 @@ import (
 
 // EagleConfig is the configuration structure
 type EagleConfig struct {
-	DeviceCount        int              `kong:"help='Number of devices to emulate',default=100"`
-	DeviceMessages     int              `kong:"help='Number of messages to send before terminating device',default=10"`
-	OTAA               int              `kong:"help='Ratio of OTAA vs ABP devices (0-100)',default=50"`
-	CorruptMIC         int              `kong:"help='Percentage of corrupt MIC messages (0-100)',default=0"`
-	CorruptedPayload   int              `kong:"help='Percentage of corrupt payload (0-100)',default=0"`
-	DuplicateMessages  int              `kong:"help='Percent of duplicated messages (0-100)',default=2"`
-	TransmissionDelay  time.Duration    `kong:"help='Transmission delay between messages',default='5s'"`
-	UDPPort            int              `kong:"help='UDP port for gateway interface',default=8000"`
-	Hostname           string           `kong:"help='Hostname for gateway interface',default='127.0.0.1'"`
-	MaxPayloadSize     int              `kong:"help='Maximum payload size',default=222"`
-	FrameCounterErrors int              `kong:"help='Frame counter errors (0-100)',default=0"`
-	GRPCEndpoint       string           `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
-	Log                lg.LogParameters `kong:"embed,prefix='log-',help='Logging parameters'"`
-	Shortcut           string           `kong:"help='Config shortcuts',enum='none,forever,quick,one,hundreds',default='none'"`
+	DeviceCount        int           `kong:"help='Number of devices to emulate',default=100"`
+	DeviceMessages     int           `kong:"help='Number of messages to send before terminating device',default=10"`
+	OTAA               int           `kong:"help='Ratio of OTAA vs ABP devices (0-100)',default=50"`
+	CorruptMIC         int           `kong:"help='Percentage of corrupt MIC messages (0-100)',default=0"`
+	CorruptedPayload   int           `kong:"help='Percentage of corrupt payload (0-100)',default=0"`
+	DuplicateMessages  int           `kong:"help='Percent of duplicated messages (0-100)',default=2"`
+	TransmissionDelay  time.Duration `kong:"help='Transmission delay between messages',default='5s'"`
+	UDPPort            int           `kong:"help='UDP port for gateway interface',default=8000"`
+	Hostname           string        `kong:"help='Hostname for gateway interface',default='127.0.0.1'"`
+	MaxPayloadSize     int           `kong:"help='Maximum payload size',default=222"`
+	FrameCounterErrors int           `kong:"help='Frame counter errors (0-100)',default=0"`
+	GRPCEndpoint       string        `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
+	Shortcut           string        `kong:"help='Config shortcuts',enum='none,forever,quick,one,hundreds',default='none'"`
 }
 
 var config EagleConfig
@@ -55,7 +54,6 @@ func main() {
 		config.TransmissionDelay = 300 * time.Second
 		config.DeviceMessages = 10
 	}
-	lg.InitLogs("eagle-1", config.Log)
 
 	mode := &DeviceRunner{Config: config}
 

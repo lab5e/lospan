@@ -7,13 +7,12 @@ import (
 	"os/signal"
 
 	"github.com/alecthomas/kong"
-	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
 type params struct {
-	Log  lg.LogParameters  `kong:"embed,prefix='log-'"`
 	LoRa server.Parameters `kong:"embed,prefix='lora-'"`
 }
 
@@ -37,7 +36,6 @@ func main() {
 		fmt.Print(storage.DBSchema)
 		return
 	}
-	lg.InitLogs("congress", config.Log)
 	congress, err := NewServer(&config.LoRa)
 	if err != nil {
 		return

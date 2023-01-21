@@ -7,7 +7,6 @@ require (
 	github.com/bufbuild/buf v1.8.0
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
-	github.com/lab5e/l5log v0.0.11
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mgechev/revive v1.2.3
 	github.com/stretchr/testify v1.8.0

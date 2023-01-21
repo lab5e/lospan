@@ -5,11 +5,11 @@ import (
 	"net"
 	"os"
 
-	"github.com/lab5e/l5log/pkg/lg"
 	"github.com/lab5e/lospan/pkg/apiserver"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/gateway"
 	"github.com/lab5e/lospan/pkg/keys"
+	"github.com/lab5e/lospan/pkg/lg"
 	"github.com/lab5e/lospan/pkg/pb/lospan"
 	"github.com/lab5e/lospan/pkg/processor"
 	"github.com/lab5e/lospan/pkg/protocol"

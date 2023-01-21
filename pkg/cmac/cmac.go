@@ -23,7 +23,7 @@ import (
 	"encoding/hex"
 	"math"
 
-	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/lg"
 )
 
 /*

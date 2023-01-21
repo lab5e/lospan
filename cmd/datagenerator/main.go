@@ -4,9 +4,9 @@ import (
 	"flag"
 
 	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/keys"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
@@ -45,7 +45,7 @@ func main() {
 		return
 	}
 
-	keygen, err := server.NewEUIKeyGenerator(defaultMA, 0, datastore)
+	keygen, err := keys.NewEUIKeyGenerator(defaultMA, 0, datastore)
 	if err != nil {
 		lg.Error("Unable to create key generator: %v", err)
 		return

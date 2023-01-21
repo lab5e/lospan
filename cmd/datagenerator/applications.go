@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/keys"
 	"github.com/lab5e/lospan/pkg/model"
-	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
-func generateApplications(count int, datastore *storage.Storage, keyGen *server.KeyGenerator, callback func(generatedApp model.Application)) {
+func generateApplications(count int, datastore *storage.Storage, keyGen *keys.KeyGenerator, callback func(generatedApp model.Application)) {
 	for i := 0; i < count; i++ {
 		app := model.NewApplication()
 		var err error

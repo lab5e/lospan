@@ -9,6 +9,7 @@ import (
 	"github.com/lab5e/lospan/pkg/apiserver"
 	"github.com/lab5e/lospan/pkg/events/gwevents"
 	"github.com/lab5e/lospan/pkg/gateway"
+	"github.com/lab5e/lospan/pkg/keys"
 	"github.com/lab5e/lospan/pkg/pb/lospan"
 	"github.com/lab5e/lospan/pkg/processor"
 	"github.com/lab5e/lospan/pkg/protocol"
@@ -61,7 +62,7 @@ func NewServer(config *server.Configuration) (*Server, error) {
 		}
 	}
 
-	keyGenerator, err := server.NewEUIKeyGenerator(config.RootMA(), uint32(config.NetworkID), datastore)
+	keyGenerator, err := keys.NewEUIKeyGenerator(config.RootMA(), uint32(config.NetworkID), datastore)
 	if err != nil {
 		lg.Error("Could not create key generator: %v. Terminating.", err)
 		return nil, errors.New("unable to create key generator")

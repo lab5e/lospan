@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/lab5e/l5log/pkg/lg"
+	"github.com/lab5e/lospan/pkg/keys"
 	"github.com/lab5e/lospan/pkg/model"
 	"github.com/lab5e/lospan/pkg/protocol"
-	"github.com/lab5e/lospan/pkg/server"
 	"github.com/lab5e/lospan/pkg/storage"
 )
 
-func generateDevices(count int, app model.Application, datastore *storage.Storage, keyGen *server.KeyGenerator, callback func(createdDevice model.Device)) {
+func generateDevices(count int, app model.Application, datastore *storage.Storage, keyGen *keys.KeyGenerator, callback func(createdDevice model.Device)) {
 	for i := 0; i < count; i++ {
 		d := model.NewDevice()
 		d.AppEUI = app.AppEUI

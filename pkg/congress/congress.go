@@ -44,12 +44,9 @@ func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 	if err := c.checkConfig(); err != nil {
 		return nil, err
 	}
-	lg.Info("This is the Congress server")
-
 	var datastore *storage.Storage
 	var err error
 	if c.config.ConnectionString != "" {
-		lg.Info("Using PostgreSQL as backend storage")
 		datastore, err = storage.CreateStorage(config.ConnectionString)
 		if err != nil {
 			lg.Error("Couldn't connect to database: %v", err)
@@ -104,16 +101,15 @@ func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 
 // Start Starts the congress server
 func (c *LoRaServer) Start() error {
-	lg.Debug("Starting pipeline")
+	lg.Debug("Start Congress LoRa Server")
 	c.pipeline.Start()
-	lg.Debug("Starting forwarder")
 	go c.forwarder.Start()
-
 	return nil
 }
 
 // Shutdown stops the Congress server.
 func (c *LoRaServer) Shutdown() error {
+	lg.Debug("Shutting down LoRa server")
 	c.forwarder.Stop()
 	c.context.Storage.Close()
 

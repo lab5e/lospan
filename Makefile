@@ -20,7 +20,6 @@ test:
 build: cmd
 
 cmd:
-	cd cmd/loraserver && go build -o ../../bin/loraserver
 	cd cmd/lc && go build -o ../../bin/lc
 	cd cmd/congress && go build -o ../../bin/congress
 	cd cmd/datagenerator && go build -o ../../bin/datagenerator

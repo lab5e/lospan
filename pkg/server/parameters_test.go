@@ -36,7 +36,7 @@ func TestValidConfiguration(t *testing.T) {
 		t.Fatal("Expected error from too long MA string")
 	}
 
-	config.MA = DefaultMA
+	config.MA = "00-00-00"
 
 	config.ConnectionString = ""
 	if err := config.Validate(); err == nil {
@@ -47,7 +47,7 @@ func TestValidConfiguration(t *testing.T) {
 
 func TestMAInvalidString(t *testing.T) {
 	config := NewDefaultConfig()
-	config.MA = DefaultMA
+	config.MA = "00-00-00"
 	config.RootMA()
 
 	config.MA = "foof"

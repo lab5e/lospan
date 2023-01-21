@@ -11,30 +11,21 @@ import (
 
 // Parameters holds the configuration for the system
 type Parameters struct {
-	GatewayPort          int
-	NetworkID            uint   // The network ID that this instance handles. The default is 0
-	MA                   string // String representation of MA
-	ConnectionString     string
-	PrintSchema          bool
-	DisableGatewayChecks bool
-	OnlyLoopback         bool // use only loopback adapter - for testing
+	GatewayPort          int    `kong:"help='Port for gateway interface',default='8000'"`
+	NetworkID            uint   `kong:"help='Network ID for server',default='0'"`
+	MA                   string `kong:"help='MA for key generator',default='00-00-00'"`
+	ConnectionString     string `kong:"help='SQLite connection string',default=':memory:'"`
+	DisableGatewayChecks bool   `kong:"help='Disable gateway IP address checking'"`
 }
-
-// This is the default configuration
-const (
-	DefaultGatewayPort = 8000
-	DefaultHTTPPort    = 8080
-	DefaultNetworkID   = 0
-	DefaultMA          = "00-00-00"
-)
 
 // NewDefaultConfig returns the default configuration. Note that this configuration
 // isn't valid right out of the box; a storage backend must be selected.
 func NewDefaultConfig() *Parameters {
 	return &Parameters{
-		MA:               DefaultMA,
-		NetworkID:        DefaultNetworkID,
+		MA:               "00-00-00",
+		NetworkID:        0,
 		ConnectionString: ":memory:",
+		GatewayPort:      8000,
 	}
 }
 

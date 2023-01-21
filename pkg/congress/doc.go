@@ -1,2 +1,2 @@
-// Package loraserver launches a full blown server
+// Package congress launches a full blown server
 package congress

@@ -36,7 +36,7 @@ func (c *LoRaServer) checkConfig() error {
 	return nil
 }
 
-// NewServer creates a new server with the given configuration. The configuration
+// NewLoRaServer creates a new server with the given configuration. The configuration
 // is checked before the server is created, logging is initialized
 func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 	c := &LoRaServer{config: config, terminator: make(chan bool)}

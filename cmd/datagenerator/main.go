@@ -1,3 +1,4 @@
+// Package main is the CLI for the data generator tool
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Package main contains the eagle one device simulator
 package main
 
 import (

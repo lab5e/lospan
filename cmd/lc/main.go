@@ -1,3 +1,4 @@
+// Package main contains the lora server management CLI
 package main
 
 import (

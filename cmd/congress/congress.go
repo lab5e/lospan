@@ -21,15 +21,11 @@ import (
 // Server is the main Congress server process. It will launch several
 // endpoints and a processing pipeline.
 type Server struct {
-	config     *server.Configuration
+	config     *server.Parameters
 	context    *server.Context
 	forwarder  processor.GwForwarder
 	pipeline   *processor.Pipeline
 	terminator chan bool
-}
-
-func (c *Server) setupLogging() {
-	lg.InitLogs("lospan", config.Log)
 }
 
 func (c *Server) checkConfig() error {
@@ -42,9 +38,8 @@ func (c *Server) checkConfig() error {
 
 // NewServer creates a new server with the given configuration. The configuration
 // is checked before the server is created, logging is initialized
-func NewServer(config *server.Configuration) (*Server, error) {
+func NewServer(config *server.Parameters) (*Server, error) {
 	c := &Server{config: config, terminator: make(chan bool)}
-	c.setupLogging()
 
 	if err := c.checkConfig(); err != nil {
 		return nil, err
@@ -53,9 +48,9 @@ func NewServer(config *server.Configuration) (*Server, error) {
 
 	var datastore *storage.Storage
 	var err error
-	if c.config.DBConnectionString != "" {
+	if c.config.ConnectionString != "" {
 		lg.Info("Using PostgreSQL as backend storage")
-		datastore, err = storage.CreateStorage(config.DBConnectionString)
+		datastore, err = storage.CreateStorage(config.ConnectionString)
 		if err != nil {
 			lg.Error("Couldn't connect to database: %v", err)
 			return nil, err

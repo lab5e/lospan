@@ -38,7 +38,7 @@ func TestOTAAJoinRequestProcessing(t *testing.T) {
 	decrypter := NewDecrypter(&server.Context{
 		Storage:     store,
 		FrameOutput: &foBuffer,
-		Config:      &server.Configuration{},
+		Config:      &server.Parameters{},
 	}, inputChan)
 
 	payload := protocol.NewPHYPayload(protocol.JoinRequest)

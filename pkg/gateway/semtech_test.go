@@ -33,7 +33,7 @@ func setupServer(t *testing.T) serverConfig {
 	}
 
 	router := server.NewEventRouter[protocol.EUI, gwevents.GwEvent](5)
-	context := server.Context{GwEventRouter: &router, Config: &server.Configuration{}}
+	context := server.Context{GwEventRouter: &router, Config: &server.Parameters{}}
 	ret.forwarder = NewGenericPacketForwarder(port, gwStorage, &context)
 
 	go ret.forwarder.Start()

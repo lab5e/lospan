@@ -1,20 +1,5 @@
 package server
 
-//
-//Copyright 2018 Telenor Digital AS
-//
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-//
-//http://www.apache.org/licenses/LICENSE-2.0
-//
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-//
 import (
 	"encoding/hex"
 	"strings"
@@ -35,7 +20,6 @@ func init() {
 // times or with custom parameters but I'm going to assume it works.
 func TestCommandLineConfigDefaults(t *testing.T) {
 	config := NewDefaultConfig()
-	config.MemoryDB = true
 	if err := config.Validate(); err != nil {
 		t.Fatalf("Expected config to be valid: %v", err)
 	}
@@ -43,7 +27,6 @@ func TestCommandLineConfigDefaults(t *testing.T) {
 
 func TestValidConfiguration(t *testing.T) {
 	config := NewDefaultConfig()
-	config.MemoryDB = true
 	config.MA = "foof"
 	if err := config.Validate(); err == nil {
 		t.Fatal("Expected error from invalid MA string")
@@ -55,8 +38,7 @@ func TestValidConfiguration(t *testing.T) {
 
 	config.MA = DefaultMA
 
-	config.DBConnectionString = ""
-	config.MemoryDB = false
+	config.ConnectionString = ""
 	if err := config.Validate(); err == nil {
 		t.Fatalf("Expected error with no backend selected")
 	}

@@ -137,7 +137,7 @@ func sendMessageOnChannel(c *testContext, msg *protocol.PHYPayload, device model
 }
 
 type testContext struct {
-	config    *server.Configuration
+	config    *server.Parameters
 	context   *server.Context
 	datastore *storage.Storage
 	app       model.Application
@@ -151,7 +151,6 @@ type testContext struct {
 func newTestContext(t *testing.T) testContext {
 	ret := testContext{t: t}
 	ret.config = server.NewDefaultConfig()
-	ret.config.MemoryDB = true
 	ret.datastore = storage.NewMemoryStorage()
 	frameOutput := server.NewFrameOutputBuffer()
 	keyGenerator, _ := keys.NewEUIKeyGenerator(ret.config.RootMA(), uint32(ret.config.NetworkID), ret.datastore)

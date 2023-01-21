@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	_ "github.com/mattn/go-sqlite3" // SQLite3 driver for testing, local instances and in-memory database
+	_ "modernc.org/sqlite" // use sqlite driver
 )
 
 // Storage holds all of the storage objects

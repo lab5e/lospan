@@ -34,7 +34,7 @@ func CreateStorage(connectionString string) (*Storage, error) {
 	return newStorage(driverName, connectionString)
 }
 
-const driverName = "sqlite3"
+const driverName = "sqlite"
 
 func newStorage(driver, connectionString string) (*Storage, error) {
 	db, err := sql.Open(driver, connectionString)

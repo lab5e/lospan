@@ -18,6 +18,7 @@ message GetApplicationRequest{
 };
 
 message CreateApplicationRequest{
+    optional string eui = 1;
 };
 
 message DeleteApplicationRequest {

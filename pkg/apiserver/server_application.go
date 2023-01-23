@@ -27,9 +27,17 @@ func (a *apiServer) ListApplications(ctx context.Context, req *lospan.ListApplic
 func (a *apiServer) CreateApplication(ctx context.Context, req *lospan.CreateApplicationRequest) (*lospan.Application, error) {
 	newApp := model.NewApplication()
 	var err error
-	newApp.AppEUI, err = a.keyGen.NewAppEUI()
-	if err != nil {
-		return nil, toProtoErr(err)
+	if req.Eui != nil {
+		newApp.AppEUI, err = protocol.EUIFromString(*req.Eui)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "Invalid application EUI")
+		}
+	}
+	if newApp.AppEUI.ToInt64() == 0 {
+		newApp.AppEUI, err = a.keyGen.NewAppEUI()
+		if err != nil {
+			return nil, toProtoErr(err)
+		}
 	}
 	if err := a.store.CreateApplication(newApp); err != nil {
 		return nil, toProtoErr(err)

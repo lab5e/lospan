@@ -26,6 +26,7 @@ type LoRaServer struct {
 	forwarder  processor.GwForwarder
 	pipeline   *processor.Pipeline
 	terminator chan bool
+	listenAddr net.Addr // gRPC listener
 }
 
 func (c *LoRaServer) checkConfig() error {
@@ -88,9 +89,10 @@ func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 			lg.Error("Error creatig lospan service: %v", err)
 			os.Exit(1)
 		}
-		lg.Info("Listening on %s", listener.Addr().String())
 		server := grpc.NewServer()
 		lospan.RegisterLospanServer(server, lospanSvc)
+		lg.Info("Listening on %s", listener.Addr().String())
+		c.listenAddr = listener.Addr()
 		if err := server.Serve(listener); err != nil {
 			lg.Error("Error serving gRPC: %v", err)
 			os.Exit(2)
@@ -114,4 +116,8 @@ func (c *LoRaServer) Shutdown() error {
 	c.context.Storage.Close()
 
 	return nil
+}
+
+func (c *LoRaServer) ListenAddress() net.Addr {
+	return c.listenAddr
 }

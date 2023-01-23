@@ -16,6 +16,8 @@ import (
 
 // EagleConfig is the configuration structure
 type EagleConfig struct {
+	Mode               string        `kong:"help='Mode of operation',enum='create,read',default='read'"`
+	ApplicationEUI     string        `kong:"help='Application EUI when reading devices'"`
 	DeviceCount        int           `kong:"help='Number of devices to emulate',default=100"`
 	DeviceMessages     int           `kong:"help='Number of messages to send before terminating device',default=10"`
 	OTAA               int           `kong:"help='Ratio of OTAA vs ABP devices (0-100)',default=50"`
@@ -27,7 +29,7 @@ type EagleConfig struct {
 	Hostname           string        `kong:"help='Hostname for gateway interface',default='127.0.0.1'"`
 	MaxPayloadSize     int           `kong:"help='Maximum payload size',default=222"`
 	FrameCounterErrors int           `kong:"help='Frame counter errors (0-100)',default=0"`
-	GRPCEndpoint       string        `kong:"help='gRPC API endpoint',default='127.0.0.1:4711'"`
+	GRPCEndpoint       string        `kong:"help='gRPC API endpoint',default='127.0.0.1:5150'"`
 	Shortcut           string        `kong:"help='Config shortcuts',enum='none,forever,quick,one,hundreds',default='none'"`
 }
 
@@ -56,7 +58,7 @@ func main() {
 		config.DeviceMessages = 10
 	}
 
-	mode := &DeviceRunner{Config: config}
+	runner := &DeviceRunner{Config: config}
 
 	conn, err := grpc.Dial(config.GRPCEndpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -84,7 +86,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if mode.Failed() {
+	if runner.Failed() {
 		lg.Debug("Exiting with errors")
 		os.Exit(1)
 	}

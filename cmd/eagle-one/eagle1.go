@@ -37,10 +37,12 @@ func (e *Eagle1) newRandomEUI() string {
 func (e *Eagle1) Setup() error {
 	ctx, done := context.WithTimeout(context.Background(), time.Minute)
 	defer done()
-	var err error
 
-	if e.Application, err = e.Client.CreateApplication(ctx, &lospan.CreateApplicationRequest{}); err != nil {
-		return fmt.Errorf("unable to create application in Congress: %v", err)
+	var err error
+	if e.Config.Mode == "create" {
+		if e.Application, err = e.Client.CreateApplication(ctx, &lospan.CreateApplicationRequest{}); err != nil {
+			return fmt.Errorf("unable to create application in Congress: %v", err)
+		}
 	}
 
 	strict := false

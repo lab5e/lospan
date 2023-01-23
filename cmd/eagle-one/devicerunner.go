@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -36,22 +37,37 @@ func (b *DeviceRunner) Prepare(client lospan.LospanClient, app *lospan.Applicati
 
 	ctx, done := context.WithTimeout(context.Background(), time.Minute*2)
 	defer done()
-	for i := 0; i < int(b.Config.DeviceCount); i++ {
-		t := lospan.DeviceState_ABP
-		randomizer.Maybe(func() {
-			t = lospan.DeviceState_OTAA
+
+	if b.Config.Mode == "create" {
+		for i := 0; i < int(b.Config.DeviceCount); i++ {
+			t := lospan.DeviceState_ABP
+			randomizer.Maybe(func() {
+				t = lospan.DeviceState_OTAA
+			})
+			eui := app.GetEui()
+			newDevice := &lospan.Device{
+				ApplicationEui: &eui,
+				State:          &t,
+			}
+			dev, err := client.CreateDevice(ctx, newDevice)
+			if err != nil {
+				return fmt.Errorf("unable to create device in Congress: %v", err)
+			}
+			b.devices = append(b.devices, dev)
+			lg.Info("Created device with EUI %s and DevAddr %08x", dev.GetEui(), dev.GetDevAddr())
+		}
+	} else {
+		if b.Config.ApplicationEUI == "" {
+			return errors.New("application EUI required when querying for devices")
+		}
+		devices, err := client.ListDevices(ctx, &lospan.ListDeviceRequest{
+			ApplicationEui: b.Config.ApplicationEUI,
 		})
-		eui := app.GetEui()
-		newDevice := &lospan.Device{
-			ApplicationEui: &eui,
-			State:          &t,
-		}
-		dev, err := client.CreateDevice(ctx, newDevice)
 		if err != nil {
-			return fmt.Errorf("unable to create device in Congress: %v", err)
+			lg.Error("Error querying devices: %v", err)
+			return err
 		}
-		b.devices = append(b.devices, dev)
-		lg.Info("Created device with EUI %s and DevAddr %08x", dev.GetEui(), dev.GetDevAddr())
+		b.devices = append(b.devices, devices.Devices...)
 	}
 	lg.Info("# devices: %d", b.Config.DeviceCount)
 	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)

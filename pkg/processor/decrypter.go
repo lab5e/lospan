@@ -69,7 +69,6 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		}
 	}
 	decoded.Payload.Decrypt(device.NwkSKey, device.AppSKey)
-
 	deviceData := model.UpstreamMessage{
 		DeviceEUI:  device.DeviceEUI,
 		Timestamp:  decoded.FrameContext.GatewayContext.ReceivedAt.UnixNano(),

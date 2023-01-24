@@ -106,3 +106,29 @@ func (a *apiServer) SendMessage(ctx context.Context, req *lospan.DownstreamMessa
 		AckTime: newPtr(msg.AckTime),
 	}, nil
 }
+
+func (a *apiServer) StreamMessages(req *lospan.StreamMessagesRequest, stream lospan.Lospan_StreamMessagesServer) error {
+	eui, err := protocol.EUIFromString(req.Eui)
+	if err != nil {
+		return status.Error(codes.InvalidArgument, "Invalid application EUI")
+	}
+	msgChan := a.router.Subscribe(eui)
+	defer a.router.Unsubscribe(msgChan)
+	for msg := range msgChan {
+		if err := stream.Send(&lospan.UpstreamMessage{
+			Eui:        msg.Device.DeviceEUI.String(),
+			Timestamp:  time.Now().UnixMilli(),
+			Payload:    msg.Payload,
+			GatewayEui: msg.FrameContext.GatewayContext.Gateway.GatewayEUI.String(),
+			Rssi:       msg.FrameContext.GatewayContext.Radio.RSSI,
+			Snr:        msg.FrameContext.GatewayContext.Radio.SNR,
+			Frequency:  msg.FrameContext.GatewayContext.Radio.Frequency,
+			DataRate:   msg.FrameContext.GatewayContext.Radio.DataRate,
+			DevAddr:    msg.Device.DevAddr.ToUint32(),
+		}); err != nil {
+			lg.Warning("Error sending message. Closing stream: %v", err)
+			return nil
+		}
+	}
+	return nil
+}

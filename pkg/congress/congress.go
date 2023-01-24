@@ -84,7 +84,7 @@ func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 			lg.Error("Error creating listener: %v", err)
 			os.Exit(1)
 		}
-		lospanSvc, err := apiserver.New(c.context.Storage, c.context.KeyGenerator)
+		lospanSvc, err := apiserver.New(c.context.Storage, c.context.KeyGenerator, &appRouter)
 		if err != nil {
 			lg.Error("Error creatig lospan service: %v", err)
 			os.Exit(1)

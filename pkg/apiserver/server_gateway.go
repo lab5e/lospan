@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"context"
+	"errors"
 	"net"
 
 	"github.com/lab5e/lospan/pkg/model"
@@ -141,4 +142,8 @@ func (a *apiServer) UpdateGateway(ctx context.Context, req *lospan.Gateway) (*lo
 		return nil, toProtoErr(err)
 	}
 	return toAPIGateway(gw), nil
+}
+
+func (a *apiServer) StreamGateway(req *lospan.StreamGatewayRequest, stream lospan.Lospan_StreamGatewayServer) error {
+	return errors.New("not implemented")
 }

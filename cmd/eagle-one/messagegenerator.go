@@ -11,8 +11,10 @@ import (
 	"github.com/lab5e/lospan/pkg/protocol"
 )
 
+const numNames = 3
+
 var payloadTemplate string
-var payloadArgs [5]string
+var payloadArgs [numNames]string
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -20,10 +22,8 @@ func init() {
 	payloadTemplate = "It seemed to me, said %s the Sane, that any civilization that had so far lost its head as to need to include a set of detailed instructions for use in a packet of toothpicks, was no longer a civilization in which I could live and stay sane."
 
 	payloadArgs[0] = "Hans Jørgen"
-	payloadArgs[1] = "Per Kristian"
+	payloadArgs[1] = "Bjørn"
 	payloadArgs[2] = "Ståle"
-	payloadArgs[3] = "Thomas"
-	payloadArgs[4] = "Bjørn"
 }
 
 // MessageGenerator generates LoRaWAN messages of various kinds.
@@ -87,7 +87,7 @@ func (m *MessageGenerator) buildPayload() []byte {
 		data[1] = byte(value >> 8)
 		return data
 	}
-	payload := fmt.Sprintf(payloadTemplate, payloadArgs[rand.Intn(5)])
+	payload := fmt.Sprintf(payloadTemplate, payloadArgs[rand.Intn(numNames)])
 	payloadSize := rand.Intn(m.MaxPayloadSize-1) + 1
 	return []byte(payload)[:payloadSize]
 }

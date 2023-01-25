@@ -101,7 +101,6 @@ func (e *Eagle1) StartForwarder() {
 		e.Gateway.GetEui(), e.Config.Hostname,
 		e.Config.UDPPort)
 
-	lg.Info("Launching synthetic forwarder")
 	go e.forwarder.Start()
 	go e.decodingLoop()
 }

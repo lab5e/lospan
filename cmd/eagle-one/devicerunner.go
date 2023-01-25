@@ -69,8 +69,8 @@ func (b *DeviceRunner) Prepare(client lospan.LospanClient, app *lospan.Applicati
 		}
 		b.devices = append(b.devices, devices.Devices...)
 	}
-	lg.Info("# devices: %d", b.Config.DeviceCount)
-	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, b.Config.DeviceCount*b.Config.DeviceMessages)
+	lg.Info("# devices: %d", len(b.devices))
+	lg.Info("# messages: %d (total: %d)", b.Config.DeviceMessages, len(b.devices)*b.Config.DeviceMessages)
 	return nil
 }
 

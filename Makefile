@@ -8,7 +8,6 @@ all: vet priv build
 priv:
 	go env -w GOPRIVATE=$(GOPRIVATE)
 
-
 vet:
 	go vet ./...
 	revive ./...
@@ -24,6 +23,10 @@ cmd:
 	cd cmd/congress && go build -o ../../bin/congress
 	cd cmd/datagenerator && go build -o ../../bin/datagenerator
 	cd cmd/eagle-one && go build -o ../../bin/eagle-one
+
+rpi: 
+	cd cmd/lc && GOOS=linux GOARCH=arm go build -o ../../bin/lc.rpi
+	cd cmd/congress && GOOS=linux GOARCH=arm go build -o ../../bin/congress.rpi
 
 tools: 
 	cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go get %

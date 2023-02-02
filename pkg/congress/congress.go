@@ -78,21 +78,22 @@ func NewLoRaServer(config *server.Parameters) (*LoRaServer, error) {
 	c.forwarder = gateway.NewGenericPacketForwarder(c.config.GatewayPort, datastore, c.context)
 	c.pipeline = processor.NewPipeline(c.context, c.forwarder)
 
+	listener, err := net.Listen("tcp", config.GRPCEndpoint)
+	if err != nil {
+		lg.Error("Error creating listener: %v", err)
+		return nil, err
+	}
+	lospanSvc, err := apiserver.New(c.context.Storage, c.context.KeyGenerator, &appRouter)
+	if err != nil {
+		lg.Error("Error creatig lospan service: %v", err)
+		return nil, err
+	}
+	c.listenAddr = listener.Addr()
+
 	go func() {
-		listener, err := net.Listen("tcp", config.GRPCEndpoint)
-		if err != nil {
-			lg.Error("Error creating listener: %v", err)
-			os.Exit(1)
-		}
-		lospanSvc, err := apiserver.New(c.context.Storage, c.context.KeyGenerator, &appRouter)
-		if err != nil {
-			lg.Error("Error creatig lospan service: %v", err)
-			os.Exit(1)
-		}
 		server := grpc.NewServer()
 		lospan.RegisterLospanServer(server, lospanSvc)
 		lg.Info("Listening on %s", listener.Addr().String())
-		c.listenAddr = listener.Addr()
 		if err := server.Serve(listener); err != nil {
 			lg.Error("Error serving gRPC: %v", err)
 			os.Exit(2)

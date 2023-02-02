@@ -217,12 +217,28 @@ func (a *apiServer) UpdateDevice(ctx context.Context, req *lospan.Device) (*losp
 	if req.State != nil {
 		switch d.State {
 		case model.OverTheAirDevice:
-			if len(req.AppKey) == 0 {
-				return nil, status.Error(codes.InvalidArgument, "Must specify app key when changing device type to OTAA")
+			if d.AppKey.Empty() {
+				// assign a new app key if it isn't set
+				d.AppKey, err = protocol.NewAESKey()
+				if err != nil {
+					return nil, status.Error(codes.Internal, "Could not create application key for device")
+				}
 			}
 		case model.PersonalizedDevice:
-			if len(req.AppSessionKey) == 0 || len(req.NetworkSessionKey) == 0 {
-				return nil, status.Error(codes.InvalidArgument, "Must specify app session key and network session key when changing device type to ABP")
+			if d.AppSKey.Empty() {
+				d.AppSKey, err = protocol.NewAESKey()
+				if err != nil {
+					return nil, status.Error(codes.Internal, "Could not create application session key for device")
+				}
+			}
+			if d.NwkSKey.Empty() {
+				d.NwkSKey, err = protocol.NewAESKey()
+				if err != nil {
+					return nil, status.Error(codes.Internal, "Could not create network session key for device")
+				}
+			}
+			if d.DevAddr.ToUint32() == 0 {
+				d.DevAddr = protocol.NewDevAddr()
 			}
 		default:
 			// no checks

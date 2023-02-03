@@ -30,15 +30,16 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 	var err error
 	sqlInsert := `
 		INSERT INTO
-			lora_applications (eui)
-		VALUES ($1)`
+			lora_applications (eui, tag)
+		VALUES ($1, $2)`
 	if a.putStatement, err = db.Prepare(sqlInsert); err != nil {
 		return fmt.Errorf("unable to prepare insert statement: %v", err)
 	}
 
 	sqlSelect := `
 		SELECT
-			a.eui
+			a.eui,
+			a.tag
 		FROM
 			lora_applications a
 		WHERE
@@ -49,7 +50,8 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 
 	sqlList := `
 		SELECT
-			a.eui
+			a.eui,
+			a.tag
 		FROM
 			lora_applications a`
 
@@ -67,7 +69,8 @@ func (a *applicationStatements) prepare(db *sql.DB) error {
 
 	sqlSystemGet := `
 		SELECT
-			a.eui
+			a.eui,
+			a.tag
 		FROM
 			lora_applications a
 		WHERE
@@ -83,7 +86,7 @@ func (s *Storage) readApplication(rows *sql.Rows) (model.Application, error) {
 	var appEUI int64
 	var err error
 	ret := model.NewApplication()
-	if err = rows.Scan(&appEUI); err != nil {
+	if err = rows.Scan(&appEUI, &ret.Tag); err != nil {
 		return ret, err
 	}
 
@@ -136,7 +139,7 @@ func (s *Storage) ListApplications() ([]model.Application, error) {
 // CreateApplication stores an Application instance in the storage backend
 func (s *Storage) CreateApplication(application model.Application) error {
 	return s.doSQLExec(s.appStmt.putStatement, func(st *sql.Stmt) (sql.Result, error) {
-		return st.Exec(application.AppEUI.ToInt64())
+		return st.Exec(application.AppEUI.ToInt64(), application.Tag)
 	})
 }
 

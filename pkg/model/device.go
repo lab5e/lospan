@@ -64,6 +64,7 @@ type Device struct {
 	RelaxedCounter  bool             // Relaxed frame count checks
 	DevNonceHistory []uint16         // Log of DevNonces sent from the device
 	KeyWarning      bool             // Duplicate key warning flag
+	Tag             string           // Tag data (for external refs)
 }
 
 // NewDevice creates a new device

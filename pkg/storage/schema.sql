@@ -1,23 +1,23 @@
 CREATE TABLE IF NOT EXISTS lora_applications (
-    eui         BIGINT    NOT NULL,
-
+    eui         BIGINT       NOT NULL,
+    tag         VARCHAR(128) NOT NULL,
     CONSTRAINT lora_application_pk PRIMARY KEY (eui)
 );
 
 
 CREATE TABLE IF NOT EXISTS lora_devices (
-    eui             BIGINT  NOT NULL,
-    dev_addr        CHAR(8)   NOT NULL,
-    app_key         CHAR(32)  NOT NULL,
-    apps_key        CHAR(32)  NOT NULL,
-    nwks_key        CHAR(32)  NOT NULL,
-    application_eui BIGINT  NOT NULL REFERENCES lora_application(eui),
-    state           SMALLINT  NOT NULL,
-    fcnt_up         INTEGER   NOT NULL DEFAULT 0,
-    fcnt_dn         INTEGER   NOT NULL DEFAULT 0,
-    relaxed_counter BOOLEAN   NOT NULL DEFAULT false,
-    key_warning     BOOLEAN   NOT NULL DEFAULT false,
-
+    eui             BIGINT       NOT NULL,
+    dev_addr        CHAR(8)      NOT NULL,
+    app_key         CHAR(32)     NOT NULL,
+    apps_key        CHAR(32)     NOT NULL,
+    nwks_key        CHAR(32)     NOT NULL,
+    application_eui BIGINT       NOT NULL REFERENCES lora_application(eui),
+    state           SMALLINT     NOT NULL,
+    fcnt_up         INTEGER      NOT NULL DEFAULT 0,
+    fcnt_dn         INTEGER      NOT NULL DEFAULT 0,
+    relaxed_counter BOOLEAN      NOT NULL DEFAULT false,
+    key_warning     BOOLEAN      NOT NULL DEFAULT false,
+    tag             VARCHAR(128) NOT NULL,
     CONSTRAINT lora_device_pk PRIMARY KEY (eui)
 );
 

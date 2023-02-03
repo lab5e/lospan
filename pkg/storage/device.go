@@ -49,7 +49,8 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 				fcnt_up,
 				fcnt_dn,
 				relaxed_counter,
-				key_warning)
+				key_warning,
+				tag)
 		VALUES (
 			$1,
 			$2,
@@ -61,7 +62,8 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			$8,
 			$9,
 			$10,
-			$11)`
+			$11,
+			$12)`
 	if d.putStatement, err = db.Prepare(sqlInsert); err != nil {
 		return fmt.Errorf("unable to prepare insert statement: %v", err)
 	}
@@ -78,7 +80,8 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			fcnt_up,
 			fcnt_dn,
 			relaxed_counter,
-			key_warning
+			key_warning,
+			tag
 		FROM
 			lora_devices
 		WHERE
@@ -99,7 +102,8 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			fcnt_up,
 			fcnt_dn,
 			relaxed_counter,
-			key_warning
+			key_warning,
+			tag
 		FROM
 			lora_devices
 		WHERE
@@ -121,7 +125,8 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			fcnt_up,
 			fcnt_dn,
 			relaxed_counter,
-			key_warning
+			key_warning,
+			tag
 		FROM
 			lora_devices
 		WHERE
@@ -163,8 +168,9 @@ func (d *deviceStatements) prepare(db *sql.DB) error {
 			fcnt_up = $6,
 			fcnt_dn = $7,
 			relaxed_counter = $8,
-			key_warning = $9
-		WHERE eui = $10`
+			key_warning = $9,
+			tag = $10
+		WHERE eui = $11`
 	if d.updateStatement, err = db.Prepare(update); err != nil {
 		return fmt.Errorf("unable to prepare device update statement: %v", err)
 	}
@@ -207,7 +213,8 @@ func (s *Storage) readDeviceSansNonce(row *sql.Rows) (model.Device, error) {
 		&ret.FCntUp,
 		&ret.FCntDn,
 		&ret.RelaxedCounter,
-		&ret.KeyWarning); err != nil {
+		&ret.KeyWarning,
+		&ret.Tag); err != nil {
 		return ret, err
 	}
 
@@ -308,7 +315,8 @@ func (s *Storage) CreateDevice(device model.Device, appEUI protocol.EUI) error {
 			device.FCntUp,
 			device.FCntDn,
 			device.RelaxedCounter,
-			device.KeyWarning)
+			device.KeyWarning,
+			device.Tag)
 	})
 }
 
@@ -346,6 +354,7 @@ func (s *Storage) UpdateDevice(device model.Device) error {
 			device.FCntDn,
 			device.RelaxedCounter,
 			device.KeyWarning,
+			device.Tag,
 			device.DeviceEUI.ToInt64())
 	})
 }

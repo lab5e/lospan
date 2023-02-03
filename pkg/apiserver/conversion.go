@@ -10,6 +10,7 @@ import (
 func toAPIApplication(app model.Application) *lospan.Application {
 	return &lospan.Application{
 		Eui: app.AppEUI.String(),
+		Tag: &app.Tag,
 	}
 }
 
@@ -66,6 +67,7 @@ func toAPIDevice(d model.Device) *lospan.Device {
 		FrameCountDown:    newPtr(int32(d.FCntDn)),
 		RelaxedCounter:    newPtr(d.RelaxedCounter),
 		KeyWarning:        newPtr(d.KeyWarning),
+		Tag:               &d.Tag,
 		DevNonces:         toAPINonces(d.DevNonceHistory[:]),
 	}
 }

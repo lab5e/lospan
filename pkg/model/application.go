@@ -9,6 +9,7 @@ import (
 // Application represents a LoRa application instance.
 type Application struct {
 	AppEUI protocol.EUI // Application EUI
+	Tag    string       // Tag data (for external ref)
 }
 
 // Equals returns true if the other application has identical fields. Just like

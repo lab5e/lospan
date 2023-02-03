@@ -119,6 +119,7 @@ func (c *LoRaServer) Shutdown() error {
 	return nil
 }
 
+// ListenAddress returns the address the server is listening on
 func (c *LoRaServer) ListenAddress() net.Addr {
 	return c.listenAddr
 }

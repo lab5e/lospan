@@ -21,15 +21,5 @@ You should see 10 devices send 10 messages each to the service.
 Use `bin/lc` to interact with the gRPC API. This client is for development and testing only so expect sharp
 edges.
 
-## TODO
-* [ ] Handle multiple messages in outbox (ie message_id to reference the message). 
-* [ ] API to purge messages older than a certain age.
-* [X] Emulator for client and server (using Eagle One + congress server stub)
-* [ ] Move AppKey to Application type. This is (for some odd reason)on the device,
-  probably because convenient some time ago.
-* [ ] Split into application (aka message dedup and concentrator) and network server.
-  This might not be totally in line with the LoRaWAN architecture but it's a close
-  approximation.
-* [ ] Load testing of final solution
 
 

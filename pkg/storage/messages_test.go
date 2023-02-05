@@ -98,53 +98,55 @@ func TestDownstreamStorage(t *testing.T) {
 	downstreamMsg := model.NewDownstreamMessage(testDevice.DeviceEUI, 42)
 	downstreamMsg.Ack = false
 	downstreamMsg.Data = "aabbccddeeff"
+	downstreamMsg.CreatedTime = time.Now().UnixNano()
 	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, downstreamMsg), "Should be able to store downstream message")
+	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI, downstreamMsg.CreatedTime))
 
 	newDownstreamMsg := model.NewDownstreamMessage(testDevice.DeviceEUI, 43)
 	newDownstreamMsg.Ack = false
 	newDownstreamMsg.Data = "aabbccddeeff"
-
-	assert.Error(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg),
+	newDownstreamMsg.FCntUp = 99
+	created := time.Now().UnixNano()
+	newDownstreamMsg.CreatedTime = created
+	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg),
 		"Shouldn't be able to store another downstream message")
 
-	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI))
+	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI, created))
 
-	assert.Equal(ErrNotFound, s.DeleteDownstreamMessage(testDevice.DeviceEUI))
+	assert.Equal(ErrNotFound, s.DeleteDownstreamMessage(testDevice.DeviceEUI, created))
 
-	_, err = s.GetNextDownstreamMessage(testDevice.DeviceEUI)
+	empty, err := s.GetNextUnsentMessage(testDevice.DeviceEUI)
+	assert.Equal(int64(0), empty.CreatedTime)
 	assert.Equal(ErrNotFound, err)
 
 	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, newDownstreamMsg))
 
 	time2 := time.Now().Unix()
-	assert.NoError(s.UpdateDownstreamMessage(testDevice.DeviceEUI, time2, 0))
+	assert.NoError(s.SetMessageSentTime(testDevice.DeviceEUI, created, time2, newDownstreamMsg.FCntUp))
 
 	newDownstreamMsg.SentTime = time2
-	stored, err := s.GetNextDownstreamMessage(testDevice.DeviceEUI)
+	_, err = s.GetNextUnsentMessage(testDevice.DeviceEUI)
+	assert.Equal(ErrNotFound, err)
+
+	confirmableMessage := model.NewDownstreamMessage(testDevice.DeviceEUI, 99)
+	confirmableMessage.CreatedTime = time.Now().UnixNano()
+	confirmableMessage.Data = "this is the data"
+	confirmableMessage.Ack = true
+	assert.NoError(s.CreateDownstreamMessage(confirmableMessage.DeviceEUI, confirmableMessage))
+	_, err = s.GetNextUnsentMessage(testDevice.DeviceEUI)
 	assert.NoError(err)
 
-	assert.Equal(newDownstreamMsg, stored, "Sent time isn't updated properly")
+	assert.NoError(s.SetMessageSentTime(confirmableMessage.DeviceEUI, confirmableMessage.CreatedTime, time.Now().UnixNano(), 101))
 
-	time3 := time.Now().Unix()
-	assert.NoError(s.UpdateDownstreamMessage(testDevice.DeviceEUI, time2, time3))
+	_, err = s.GetNextUnsentMessage(testDevice.DeviceEUI)
+	assert.Equal(ErrNotFound, err)
 
-	stored, err = s.GetNextDownstreamMessage(testDevice.DeviceEUI)
-	assert.NoError(err)
+	// Invalid frame counter
+	assert.Error(s.UpdateMessageAckTime(downstreamMsg.DeviceEUI, 199, time.Now().UnixNano()))
 
-	assert.Equal(time3, stored.AckTime)
-
-	assert.NoError(s.CreateDownstreamMessage(testDevice.DeviceEUI, model.DownstreamMessage{
-		DeviceEUI: testDevice.DeviceEUI,
-		Data:      "0102030405",
-		Port:      2,
-		Ack:       false,
-	}))
-	list, err := s.ListDownstreamMessages(testDevice.DeviceEUI)
-	assert.NoError(err)
-	assert.Len(list, 2)
-
-	assert.NoError(s.DeleteDownstreamMessage(testDevice.DeviceEUI))
-
-	assert.Equal(ErrNotFound, s.UpdateDownstreamMessage(testDevice.DeviceEUI, 0, 0))
+	// ok - got frame counter
+	assert.NoError(s.UpdateMessageAckTime(downstreamMsg.DeviceEUI, 101, time.Now().UnixNano()))
+	// can't ack twice
+	assert.Error(s.UpdateMessageAckTime(downstreamMsg.DeviceEUI, 101, time.Now().UnixNano()))
 
 }

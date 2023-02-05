@@ -51,6 +51,7 @@ type FrameContext struct {
 	Device         model.Device      // The decoded Device. Nil if it haven't been decoded yet.
 	Application    model.Application // The decoded application. Nil if it haven't been resolved yet.
 	GatewayContext GatewayPacket     // Context for gateway'
+	PayloadCreate  int64             // Timestamp for the payload
 }
 
 // GatewayPacket contains a byte buffer plus radio statistics.

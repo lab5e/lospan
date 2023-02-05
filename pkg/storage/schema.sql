@@ -73,14 +73,22 @@ CREATE TABLE IF NOT EXISTS lora_gateways (
 );
 
 
+-- Some trickery to update the appropriate sent but not acked message; when sending a confirmable message
+-- we don't get a message ID in return (or anything that identifies the acked message; it's justa an ack
+-- of the (presumed) previous message). Update with sent frame counter and remove the one matching 
+-- device ID, ack_time == 0 and frame counter for the (most recent) upstream message. The next ack will be
+-- an ack of the message that we sent in this downstream message.
+--
+-- It's confusing until you think about it for a while.
 CREATE TABLE IF NOT EXISTS lora_downstream_messages (
     device_eui   BIGINT NOT NULL REFERENCES lora_device(eui) ON DELETE CASCADE,
     data         VARCHAR(256) NOT NULL,
     port         INTEGER NOT NULL,
     ack          BOOLEAN NOT NULL DEFAULT false,
-    created_time INTEGER NOT NULL,
-    sent_time    INTEGER DEFAULT 0,
-    ack_time     INTEGER DEFAULT 0,
+    created_time BIGINT NOT NULL,
+    sent_time    BIGINT DEFAULT 0,
+    ack_time     BIGINT DEFAULT 0,
+    fcnt_up INTEGER NOT NULL, 
 
     CONSTRAINT lora_downstream_message_pk PRIMARY KEY (device_eui, created_time)
 );

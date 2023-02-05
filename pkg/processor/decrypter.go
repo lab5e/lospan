@@ -99,32 +99,29 @@ func (d *Decrypter) processMessage(device *model.Device, decoded server.LoRaMess
 		d.context.FrameOutput.SetMessageAckFlag(device.DeviceEUI, true)
 	}
 
-	msg, err := d.context.Storage.GetNextDownstreamMessage(device.DeviceEUI)
-	if err == nil {
-		// Update state of message -- note that this could cause some inconsistent
-		// behaviour if you create a message (with ack) and replaces it with a new
-		// message after it has been sent but before it has been acked:
-		//
-		// t=0  : Create new downstream message with ack flag set
-		// t=1  : Device sends upstream message, server responds with downstream message
-		// t=1.1: Downstream message is removed and replaced with a new message
-		// t=1.2: New downstream message with ack flag set
-		// t=2  : Device acknowledges message from t=1
-		// Since the message from t=1.2 isn't sent yet the ack will be ignored.
-		if decoded.Payload.MACPayload.FHDR.FCtrl.ACK && msg.State() == model.SentState && msg.Ack {
-			msg.AckTime = time.Now().Unix()
-			if err := d.context.Storage.UpdateDownstreamMessage(device.DeviceEUI, msg.SentTime, msg.AckTime); err != nil {
-				lg.Warning("Unable to update downstream message: %v", err)
-			}
-		}
-		if !msg.IsComplete() {
-			lg.Debug("Setting downstream message payload (%v) for device %s", msg.Payload(), device.DeviceEUI)
-			d.context.FrameOutput.SetPayload(device.DeviceEUI, msg.Payload(), msg.Port, msg.Ack)
+	// Check if the device has acked the previous message we sent. If so, update the state of the message.
+	if decoded.Payload.MACPayload.FHDR.FCtrl.ACK {
+		// Update messages with matching upstream flags.
+		lg.Info("Setting ack time for message from %s (FC=%d)", device.DeviceEUI, decoded.Payload.MACPayload.FHDR.FCnt)
+		d.context.Storage.UpdateMessageAckTime(device.DeviceEUI, decoded.Payload.MACPayload.FHDR.FCnt, time.Now().UnixNano())
+	} else {
+		// reset sent time for messages that should be acked.
+		if err := d.context.Storage.ResetActiveAcks(device.DeviceEUI); err != nil {
+			lg.Warning("Unable to reset ack messages for device %s: %v", device.DeviceEUI, err)
 		}
 	}
 
+	// Retrieve the next message that should be sent to the device (if any).
+	msg, err := d.context.Storage.GetNextUnsentMessage(device.DeviceEUI)
+	if err == nil {
+		lg.Debug("Setting downstream message payload (%v) for device %s", msg.Payload(), device.DeviceEUI)
+		d.context.FrameOutput.SetPayload(device.DeviceEUI, msg.Payload(), msg.Port, msg.Ack)
+		decoded.FrameContext.PayloadCreate = msg.CreatedTime
+		lg.Info("Set sent time for message from %s. Fcnt=%d", device.DeviceEUI, decoded.Payload.MACPayload.FHDR.FCnt)
+		d.context.Storage.SetMessageSentTime(device.DeviceEUI, msg.CreatedTime, time.Now().UnixNano(), decoded.Payload.MACPayload.FHDR.FCnt)
+	}
 	if err != nil && err != storage.ErrNotFound {
-		lg.Warning("Unable to retrieve downstream message: %v", err)
+		lg.Warning("Unable to retrieve downstream message for device %s: %v", device.DeviceEUI, err)
 	}
 
 	d.macOutput <- decoded

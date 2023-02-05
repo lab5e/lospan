@@ -109,12 +109,13 @@ func newTestForwarder() *testForwarder {
 }
 
 // Helper method to build PHYPayload message
-func newPHYPayloadMessage(messageType protocol.MType, devAddr protocol.DevAddr) *protocol.PHYPayload {
+func newPHYPayloadMessage(messageType protocol.MType, devAddr protocol.DevAddr, fc uint16) *protocol.PHYPayload {
 	// Bypass the forwarder and emulate a new message into the pipeline
 	ret := protocol.NewPHYPayload(messageType)
 	ret.MACPayload.FHDR.DevAddr = devAddr
 	ret.MACPayload.FPort = 1
 	ret.MACPayload.FRMPayload = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	ret.MACPayload.FHDR.FCnt = fc
 	return &ret
 }
 
@@ -148,6 +149,19 @@ type testContext struct {
 	t         *testing.T
 }
 
+// findDownstreamMessage is a test-only message retrieve
+func (c *testContext) findDownstreamMessage(eui protocol.EUI, created int64) (model.DownstreamMessage, error) {
+	msgs, err := c.datastore.ListDownstreamMessages(eui)
+	if err != nil {
+		return model.DownstreamMessage{}, err
+	}
+	for _, m := range msgs {
+		if m.CreatedTime == created {
+			return m, nil
+		}
+	}
+	return model.DownstreamMessage{}, storage.ErrNotFound
+}
 func newTestContext(t *testing.T) testContext {
 	ret := testContext{t: t}
 	ret.config = server.NewDefaultConfig()
@@ -192,7 +206,8 @@ func newTestContext(t *testing.T) testContext {
 func checkMessageOutput(c *testContext, testCase string, checkMessage func(packet protocol.PHYPayload)) {
 	msg := c.forwarder.grabMessage(1 * time.Second)
 	if msg == nil {
-		c.t.Fatalf("Did not get a response within the 1 second limit (test %s)", testCase)
+		panic("Response timeout")
+		//		c.t.Fatalf("Did not get a response within the 1 second limit (test %s)", testCase)
 	}
 	phy := protocol.NewPHYPayload(protocol.Proprietary)
 	if err := phy.UnmarshalBinary(msg.RawMessage); err != nil {
@@ -215,7 +230,7 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 1: ConfirmedDataUp from device, no downstream message waiting
 	//     => mtype=UnconfirmedDown, port=0, ack=true
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.ConfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.ConfirmedDataUp, c.device.DevAddr, 1), c.device)
 
 	checkMessageOutput(&c, "1", func(phy protocol.PHYPayload) {
 		if phy.MHDR.MType != protocol.UnconfirmedDataDown {
@@ -232,7 +247,7 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 2: UnconfirmedUp from device, no downstream message
 	//     => no response
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 2), c.device)
 	select {
 	case <-c.forwarder.Output():
 		t.Fatalf("Did not expect a message to be sent in response to UnconfirmedUp message")
@@ -246,11 +261,12 @@ func TestProcessingPipeline(t *testing.T) {
 	downMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 200)
 	downMsg.Ack = false
 	downMsg.Data = "010203040506070809"
+	downMsg.CreatedTime = time.Now().UnixNano()
 	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, downMsg); err != nil {
 		t.Fatalf("Unable to store downstream: %v", err)
 	}
 
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 3), c.device)
 
 	checkMessageOutput(&c, "3", func(phy protocol.PHYPayload) {
 		if phy.MHDR.MType != protocol.UnconfirmedDataDown {
@@ -267,7 +283,7 @@ func TestProcessingPipeline(t *testing.T) {
 			t.Fatalf("Did not get the expected data: %v", phy.MACPayload.FRMPayload)
 		}
 	})
-	downMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
+	downMsg, err := c.findDownstreamMessage(c.device.DeviceEUI, downMsg.CreatedTime) // datastore.GetNextUnsentMessage(c.device.DeviceEUI)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -278,7 +294,7 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 3a: UnconfirmedUp from device, already sent downstream message
 	//    => no response
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 4), c.device)
 	if msg := c.forwarder.grabMessage(timeToWaitForNoMessage); msg != nil {
 		t.Fatalf("Did not expect a response from the server but got %v", msg)
 	}
@@ -287,13 +303,14 @@ func TestProcessingPipeline(t *testing.T) {
 	// Test 4: UnconfirmedUp from device, downstream message w/ ack
 	//    => Downstream message
 	downMsgAck := model.NewDownstreamMessage(c.device.DeviceEUI, 100)
+	downMsgAck.CreatedTime = time.Now().UnixNano()
 	downMsgAck.Ack = true
 	downMsgAck.Data = "aabbccddeeff00112233"
-	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI)
+	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI, downMsg.CreatedTime)
 	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, downMsgAck); err != nil {
 		t.Fatalf("Unable to store downstream message: %v", err)
 	}
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 5), c.device)
 	checkMessageOutput(&c, "4", func(phy protocol.PHYPayload) {
 		if phy.MHDR.MType != protocol.ConfirmedDataDown {
 			t.Fatal("Did not get ConfirmedDataDown from server")
@@ -306,7 +323,7 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 4a: UnconfirmedUp from device w/ no ack, same downstream message
 	//    => Downstream message repeated
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 6), c.device)
 	checkMessageOutput(&c, "4a", func(phy protocol.PHYPayload) {
 		if phy.MHDR.MType != protocol.ConfirmedDataDown {
 			t.Fatal("Did not get ConfirmedDataDown from server")
@@ -319,14 +336,14 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 4b: UnconfirmedUp from device w/ ack, same downstream message
 	//    => no message but downstream updated w/ ack
-	msg := newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr)
+	msg := newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 7)
 	msg.MACPayload.FHDR.FCtrl.ACK = true
 	sendMessageOnChannel(&c, msg, c.device)
 
 	if msg := c.forwarder.grabMessage(timeToWaitForNoMessage); msg != nil {
 		t.Fatalf("Did not expect downstream message to be sent a 2nd time but got %v", msg)
 	}
-	updatedAckMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
+	updatedAckMsg, err := c.findDownstreamMessage(c.device.DeviceEUI, downMsgAck.CreatedTime)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -338,7 +355,7 @@ func TestProcessingPipeline(t *testing.T) {
 	// ----------------------------------------------------------------------
 	// Test 4b: UnconfirmedUp from device w/ ack, same downstream message
 	//    => no message
-	msg = newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr)
+	msg = newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 8)
 	msg.MACPayload.FHDR.FCtrl.ACK = true
 	sendMessageOnChannel(&c, msg, c.device)
 
@@ -346,7 +363,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedAckMsg, err = c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
+	updatedAckMsg, err = c.findDownstreamMessage(c.device.DeviceEUI, updatedAckMsg.CreatedTime)
 	if err != nil {
 		t.Fatalf("Unable to retrieve downstream message: %v", err)
 	}
@@ -359,9 +376,10 @@ func TestProcessingPipeline(t *testing.T) {
 	// Add downstream message, shut down pipeline (in effect stopping the server),
 	// launch a new pipeline and see if the message is forwarded appropriately.
 
-	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI)
+	c.datastore.DeleteDownstreamMessage(c.device.DeviceEUI, updatedAckMsg.CreatedTime)
 	persistedMsg := model.NewDownstreamMessage(c.device.DeviceEUI, 50)
 	persistedMsg.Ack = true
+	persistedMsg.CreatedTime = time.Now().UnixNano()
 	persistedMsg.Data = "beefbeefbeefbeef"
 
 	if err := c.datastore.CreateDownstreamMessage(c.device.DeviceEUI, persistedMsg); err != nil {
@@ -377,7 +395,7 @@ func TestProcessingPipeline(t *testing.T) {
 	})
 	c.forwarder.Stop()
 
-	updatedMsg, err := c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
+	updatedMsg, err := c.findDownstreamMessage(c.device.DeviceEUI, persistedMsg.CreatedTime)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -393,7 +411,7 @@ func TestProcessingPipeline(t *testing.T) {
 	c.forwarder.Start()
 
 	// Test 5b: Send a new message with no ack. The message should be resent
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr), c.device)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 9), c.device)
 	checkMessageOutput(&c, "5b", func(p protocol.PHYPayload) {
 		if p.MHDR.MType != protocol.ConfirmedDataDown {
 			t.Fatalf("Got message type %v. Didn't expect that.", p.MHDR.MType)
@@ -402,7 +420,7 @@ func TestProcessingPipeline(t *testing.T) {
 
 	// Test 5c: Ack the message. No message will be receive and the message
 	// will have changed state to acknowledged
-	msg = newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr)
+	msg = newPHYPayloadMessage(protocol.UnconfirmedDataUp, c.device.DevAddr, 10)
 	msg.MACPayload.FHDR.FCtrl.ACK = true
 	sendMessageOnChannel(&c, msg, c.device)
 
@@ -410,7 +428,7 @@ func TestProcessingPipeline(t *testing.T) {
 		t.Fatalf("Did not expect downstream message to be sent a 3rd time but got %v", msg)
 	}
 
-	updatedMsg, err = c.datastore.GetNextDownstreamMessage(c.device.DeviceEUI)
+	updatedMsg, err = c.findDownstreamMessage(c.device.DeviceEUI, persistedMsg.CreatedTime)
 	if err != nil {
 		t.Fatalf("Error retrieving downstream msg: %v", err)
 	}
@@ -480,7 +498,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 	c.datastore.CreateDevice(device1, app1.AppEUI)
 	c.datastore.CreateDevice(device2, app2.AppEUI)
 
-	msg1 := newPHYPayloadMessage(protocol.ConfirmedDataUp, device1.DevAddr)
+	msg1 := newPHYPayloadMessage(protocol.ConfirmedDataUp, device1.DevAddr, 1)
 	msg1.MACPayload.FRMPayload = []byte{1, 1, 1, 1}
 	sendMessageOnChannel(&c, msg1, device1)
 
@@ -489,7 +507,7 @@ func TestDuplicateDevAddr(t *testing.T) {
 			t.Fatalf("Got message type %v. Didn't expect that.", p.MHDR.MType)
 		}
 	})
-	msg2 := newPHYPayloadMessage(protocol.ConfirmedDataUp, device2.DevAddr)
+	msg2 := newPHYPayloadMessage(protocol.ConfirmedDataUp, device2.DevAddr, 2)
 	msg2.MACPayload.FRMPayload = []byte{2, 2, 2, 2}
 	sendMessageOnChannel(&c, msg2, device2)
 	checkMessageOutput(&c, "Device 2", func(p protocol.PHYPayload) {
@@ -542,7 +560,7 @@ func TestInvalidMIC(t *testing.T) {
 	newDevice := c.device
 	newDevice.NwkSKey, _ = protocol.NewAESKey()
 	newDevice.AppSKey, _ = protocol.NewAESKey()
-	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.ConfirmedDataUp, c.device.DevAddr), newDevice)
+	sendMessageOnChannel(&c, newPHYPayloadMessage(protocol.ConfirmedDataUp, c.device.DevAddr, 1), newDevice)
 
 	if msg := c.forwarder.grabMessage(timeToWaitForNoMessage); msg != nil {
 		t.Fatalf("Did not expect an ack message %v", msg)

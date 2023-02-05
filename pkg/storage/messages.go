@@ -12,12 +12,12 @@ import (
 )
 
 type dataStatements struct {
-	createUpstream   *sql.Stmt
-	listUpstream     *sql.Stmt
-	createDownstream *sql.Stmt
-	deleteDownstream *sql.Stmt
-	updateDownstream *sql.Stmt
-	listDownstream   *sql.Stmt
+	createUpstream       *sql.Stmt
+	listUpstream         *sql.Stmt
+	createDownstream     *sql.Stmt
+	deleteDownstream     *sql.Stmt
+	listDownstream       *sql.Stmt
+	listUnsentDownstream *sql.Stmt
 }
 
 // Close closes the resources opened by the DBDataStorage instance
@@ -26,8 +26,8 @@ func (d *dataStatements) Close() {
 	d.listUpstream.Close()
 	d.createDownstream.Close()
 	d.deleteDownstream.Close()
-	d.updateDownstream.Close()
 	d.listDownstream.Close()
+	d.listUnsentDownstream.Close()
 }
 
 func (d *dataStatements) prepare(db *sql.DB) error {
@@ -78,7 +78,8 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 			ack,
 			created_time,
 			sent_time,
-			ack_time)
+			ack_time,
+			fcnt_up)
 		VALUES (
 			$1,
 			$2,
@@ -86,7 +87,8 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 			$4,
 			$5,
 			$6,
-			$7)`); err != nil {
+			$7,
+			$8)`); err != nil {
 		return fmt.Errorf("unable to prepare downstream put statement: %v", err)
 	}
 
@@ -94,20 +96,8 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 		DELETE FROM
 			lora_downstream_messages
 		WHERE
-			device_eui = $1`); err != nil {
+			device_eui = $1 AND created_time = $2`); err != nil {
 		return fmt.Errorf("unable to prepare downstream delete statement: %v", err)
-	}
-
-	sqlUpdateDownstream := `
-		UPDATE lora_downstream_messages
-			SET
-				sent_time = $1,
-				ack_time = $2
-			WHERE
-				device_eui = $3 
-	`
-	if d.updateDownstream, err = db.Prepare(sqlUpdateDownstream); err != nil {
-		return fmt.Errorf("unable to prepare downstream update statement")
 	}
 
 	if d.listDownstream, err = db.Prepare(`
@@ -117,11 +107,32 @@ func (d *dataStatements) prepare(db *sql.DB) error {
 			ack,
 			created_time,
 			sent_time,
-			ack_time
+			ack_time,
+			fcnt_up
 		FROM
 			lora_downstream_messages
 		WHERE
 			device_eui = $1
+		ORDER BY
+			created_time
+		LIMIT 100
+	`); err != nil {
+		return fmt.Errorf("unable to prepare downstream select statement")
+	}
+
+	if d.listUnsentDownstream, err = db.Prepare(`
+		SELECT
+			data,
+			port,
+			ack,
+			created_time,
+			sent_time,
+			ack_time,
+			fcnt_up
+		FROM
+			lora_downstream_messages
+		WHERE
+			device_eui = $1 AND sent_time = 0
 		ORDER BY
 			created_time
 		LIMIT 100
@@ -205,35 +216,16 @@ func (s *Storage) CreateDownstreamMessage(deviceEUI protocol.EUI, message model.
 			message.Ack,
 			message.CreatedTime,
 			message.SentTime,
-			message.AckTime)
+			message.AckTime,
+			message.FCntUp)
 	})
 }
 
 // DeleteDownstreamMessage deletes a downstream message
-func (s *Storage) DeleteDownstreamMessage(deviceEUI protocol.EUI) error {
+func (s *Storage) DeleteDownstreamMessage(deviceEUI protocol.EUI, createdTime int64) error {
 	return s.doSQLExec(s.dataStmt.deleteDownstream, func(st *sql.Stmt) (sql.Result, error) {
-		return st.Exec(deviceEUI.String())
+		return st.Exec(deviceEUI.String(), createdTime)
 	})
-}
-
-// GetNextDownstreamMessage returns a downstream message
-func (s *Storage) GetNextDownstreamMessage(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
-	ret := model.NewDownstreamMessage(deviceEUI, 0)
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	rows, err := s.dataStmt.listDownstream.Query(deviceEUI.String())
-	if err != nil {
-		return ret, fmt.Errorf("unable to query for downstream message: %v", err)
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return ret, ErrNotFound
-	}
-	if err := rows.Scan(&ret.Data, &ret.Port, &ret.Ack, &ret.CreatedTime, &ret.SentTime, &ret.AckTime); err != nil {
-		return ret, fmt.Errorf("unable to read fields from downstream result: %v", err)
-	}
-	return ret, nil
 }
 
 // ListDownstreamMessages lists the scheduled downstream messages for a device
@@ -252,7 +244,7 @@ func (s *Storage) ListDownstreamMessages(deviceEUI protocol.EUI) ([]model.Downst
 		dm := model.DownstreamMessage{
 			DeviceEUI: deviceEUI,
 		}
-		if err := rows.Scan(&dm.Data, &dm.Port, &dm.Ack, &dm.CreatedTime, &dm.SentTime, &dm.AckTime); err != nil {
+		if err := rows.Scan(&dm.Data, &dm.Port, &dm.Ack, &dm.CreatedTime, &dm.SentTime, &dm.AckTime, &dm.FCntUp); err != nil {
 			return ret, fmt.Errorf("unable to read fields from downstream result: %v", err)
 		}
 		ret = append(ret, dm)
@@ -260,12 +252,82 @@ func (s *Storage) ListDownstreamMessages(deviceEUI protocol.EUI) ([]model.Downst
 	return ret, nil
 }
 
-// UpdateDownstreamMessage updates a downstream message
-func (s *Storage) UpdateDownstreamMessage(deviceEUI protocol.EUI, sentTime int64, ackTime int64) error {
-	return s.doSQLExec(s.dataStmt.updateDownstream, func(st *sql.Stmt) (sql.Result, error) {
-		return st.Exec(
-			sentTime,
-			ackTime,
-			deviceEUI.String())
-	})
+func (s *Storage) GetNextUnsentMessage(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
+	var ret model.DownstreamMessage
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	rows, err := s.dataStmt.listUnsentDownstream.Query(deviceEUI.String())
+	if err != nil {
+		return ret, fmt.Errorf("unable to query for downstream message: %v", err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		ret.DeviceEUI = deviceEUI
+		if err := rows.Scan(&ret.Data, &ret.Port, &ret.Ack, &ret.CreatedTime, &ret.SentTime, &ret.AckTime, &ret.FCntUp); err != nil {
+			return ret, fmt.Errorf("unable to read fields from downstream result: %v", err)
+		}
+		return ret, nil
+	}
+	return ret, ErrNotFound
+}
+
+func (s *Storage) SetMessageSentTime(deviceEUI protocol.EUI, createdTime int64, sentTime int64, frameCounterUp uint16) error {
+	res, err := s.db.Exec(`
+		UPDATE 
+			lora_downstream_messages
+		SET
+			sent_time = $1,
+			fcnt_up = $2
+		WHERE
+			device_eui = $3 AND created_time = $4
+	`, sentTime, frameCounterUp, deviceEUI.String(), createdTime)
+	if err != nil {
+		return err
+	}
+	cnt, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if cnt == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *Storage) UpdateMessageAckTime(deviceEUI protocol.EUI, frameCounterUp uint16, ackTime int64) error {
+	res, err := s.db.Exec(`
+		UPDATE 
+			lora_downstream_messages
+		SET
+			ack_time = $1
+		WHERE
+			device_eui = $2 AND fcnt_up = $3 AND sent_time > 0 AND ack_time = 0
+	`, ackTime, deviceEUI.String(), frameCounterUp)
+	if err != nil {
+		return err
+	}
+	cnt, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if cnt == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *Storage) ResetActiveAcks(deviceEUI protocol.EUI) error {
+	_, err := s.db.Exec(`
+		UPDATE 
+			lora_downstream_messages
+		SET
+			sent_time = 0,
+			fcnt_up = 0
+		WHERE
+			device_eui = $1 AND sent_time > 0 AND ack_time = 0 AND ack = 1
+	`, deviceEUI.String())
+
+	return err
 }

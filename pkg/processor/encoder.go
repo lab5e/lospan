@@ -70,9 +70,14 @@ func (e *Encoder) processMessage(packet server.LoRaMessage) {
 			return
 		}
 
-		// Update the sent time for the message
-		sentTime := time.Now().Unix()
-		if err := e.context.Storage.UpdateDownstreamMessage(packet.FrameContext.Device.DeviceEUI, sentTime, 0); err != nil && err != storage.ErrNotFound {
+		// Update the sent state for the device. The message might be confirmed or unconfirmed at this point
+		// but we don't care. We just send it and set the sent time. The downstream frame counter is updated
+		// at this time so it will refer to the current frame counter
+		if err := e.context.Storage.SetMessageSentTime(
+			packet.FrameContext.Device.DeviceEUI,
+			packet.FrameContext.PayloadCreate,
+			time.Now().UnixNano(),
+			packet.FrameContext.Device.FCntUp); err != nil && err != storage.ErrNotFound {
 			lg.Warning("Unable to update downstream message for device %s: %v", packet.FrameContext.Device.DeviceEUI, err)
 		}
 

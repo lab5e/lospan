@@ -30,11 +30,12 @@ type DownstreamMessage struct {
 	CreatedTime int64
 	SentTime    int64
 	AckTime     int64
+	FCntUp      uint16
 }
 
 // NewDownstreamMessage creates a new DownstreamMessage
 func NewDownstreamMessage(deviceEUI protocol.EUI, port uint8) DownstreamMessage {
-	return DownstreamMessage{deviceEUI, "", port, false, time.Now().Unix(), 0, 0}
+	return DownstreamMessage{deviceEUI, "", port, false, time.Now().Unix(), 0, 0, 0}
 }
 
 // State returns the message's state based on the value of the time stamps

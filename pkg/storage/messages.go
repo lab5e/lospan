@@ -252,6 +252,7 @@ func (s *Storage) ListDownstreamMessages(deviceEUI protocol.EUI) ([]model.Downst
 	return ret, nil
 }
 
+// GetNextUnsentMessage returns the oldest unsent message from the store
 func (s *Storage) GetNextUnsentMessage(deviceEUI protocol.EUI) (model.DownstreamMessage, error) {
 	var ret model.DownstreamMessage
 
@@ -273,6 +274,7 @@ func (s *Storage) GetNextUnsentMessage(deviceEUI protocol.EUI) (model.Downstream
 	return ret, ErrNotFound
 }
 
+// SetMessageSentTime sets the sent time and frame counter fields for a message in the store.
 func (s *Storage) SetMessageSentTime(deviceEUI protocol.EUI, createdTime int64, sentTime int64, frameCounterUp uint16) error {
 	res, err := s.db.Exec(`
 		UPDATE 
@@ -296,6 +298,7 @@ func (s *Storage) SetMessageSentTime(deviceEUI protocol.EUI, createdTime int64, 
 	return nil
 }
 
+// UpdateMessageAckTime sets the ack time field in the store.
 func (s *Storage) UpdateMessageAckTime(deviceEUI protocol.EUI, frameCounterUp uint16, ackTime int64) error {
 	res, err := s.db.Exec(`
 		UPDATE 
@@ -318,6 +321,7 @@ func (s *Storage) UpdateMessageAckTime(deviceEUI protocol.EUI, frameCounterUp ui
 	return nil
 }
 
+// ResetActiveAcks resets all active acks for a device in the store
 func (s *Storage) ResetActiveAcks(deviceEUI protocol.EUI) error {
 	_, err := s.db.Exec(`
 		UPDATE 

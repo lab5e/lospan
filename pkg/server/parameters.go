@@ -17,6 +17,7 @@ type Parameters struct {
 	MA                   string `kong:"help='MA for key generator',default='00-00-00'"`
 	ConnectionString     string `kong:"help='SQLite connection string',default=':memory:'"`
 	DisableGatewayChecks bool   `kong:"help='Disable gateway IP address checking'"`
+	DisableNonceCheck    bool   `kong:"help='Disable nonce check for devices',default='false'"`
 }
 
 // NewDefaultConfig returns the default configuration. Note that this configuration

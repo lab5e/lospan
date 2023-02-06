@@ -39,10 +39,13 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 
 	// Check if DevNonce have been used by the device in an earlier request.
 	// If so the request should be ignored. [6.2.4].
-	if device.HasDevNonce(joinRequest.DevNonce) {
+	if !d.context.Config.DisableNonceCheck && device.HasDevNonce(joinRequest.DevNonce) {
 		lg.Warning("Device %s has already used nonce 0x%04x. Ignoring it.",
 			joinRequest.DevEUI, joinRequest.DevNonce)
 		return false
+	}
+	if d.context.Config.DisableGatewayChecks && device.HasDevNonce(joinRequest.DevNonce) {
+		lg.Warning("Device %s is re-using a nonce (0x%04x) but nonce checks are disabled", joinRequest.DevEUI, joinRequest.DevNonce)
 	}
 
 	// Retrieve the application
@@ -60,9 +63,11 @@ func (d *Decrypter) processJoinRequest(decoded server.LoRaMessage) bool {
 	// DevAddr is already assigned to the device. It is a function of the EUI.
 
 	// Update the device with new keys and DevNonce
-	if err := d.context.Storage.AddDevNonce(device, joinRequest.DevNonce); err != nil {
-		lg.Warning("Unable to update DevNonce on device with EUI: %s: %v",
-			device.DeviceEUI, err)
+	if !d.context.Config.DisableNonceCheck {
+		if err := d.context.Storage.AddDevNonce(device, joinRequest.DevNonce); err != nil {
+			lg.Warning("Unable to update DevNonce on device with EUI: %s: %v",
+				device.DeviceEUI, err)
+		}
 	}
 
 	// Generate app nonce, generate keys, store keys

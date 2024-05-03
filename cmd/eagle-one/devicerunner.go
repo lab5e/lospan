@@ -111,7 +111,7 @@ func (b *DeviceRunner) launchDevice(device *lospan.Device, wg *sync.WaitGroup) {
 		if err := remoteDevice.SendMessageWithGenerator(generator); err != nil {
 			lg.Warning("Device %s got error sending message #%d", device.GetEui(), i)
 		}
-		lg.Debug("Device %s has sent message %d of %d", device.GetEui(), i, b.Config.DeviceMessages)
+		lg.Debug("Device %s has sent message %d of %d", device.GetEui(), i+1, b.Config.DeviceMessages)
 	}
 	lg.Info("Device %s has completed", device.GetEui())
 }
